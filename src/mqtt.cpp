@@ -102,7 +102,7 @@ namespace mqtt {
     sprintf(buf, "CO2Monitor-%u-%x", config.deviceId, ESP.getEfuseMac());
     while (!mqtt_client.connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
-      if (mqtt_client.connect(buf)) {
+      if (mqtt_client.connect(buf), config.mqttUsername, config.mqttPassword) {
         ESP_LOGD(TAG, "MQTT connected");
         sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
         mqtt_client.subscribe(buf);

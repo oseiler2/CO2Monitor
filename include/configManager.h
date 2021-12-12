@@ -1,6 +1,8 @@
 #ifndef _CONFIG_MANAGER_H
 #define _CONFIG_MANAGER_H
 
+#define MQTT_USERNAME_LEN 20
+#define MQTT_PASSWORD_LEN 20
 #define MQTT_HOSTNAME_LEN 30
 #define MQTT_TOPIC_ID_LEN 20
 #define SSID_LEN 20
@@ -15,6 +17,8 @@
 struct Config {
   uint16_t deviceId;
   char mqttTopic[MQTT_TOPIC_ID_LEN + 1];
+  char mqttUsername[MQTT_USERNAME_LEN + 1];
+  char mqttPassword[MQTT_PASSWORD_LEN + 1];
   char mqttHost[MQTT_HOSTNAME_LEN + 1];
   uint16_t mqttServerPort;
   uint16_t altitude;

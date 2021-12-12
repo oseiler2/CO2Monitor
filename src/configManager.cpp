@@ -15,6 +15,8 @@ Config config;
 {
   "deviceId": 65535,
   "mqttTopic": "123456789112345678921",
+  "mqttUsername": "123456789112345678921",
+  "mqttPassword": "123456789112345678921",
   "mqttHost": "1234567891123456789212345678931",
   "mqttServerPort": 65535,
   "altitude": 12345,
@@ -37,10 +39,14 @@ void setupConfigManager() {
 
 #define DEFAULT_MQTT_TOPIC "co2monitor"
 #define DEFAULT_MQTT_HOST "127.0.0.1"
+#define DEFAULT_MQTT_USERNAME "co2monitor"
+#define DEFAULT_MQTT_PASSWORD "co2monitor"
 
 void getDefaultConfiguration(Config& config) {
   config.deviceId = 0;
   strlcpy(config.mqttTopic, DEFAULT_MQTT_TOPIC, sizeof(DEFAULT_MQTT_TOPIC));
+  strlcpy(config.mqttUsername, DEFAULT_MQTT_USERNAME, sizeof(DEFAULT_MQTT_USERNAME));
+  strlcpy(config.mqttPassword, DEFAULT_MQTT_PASSWORD, sizeof(DEFAULT_MQTT_PASSWORD));
   strlcpy(config.mqttHost, DEFAULT_MQTT_HOST, sizeof(DEFAULT_MQTT_HOST));
   config.mqttServerPort = 1883;
   config.altitude = 5;
@@ -52,6 +58,8 @@ void getDefaultConfiguration(Config& config) {
 void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "deviceId: %u", config.deviceId);
   ESP_LOGD(TAG, "mqttTopic: %s", config.mqttTopic);
+  ESP_LOGD(TAG, "mqttUsername: %s", config.mqttUsername);
+  ESP_LOGD(TAG, "mqttPassword: %s", config.mqttPassword);
   ESP_LOGD(TAG, "mqttHost: %s", config.mqttHost);
   ESP_LOGD(TAG, "mqttPort: %u", config.mqttServerPort);
   ESP_LOGD(TAG, "altitude: %u", config.altitude);
@@ -80,12 +88,18 @@ boolean loadConfiguration(Config& config) {
 
   // Copy values from the JsonDocument to the Config
   config.deviceId = doc["deviceId"] | 0;
-  strlcpy(config.mqttTopic,                 // <- destination
-    doc["mqttTopic"] | DEFAULT_MQTT_TOPIC,  // <- source
-    sizeof(config.mqttTopic));              // <- destination's capacity
-  strlcpy(config.mqttHost,                  // <- destination
-    doc["mqttHost"] | DEFAULT_MQTT_HOST,    // <- source
-    sizeof(config.mqttHost));               // <- destination's capacity
+  strlcpy(config.mqttTopic,
+    doc["mqttTopic"] | DEFAULT_MQTT_TOPIC,
+    sizeof(config.mqttTopic));
+  strlcpy(config.mqttUsername,
+    doc["mqttUsername"] | DEFAULT_MQTT_USERNAME,
+    sizeof(config.mqttUsername));
+  strlcpy(config.mqttPassword,
+    doc["mqttPassword"] | DEFAULT_MQTT_PASSWORD,
+    sizeof(config.mqttPassword));
+  strlcpy(config.mqttHost,
+    doc["mqttHost"] | DEFAULT_MQTT_HOST,
+    sizeof(config.mqttHost));
   config.mqttServerPort = doc["mqttServerPort"] | 1883;
   config.altitude = doc["altitude"] | 5;
   config.yellowThreshold = doc["yellowThreshold"] | 1000;
@@ -118,6 +132,8 @@ boolean saveConfiguration(const Config& config) {
   // Set the values in the document
   doc["deviceId"] = config.deviceId;
   doc["mqttTopic"] = config.mqttTopic;
+  doc["mqttUsername"] = config.mqttUsername;
+  doc["mqttPassword"] = config.mqttPassword;
   doc["mqttHost"] = config.mqttHost;
   doc["mqttServerPort"] = config.mqttServerPort;
   doc["altitude"] = config.altitude;
