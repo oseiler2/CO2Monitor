@@ -44,12 +44,13 @@ namespace mqtt {
   void publishConfigurationInternal() {
     char buf[256];
     char msg[256];
-    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,\"mac\":\"%s\"}",
+    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,\"mac\":\"%s\",\"ip\":\"%s\"}",
       config.altitude,
       config.yellowThreshold,
       config.redThreshold,
       config.darkRedThreshold,
-      String((uint32_t)ESP.getEfuseMac(), HEX).c_str());
+      String((uint32_t)ESP.getEfuseMac(), HEX).c_str(),
+      WiFi.localIP().toString().c_str());
     sprintf(buf, "%s/%u/up/config", config.mqttTopic, config.deviceId);
     ESP_LOGI(TAG, "Publishing cofiguration: %s", msg);
     mqtt_client.publish(buf, msg);
