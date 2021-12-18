@@ -16,6 +16,9 @@
 //#define NEOPIXEL_PIN          4
 //#define NEOPIXEL_NUM          8
 
+//#define FEATHER_MATRIX_DATAPIN    27
+//#define FEATHER_MATRIX_CLOCKPIN   13
+
 #define I2C_CLK 50000     // SCD30 recommendation of 50kHz
 
 static const char* CONFIG_FILENAME = "/config.json";

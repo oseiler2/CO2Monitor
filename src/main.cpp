@@ -12,6 +12,7 @@
 #include <lcd.h>
 #include <trafficLight.h>
 #include <neopixel.h>
+#include <featherMatrix.h>
 #include <bme680.h>
 #include <i2c.h>
 #include <wifiManager.h>
@@ -20,6 +21,7 @@ Model* model;
 LCD* lcd;
 TrafficLight* trafficLight;
 Neopixel* neopixel;
+FeatherMatrix* featherMatrix;
 SCD30* scd30;
 SCD40* scd40;
 BME680* bme680;
@@ -37,6 +39,7 @@ void modelUpdatedEvt() {
   if (lcd) lcd->update();
   if (trafficLight) trafficLight->update();
   if (neopixel) neopixel->update();
+  if (featherMatrix) featherMatrix->update();
   mqtt::publishSensors();
 }
 
@@ -102,6 +105,10 @@ void setup() {
 
 #if defined(NEOPIXEL_PIN) && defined(NEOPIXEL_NUM)
   neopixel = new Neopixel(model, NEOPIXEL_PIN, NEOPIXEL_NUM);
+#endif
+
+#if defined(FEATHER_MATRIX_DATAPIN) && defined(FEATHER_MATRIX_CLOCKPIN)
+  featherMatrix = new FeatherMatrix(model);
 #endif
 
   mqtt::setupMqtt(model, calibrateCo2SensorCallback);
