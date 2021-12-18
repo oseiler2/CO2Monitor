@@ -25,12 +25,13 @@
 
 FeatherMatrix::FeatherMatrix(Model* _model) {
   this->model = _model;
+#if defined(FEATHER_MATRIX_DATAPIN) && defined(FEATHER_MATRIX_CLOCKPIN)
   this->matrix = new Adafruit_DotStarMatrix(
     12, 6, FEATHER_MATRIX_DATAPIN, FEATHER_MATRIX_CLOCKPIN,
     DS_MATRIX_BOTTOM + DS_MATRIX_LEFT +
     DS_MATRIX_ROWS + DS_MATRIX_PROGRESSIVE,
     DOTSTAR_BGR);
-
+#endif
   matrix->begin();
   matrix->setFont(&TomThumb);
   matrix->setTextWrap(false);
