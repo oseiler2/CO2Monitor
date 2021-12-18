@@ -28,6 +28,9 @@ private:
 
 
   void checkIaqSensorStatus();
+  void loadState(void);
+  void updateState(void);
+
 };
 
 #endif

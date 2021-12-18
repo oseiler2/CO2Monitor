@@ -5,10 +5,74 @@
 
 #include <i2c.h>
 #include <configManager.h>
+#include <EEPROM.h>
 
 const uint8_t bsec_config_iaq[] = {
 #include "config/generic_33v_3s_4d/bsec_iaq.txt"
 };
+
+#define STATE_SAVE_PERIOD	UINT32_C(360 * 60 * 1000) // 360 minutes - 4 times a day
+
+uint8_t bsecState[BSEC_MAX_STATE_BLOB_SIZE] = { 0 };
+uint16_t stateUpdateCounter = 0;
+
+const float SAMPLE_RATE = BSEC_SAMPLE_RATE_LP;
+
+void BME680::loadState(void) {
+  if (EEPROM.read(0) == BSEC_MAX_STATE_BLOB_SIZE) {
+
+    ESP_LOGD(TAG, "Reading state from EEPROM");
+
+    for (uint8_t i = 0; i < BSEC_MAX_STATE_BLOB_SIZE; i++) {
+      bsecState[i] = EEPROM.read(i + 1);
+      //      Serial.println(bsecState[i], HEX);
+    }
+
+    bme680->setState(bsecState);
+    checkIaqSensorStatus();
+  } else {
+    // Erase the EEPROM with zeroes
+    ESP_LOGD(TAG, "Erasing EEPROM");
+
+    for (uint8_t i = 0; i < BSEC_MAX_STATE_BLOB_SIZE + 1; i++)
+      EEPROM.write(i, 0);
+
+    EEPROM.commit();
+  }
+}
+
+void BME680::updateState(void) {
+  bool update = false;
+  /* Set a trigger to save the state. Here, the state is saved every STATE_SAVE_PERIOD with the first state being saved once the algorithm achieves full calibration, i.e. iaqAccuracy = 3 */
+  if (stateUpdateCounter == 0) {
+    if (bme680->iaqAccuracy >= 3) {
+      update = true;
+      stateUpdateCounter++;
+    }
+  } else {
+    /* Update every STATE_SAVE_PERIOD milliseconds */
+    if ((stateUpdateCounter * STATE_SAVE_PERIOD) < millis()) {
+      update = true;
+      stateUpdateCounter++;
+    }
+  }
+
+  if (update) {
+    bme680->getState(bsecState);
+    checkIaqSensorStatus();
+
+    ESP_LOGD(TAG, "Writing state to EEPROM");
+
+    for (uint8_t i = 0; i < BSEC_MAX_STATE_BLOB_SIZE; i++) {
+      EEPROM.write(i + 1, bsecState[i]);
+      //      Serial.println(bsecState[i], HEX);
+    }
+
+    EEPROM.write(0, BSEC_MAX_STATE_BLOB_SIZE);
+    EEPROM.commit();
+  }
+}
+
 
 void BME680::checkIaqSensorStatus() {
   if (bme680->status != BSEC_OK) {
@@ -28,14 +92,13 @@ void BME680::checkIaqSensorStatus() {
   }
 }
 
-const float SAMPLE_RATE = BSEC_SAMPLE_RATE_CONTINUOUS;
-
 BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback) {
   this->model = _model;
   this->updateMessageCallback = _updateMessageCallback;
   this->bme680 = new Bsec();
   ESP_LOGD(TAG, "Initialising BME680");
 
+  EEPROM.begin(BSEC_MAX_STATE_BLOB_SIZE + 1); // 1st address for the length
   if (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY))) return;
 
   bme680->begin(BME680_I2C_ADDR_SECONDARY, *wire);
@@ -45,33 +108,28 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
   bme680->setConfig(bsec_config_iaq);
   checkIaqSensorStatus();
 
+  loadState();
+
   bsec_virtual_sensor_t sensorList[14] = {
-    BSEC_OUTPUT_IAQ,
-    BSEC_OUTPUT_STATIC_IAQ,
-    BSEC_OUTPUT_CO2_EQUIVALENT,
-    BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
-    BSEC_OUTPUT_RAW_TEMPERATURE,
-    BSEC_OUTPUT_RAW_PRESSURE,
-    BSEC_OUTPUT_RAW_HUMIDITY,
-    BSEC_OUTPUT_RAW_GAS,
-    BSEC_OUTPUT_STABILIZATION_STATUS,
-    BSEC_OUTPUT_RUN_IN_STATUS,
-    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
-    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
-    BSEC_OUTPUT_COMPENSATED_GAS,
-    BSEC_OUTPUT_GAS_PERCENTAGE,
+     BSEC_OUTPUT_IAQ,
+     BSEC_OUTPUT_RAW_TEMPERATURE,
+     BSEC_OUTPUT_RAW_PRESSURE,
+     BSEC_OUTPUT_RAW_HUMIDITY,
+     BSEC_OUTPUT_RAW_GAS,
+     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
+     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
+     BSEC_OUTPUT_STATIC_IAQ,  // <--
+     BSEC_OUTPUT_CO2_EQUIVALENT,
+     BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
+     BSEC_OUTPUT_STABILIZATION_STATUS,
+     BSEC_OUTPUT_RUN_IN_STATUS,
+     BSEC_OUTPUT_COMPENSATED_GAS,
+     BSEC_OUTPUT_GAS_PERCENTAGE,
   };
 
   bme680->updateSubscription(sensorList, 14, SAMPLE_RATE);
   checkIaqSensorStatus();
 
-  /*
-    bme680->setTemperatureOversampling(BME680_OS_8X);
-    bme680->setHumidityOversampling(BME680_OS_2X);
-    bme680->setPressureOversampling(BME680_OS_4X);
-    bme680->setIIRFilterSize(BME680_FILTER_SIZE_3);
-    bme680->setGasHeater(320, 150); // 320*C for 150 ms
-  */
   I2C::giveMutex();
   ESP_LOGD(TAG, "BME680 initialised");
 }
@@ -88,6 +146,7 @@ boolean BME680::readBme680() {
   boolean run = bme680->run();
   I2C::giveMutex();
   if (run) { // If new data is available
+    ESP_LOGD(TAG, "=========== ");
     ESP_LOGD(TAG, "Temperature: %.1f C (raw %.1f C)", bme680->temperature, bme680->rawTemperature);
     ESP_LOGD(TAG, "Humidity: %.1f %% (raw %.1f %%)", bme680->humidity, bme680->rawHumidity);
     ESP_LOGD(TAG, "Pressure: %.1f hPa", bme680->pressure / 100);
@@ -100,7 +159,12 @@ boolean BME680::readBme680() {
     ESP_LOGD(TAG, "Breath Voc equiv: %.1f, accuracy: %u", bme680->breathVocEquivalent, bme680->breathVocAccuracy);
     ESP_LOGD(TAG, "Run in status: %.1f, Stab status: %.1f", bme680->runInStatus, bme680->stabStatus);
     updateMessageCallback("");
+
+    if (bme680->runInStatus && bme680->iaqAccuracy >= 3) {
+
+    }
     //    model->updateModel(model->getCo2(), bme680->temperature, bme680->humidity);
+    updateState();
   } else {
     checkIaqSensorStatus();
     this->updateMessageCallback("");
