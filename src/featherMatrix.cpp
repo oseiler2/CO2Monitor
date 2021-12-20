@@ -23,15 +23,13 @@
 //   DOTSTAR_GBR  Pixels are wired for GBR bitstream (some older DotStars)
 //   DOTSTAR_BGR  Pixels are wired for BGR bitstream (APA102-2020 DotStars)
 
-FeatherMatrix::FeatherMatrix(Model* _model) {
+FeatherMatrix::FeatherMatrix(Model* _model, uint8_t dataPin, uint8_t clockPin) {
   this->model = _model;
-#if defined(FEATHER_MATRIX_DATAPIN) && defined(FEATHER_MATRIX_CLOCKPIN)
   this->matrix = new Adafruit_DotStarMatrix(
-    12, 6, FEATHER_MATRIX_DATAPIN, FEATHER_MATRIX_CLOCKPIN,
+    12, 6, dataPin, clockPin,
     DS_MATRIX_BOTTOM + DS_MATRIX_LEFT +
     DS_MATRIX_ROWS + DS_MATRIX_PROGRESSIVE,
     DOTSTAR_BGR);
-#endif
   matrix->begin();
   matrix->setFont(&TomThumb);
   matrix->setTextWrap(false);
@@ -44,6 +42,9 @@ FeatherMatrix::FeatherMatrix(Model* _model) {
   }
   matrix->fillScreen(0);
   matrix->show();
+
+  cyclicTimer = new Ticker();
+  cyclicTimer->attach(0.5, +[](FeatherMatrix* instance) { instance->timer(); }, this);
 }
 
 FeatherMatrix::~FeatherMatrix() {
@@ -62,10 +63,37 @@ void FeatherMatrix::update() {
   }
   matrix->fillScreen(0);
   matrix->setCursor(0, 5);
+  scrollPosition = 0;
   if (model->getCo2() == 0) {
-    matrix->print("----");
+    strcpy(txt, "----");
   } else {
-    matrix->printf("%u", model->getCo2());
+    sprintf(txt, "%u", model->getCo2());
   }
+
+  int16_t x1, y1 = 0;
+  uint16_t h = 0;
+
+  matrix->getTextBounds(txt, 0, 0, &x1, &y1, &textWidth, &h);
+  scrollWidth = textWidth - matrix->width();
+  if (scrollWidth > 0) {
+    scrollWidth += 2;
+  }
+
+  matrix->print(txt);
+  matrix->show();
+}
+
+
+void FeatherMatrix::timer() {
+  matrix->fillScreen(0);
+
+  if (scrollWidth <= 0) return;
+
+  if (scrollPosition == 0) scrollDirection = -1;
+  else  if (scrollPosition == -scrollWidth) scrollDirection = 1;
+  scrollPosition += scrollDirection;
+
+  matrix->setCursor(scrollPosition + (scrollWidth > 0 ? 1 : 0), 5);
+  matrix->print(txt);
   matrix->show();
 }

@@ -108,7 +108,7 @@ void setup() {
 #endif
 
 #if defined(FEATHER_MATRIX_DATAPIN) && defined(FEATHER_MATRIX_CLOCKPIN)
-  featherMatrix = new FeatherMatrix(model);
+  featherMatrix = new FeatherMatrix(model, FEATHER_MATRIX_DATAPIN, FEATHER_MATRIX_CLOCKPIN);
 #endif
 
   mqtt::setupMqtt(model, calibrateCo2SensorCallback);
