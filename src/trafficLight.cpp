@@ -9,24 +9,52 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
   this->pinGreen = _pinGreen;
   cyclicTimer = new Ticker();
   // https://arduino.stackexchange.com/questions/81123/using-lambdas-as-callback-functions
-//  cyclicTimer->attach<typeof this>(1, [](typeof this p) { p->timer(); },
+  //  cyclicTimer->attach<typeof this>(1, [](typeof this p) { p->timer(); },
   //  this);
 
-// https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
+  // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
   cyclicTimer->attach(0.3, +[](TrafficLight* instance) { instance->timer(); }, this);
 
+
+  /*
+  CLK src         max freq  max res
+  80 MHz APB_CLK    1 KHz   16 bit
+  80 MHz APB_CLK    5 KHz   14 bit
+  80 MHz APB_CLK   10 KHz   13 bit
+  8 MHz RTC8M_CLK   1 KHz   13 bit
+  8 MHz RTC8M_CLK   8 KHz   10 bit
+  1 MHz REF_TICK    1 KHz   10 bit
+  */
+
+#define pwmFreq           10000
+#define pwmChannelRed     0
+#define pwmChannelYellow  1
+#define pwmChannelGreen   2
+#define pwmResolution     8
+#define pwmMax            20
+
+  ledcSetup(pwmChannelRed, pwmFreq, pwmResolution);
+  ledcSetup(pwmChannelYellow, pwmFreq, pwmResolution);
+  ledcSetup(pwmChannelGreen, pwmFreq, pwmResolution);
+  ledcAttachPin(pinRed, pwmChannelRed);
+  ledcAttachPin(pinYellow, pwmChannelYellow);
+  ledcAttachPin(pinGreen, pwmChannelGreen);
+  ledcWrite(pwmChannelRed, 0);
+  ledcWrite(pwmChannelYellow, 0);
+  ledcWrite(pwmChannelGreen, 0);
+
   pinMode(pinRed, OUTPUT);
-  digitalWrite(pinRed, HIGH);
+  ledcWrite(pwmChannelRed, pwmMax);
   delay(500);
   pinMode(pinYellow, OUTPUT);
-  digitalWrite(pinYellow, HIGH);
+  ledcWrite(pwmChannelYellow, pwmMax);
   delay(500);
   pinMode(pinGreen, OUTPUT);
-  digitalWrite(pinGreen, HIGH);
+  ledcWrite(pwmChannelGreen, pwmMax);
   delay(500);
-  digitalWrite(pinRed, LOW);
-  digitalWrite(pinGreen, LOW);
-  digitalWrite(pinYellow, LOW);
+  ledcWrite(pwmChannelRed, 0);
+  ledcWrite(pwmChannelYellow, 0);
+  ledcWrite(pwmChannelGreen, 0);
   delay(500);
   this->status = UNDEFINED;
 }
@@ -47,30 +75,33 @@ void TrafficLight::update() {
   }
 
   if (this->status == GREEN) {
-    digitalWrite(pinRed, LOW);
-    digitalWrite(pinYellow, LOW);
-    digitalWrite(pinGreen, HIGH);
+    ledcWrite(pwmChannelRed, 0);
+    ledcWrite(pwmChannelYellow, 0);
+    ledcWrite(pwmChannelGreen, pwmMax);
   } else if (this->status == YELLOW) {
-    digitalWrite(pinRed, LOW);
-    digitalWrite(pinYellow, HIGH);
-    digitalWrite(pinGreen, LOW);
+    ledcWrite(pwmChannelRed, 0);
+    ledcWrite(pwmChannelYellow, pwmMax);
+    ledcWrite(pwmChannelGreen, 0);
   } else if (this->status == RED) {
-    digitalWrite(pinRed, HIGH);
-    digitalWrite(pinYellow, LOW);
-    digitalWrite(pinGreen, LOW);
+    ledcWrite(pwmChannelRed, pwmMax);
+    ledcWrite(pwmChannelYellow, 0);
+    ledcWrite(pwmChannelGreen, 0);
   } else if (this->status == DARK_RED) {
-    digitalWrite(pinRed, HIGH);
-    digitalWrite(pinYellow, LOW);
-    digitalWrite(pinGreen, LOW);
+    ledcWrite(pwmChannelRed, pwmMax);
+    ledcWrite(pwmChannelYellow, 0);
+    ledcWrite(pwmChannelGreen, 0);
   } else {
-    digitalWrite(pinRed, LOW);
-    digitalWrite(pinYellow, LOW);
-    digitalWrite(pinGreen, LOW);
+    ledcWrite(pwmChannelRed, 0);
+    ledcWrite(pwmChannelYellow, 0);
+    ledcWrite(pwmChannelGreen, 0);
   }
 }
 
 void TrafficLight::timer() {
   if (this->status == DARK_RED) {
-    digitalWrite(pinRed, !digitalRead(pinRed));
+    if (ledcRead(pwmChannelRed) == 0)
+      ledcWrite(pwmChannelRed, pwmMax);
+    else
+      ledcWrite(pwmChannelRed, 0);
   }
 }
