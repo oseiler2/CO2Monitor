@@ -190,8 +190,6 @@ in `config.h` set
 #define SSD1306_HEIGHT  64
 ```
 
-# Neopixel
-
 ## RFM96
 
 This allows adding a LoRa modem when no WiFi is available to transmit measurements.
