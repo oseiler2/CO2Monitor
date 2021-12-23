@@ -38,26 +38,18 @@ void Neopixel::fill(uint32_t c) {
 }
 
 void Neopixel::update() {
-  if (model->getCo2() < config.yellowThreshold) {
+  if (model->getCo2() < config.yellowThreshold && this->status != GREEN) {
     this->status = GREEN;
-  } else if (model->getCo2() < config.redThreshold) {
-    this->status = YELLOW;
-  } else if (model->getCo2() < config.darkRedThreshold) {
-    this->status = RED;
-  } else {
-    this->status = DARK_RED;
-  }
-
-  if (this->status == GREEN) {
     fill(this->strip->Color(0, 255, 0)); // Green
-  } else if (this->status == YELLOW) {
+  } else if (model->getCo2() < config.redThreshold && this->status != YELLOW) {
+    this->status = YELLOW;
     fill(this->strip->Color(255, 255, 0)); // Yellow
-  } else if (this->status == RED) {
+  } else if (model->getCo2() < config.darkRedThreshold && this->status != RED) {
+    this->status = RED;
     fill(this->strip->Color(255, 0, 0)); // Red
-  } else if (this->status == DARK_RED) {
+  } else if (model->getCo2() >= config.darkRedThreshold && this->status != DARK_RED) {
+    this->status = DARK_RED;
     fill(this->strip->Color(255, 0, 0)); // Red
-  } else {
-    fill(this->strip->Color(0, 0, 0));
   }
 }
 
