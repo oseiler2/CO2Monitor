@@ -23,7 +23,14 @@ void setupWifi() {
 
   ESPAsync_WiFiManager ESPAsync_wifiManager(&webServer, &dnsServer, "CO2 Monitor");
 
-  ESPAsync_wifiManager.autoConnect(("CO2-Monitor" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str());
+  WiFi_AP_IPConfig  portalIPconfig;
+  portalIPconfig._ap_static_gw = IPAddress(192, 168, 100, 1);
+  portalIPconfig._ap_static_ip = IPAddress(192, 168, 100, 1);
+  portalIPconfig._ap_static_sn = IPAddress(255, 255, 255, 0);
+  ESPAsync_wifiManager.setAPStaticIPConfig(portalIPconfig);
+
+  ESP_LOGD(TAG, "SSID: %s", ("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str());
+  ESPAsync_wifiManager.autoConnect(("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str());
 }
 
 void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
@@ -100,6 +107,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
   ESPAsync_wifiManager.addParameter(&darkRedThresholdParam);
   ESPAsync_wifiManager.setSaveConfigCallback(saveConfigCallback);
 
+  ESP_LOGD(TAG, "SSID: %s", ("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str());
   ESPAsync_wifiManager.startConfigPortal(("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str(), "");
 
   ESP_LOGD(TAG, "deviceId: %s", deviceIdParam.getValue());
