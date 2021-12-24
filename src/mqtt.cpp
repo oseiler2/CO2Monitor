@@ -44,11 +44,12 @@ namespace mqtt {
   void publishConfigurationInternal() {
     char buf[256];
     char msg[256];
-    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,\"mac\":\"%s\",\"ip\":\"%s\"}",
+    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,\"ledPwm\":%u,\"mac\":\"%s\",\"ip\":\"%s\"}",
       config.altitude,
       config.yellowThreshold,
       config.redThreshold,
       config.darkRedThreshold,
+      config.ledPwm,
       String((uint32_t)ESP.getEfuseMac(), HEX).c_str(),
       WiFi.localIP().toString().c_str());
     sprintf(buf, "%s/%u/up/config", config.mqttTopic, config.deviceId);
@@ -87,6 +88,7 @@ namespace mqtt {
           if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
           if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
           if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
+          if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
           saveConfiguration(config);
         } else {
           sprintf(buf, "%s/%u/down/reboot", config.mqttTopic, config.deviceId);

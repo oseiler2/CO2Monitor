@@ -61,6 +61,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
   char yellowThreshold[5];
   char redThreshold[5];
   char darkRedThreshold[5];
+  char ledPwm[4];
 
   sprintf(deviceId, "%u", config.deviceId);
   sprintf(mqttTopic, "%s", config.mqttTopic);
@@ -72,6 +73,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
   sprintf(yellowThreshold, "%u", config.yellowThreshold);
   sprintf(redThreshold, "%u", config.redThreshold);
   sprintf(darkRedThreshold, "%u", config.darkRedThreshold);
+  sprintf(ledPwm, "%u", config.ledPwm);
 
   ESP_LOGD(TAG, "deviceId: %s", deviceId);
   ESP_LOGD(TAG, "mqttTopic: %s", mqttTopic);
@@ -83,6 +85,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
   ESP_LOGD(TAG, "yellowThreshold: %s", yellowThreshold);
   ESP_LOGD(TAG, "redThreshold: %s", redThreshold);
   ESP_LOGD(TAG, "darkRedThreshold: %s", darkRedThreshold);
+  ESP_LOGD(TAG, "ledPwm: %s", ledPwm);
 
   ESPAsync_WMParameter deviceIdParam("deviceId", "Device ID", deviceId, 5, "config.deviceId");
   ESPAsync_WMParameter mqttTopicParam("mqttTopic", "MQTT topic ", mqttTopic, MQTT_TOPIC_ID_LEN, config.mqttTopic);
@@ -94,6 +97,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
   ESPAsync_WMParameter yellowThresholdParam("yellowThreshold", "Yellow threshold ", yellowThreshold, 5, "config.yellowThreshold");
   ESPAsync_WMParameter redThresholdParam("redThreshold", "Red threshold ", redThreshold, 5, "config.redThreshold");
   ESPAsync_WMParameter darkRedThresholdParam("darkRedThreshold", "Dark red threshold ", darkRedThreshold, 5, "config.darkRedThreshold");
+  ESPAsync_WMParameter ledPwmParam("ledPwm", "LED brightness pwm ", ledPwm, 4, "config.ledPwm");
 
   ESPAsync_wifiManager.addParameter(&deviceIdParam);
   ESPAsync_wifiManager.addParameter(&mqttTopicParam);
@@ -105,6 +109,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
   ESPAsync_wifiManager.addParameter(&yellowThresholdParam);
   ESPAsync_wifiManager.addParameter(&redThresholdParam);
   ESPAsync_wifiManager.addParameter(&darkRedThresholdParam);
+  ESPAsync_wifiManager.addParameter(&ledPwmParam);
   ESPAsync_wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   ESP_LOGD(TAG, "SSID: %s", ("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str());
@@ -120,6 +125,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
   ESP_LOGD(TAG, "yellowThreshold: %s", yellowThresholdParam.getValue());
   ESP_LOGD(TAG, "redThreshold: %s", redThresholdParam.getValue());
   ESP_LOGD(TAG, "darkRedThreshold: %s", darkRedThresholdParam.getValue());
+  ESP_LOGD(TAG, "ledPwm: %s", ledPwmParam.getValue());
 
   ESP_LOGD(TAG, "safeConfigFlag: %u", safeConfigFlag);
 
@@ -134,6 +140,7 @@ void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
     config.yellowThreshold = (uint16_t)atoi(yellowThresholdParam.getValue());
     config.redThreshold = (uint16_t)atoi(redThresholdParam.getValue());
     config.darkRedThreshold = (uint16_t)atoi(darkRedThresholdParam.getValue());
+    config.ledPwm = (uint8_t)atoi(ledPwmParam.getValue());
     saveConfiguration(config);
     delay(1000);
     esp_restart();

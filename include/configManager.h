@@ -25,6 +25,7 @@ struct Config {
   uint16_t yellowThreshold;
   uint16_t redThreshold;
   uint16_t darkRedThreshold;
+  uint8_t ledPwm;
 };
 
 void setupConfigManager();

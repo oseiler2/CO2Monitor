@@ -22,7 +22,8 @@ Config config;
   "altitude": 12345,
   "yellowThreshold": 1000,
   "redThreshold": 1400,
-  "darkRedThreshold": 2000
+  "darkRedThreshold": 2000,
+  "ledPwm": 100
 }
 */
 #define CONFIG_SIZE 512
@@ -53,6 +54,7 @@ void getDefaultConfiguration(Config& config) {
   config.yellowThreshold = 1000;
   config.redThreshold = 1400;
   config.darkRedThreshold = 2000;
+  config.ledPwm = 100;
 }
 
 void logConfiguration(const Config& config) {
@@ -66,6 +68,7 @@ void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "yellowThreshold: %u", config.yellowThreshold);
   ESP_LOGD(TAG, "redThreshold: %u", config.redThreshold);
   ESP_LOGD(TAG, "darkRedThreshold: %u", config.darkRedThreshold);
+  ESP_LOGD(TAG, "ledPwm: %u", config.ledPwm);
 }
 
 boolean loadConfiguration(Config& config) {
@@ -105,6 +108,7 @@ boolean loadConfiguration(Config& config) {
   config.yellowThreshold = doc["yellowThreshold"] | 1000;
   config.redThreshold = doc["redThreshold"] | 1400;
   config.darkRedThreshold = doc["darkRedThreshold"] | 2000;
+  config.ledPwm = doc["ledPwm"] | 100;
 
   file.close();
   ESP_LOGD(TAG, "###################### loadConfiguration");
@@ -140,6 +144,7 @@ boolean saveConfiguration(const Config& config) {
   doc["yellowThreshold"] = config.yellowThreshold;
   doc["redThreshold"] = config.redThreshold;
   doc["darkRedThreshold"] = config.darkRedThreshold;
+  doc["ledPwm"] = config.ledPwm;
 
   // Serialize JSON to file
   if (serializeJson(doc, file) == 0) {

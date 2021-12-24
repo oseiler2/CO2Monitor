@@ -31,7 +31,6 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
 #define pwmChannelYellow  1
 #define pwmChannelGreen   2
 #define pwmResolution     8
-#define pwmMax            20
 
   ledcSetup(pwmChannelRed, pwmFreq, pwmResolution);
   ledcSetup(pwmChannelYellow, pwmFreq, pwmResolution);
@@ -44,13 +43,13 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
   ledcWrite(pwmChannelGreen, 0);
 
   pinMode(pinRed, OUTPUT);
-  ledcWrite(pwmChannelRed, pwmMax);
+  ledcWrite(pwmChannelRed, config.ledPwm);
   delay(500);
   pinMode(pinYellow, OUTPUT);
-  ledcWrite(pwmChannelYellow, pwmMax);
+  ledcWrite(pwmChannelYellow, config.ledPwm);
   delay(500);
   pinMode(pinGreen, OUTPUT);
-  ledcWrite(pwmChannelGreen, pwmMax);
+  ledcWrite(pwmChannelGreen, config.ledPwm);
   delay(500);
   ledcWrite(pwmChannelRed, 0);
   ledcWrite(pwmChannelYellow, 0);
@@ -68,20 +67,20 @@ void TrafficLight::update() {
     this->status = GREEN;
     ledcWrite(pwmChannelRed, 0);
     ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, pwmMax);
+    ledcWrite(pwmChannelGreen, config.ledPwm);
   } else if (model->getCo2() < config.redThreshold && this->status != YELLOW) {
     this->status = YELLOW;
     ledcWrite(pwmChannelRed, 0);
-    ledcWrite(pwmChannelYellow, pwmMax);
+    ledcWrite(pwmChannelYellow, config.ledPwm);
     ledcWrite(pwmChannelGreen, 0);
   } else if (model->getCo2() < config.darkRedThreshold && this->status != RED) {
     this->status = RED;
-    ledcWrite(pwmChannelRed, pwmMax);
+    ledcWrite(pwmChannelRed, config.ledPwm);
     ledcWrite(pwmChannelYellow, 0);
     ledcWrite(pwmChannelGreen, 0);
   } else if (model->getCo2() >= config.darkRedThreshold && this->status != DARK_RED) {
     this->status = DARK_RED;
-    ledcWrite(pwmChannelRed, pwmMax);
+    ledcWrite(pwmChannelRed, config.ledPwm);
     ledcWrite(pwmChannelYellow, 0);
     ledcWrite(pwmChannelGreen, 0);
   }
@@ -90,7 +89,7 @@ void TrafficLight::update() {
 void TrafficLight::timer() {
   if (this->status == DARK_RED) {
     if (ledcRead(pwmChannelRed) == 0)
-      ledcWrite(pwmChannelRed, pwmMax);
+      ledcWrite(pwmChannelRed, config.ledPwm);
     else
       ledcWrite(pwmChannelRed, 0);
   }
