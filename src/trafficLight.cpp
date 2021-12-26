@@ -63,26 +63,34 @@ TrafficLight::~TrafficLight() {
 }
 
 void TrafficLight::update() {
-  if (model->getCo2() < config.yellowThreshold && this->status != GREEN) {
-    this->status = GREEN;
-    ledcWrite(pwmChannelRed, 0);
-    ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, config.ledPwm);
-  } else if (model->getCo2() < config.redThreshold && this->status != YELLOW) {
-    this->status = YELLOW;
-    ledcWrite(pwmChannelRed, 0);
-    ledcWrite(pwmChannelYellow, config.ledPwm);
-    ledcWrite(pwmChannelGreen, 0);
-  } else if (model->getCo2() < config.darkRedThreshold && this->status != RED) {
-    this->status = RED;
-    ledcWrite(pwmChannelRed, config.ledPwm);
-    ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, 0);
-  } else if (model->getCo2() >= config.darkRedThreshold && this->status != DARK_RED) {
-    this->status = DARK_RED;
-    ledcWrite(pwmChannelRed, config.ledPwm);
-    ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, 0);
+  if (model->getCo2() < config.yellowThreshold) {
+    if (this->status != GREEN) {
+      this->status = GREEN;
+      ledcWrite(pwmChannelRed, 0);
+      ledcWrite(pwmChannelYellow, 0);
+      ledcWrite(pwmChannelGreen, config.ledPwm);
+    }
+  } else if (model->getCo2() < config.redThreshold) {
+    if (this->status != YELLOW) {
+      this->status = YELLOW;
+      ledcWrite(pwmChannelRed, 0);
+      ledcWrite(pwmChannelYellow, config.ledPwm);
+      ledcWrite(pwmChannelGreen, 0);
+    }
+  } else if (model->getCo2() < config.darkRedThreshold) {
+    if (this->status != RED) {
+      this->status = RED;
+      ledcWrite(pwmChannelRed, config.ledPwm);
+      ledcWrite(pwmChannelYellow, 0);
+      ledcWrite(pwmChannelGreen, 0);
+    }
+  } else if (model->getCo2() >= config.darkRedThreshold) {
+    if (this->status != DARK_RED) {
+      this->status = DARK_RED;
+      ledcWrite(pwmChannelRed, config.ledPwm);
+      ledcWrite(pwmChannelYellow, 0);
+      ledcWrite(pwmChannelGreen, 0);
+    }
   }
 }
 
