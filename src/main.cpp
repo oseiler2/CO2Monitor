@@ -13,6 +13,7 @@
 #include <trafficLight.h>
 #include <neopixel.h>
 #include <featherMatrix.h>
+#include <hub75.h>
 #include <bme680.h>
 #include <i2c.h>
 #include <wifiManager.h>
@@ -22,6 +23,7 @@ LCD* lcd;
 TrafficLight* trafficLight;
 Neopixel* neopixel;
 FeatherMatrix* featherMatrix;
+HUB75* hub75;
 SCD30* scd30;
 SCD40* scd40;
 BME680* bme680;
@@ -40,6 +42,7 @@ void modelUpdatedEvt() {
   if (trafficLight) trafficLight->update();
   if (neopixel) neopixel->update();
   if (featherMatrix) featherMatrix->update();
+  if (hub75) hub75->update();
   mqtt::publishSensors();
 }
 
@@ -109,6 +112,10 @@ void setup() {
 
 #if defined(FEATHER_MATRIX_DATAPIN) && defined(FEATHER_MATRIX_CLOCKPIN)
   featherMatrix = new FeatherMatrix(model, FEATHER_MATRIX_DATAPIN, FEATHER_MATRIX_CLOCKPIN);
+#endif
+
+#if defined(HUB75_R1) && defined(HUB75_G1) && defined(HUB75_B1) && defined(HUB75_R2) && defined(HUB75_G2) && defined(HUB75_B2) && defined(HUB75_CH_A) && defined(HUB75_CH_B) && defined(HUB75_CH_C) && defined(HUB75_CH_D) && defined(HUB75_CLK) && defined(HUB75_LAT) && defined(HUB75_OE)
+  hub75 = new HUB75(model);
 #endif
 
   mqtt::setupMqtt(model, calibrateCo2SensorCallback);
