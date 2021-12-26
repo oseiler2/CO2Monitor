@@ -101,7 +101,7 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
   EEPROM.begin(BSEC_MAX_STATE_BLOB_SIZE + 1); // 1st address for the length
   if (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY))) return;
 
-  bme680->begin(BME680_I2C_ADDR_SECONDARY, *wire);
+  bme680->begin(BME680_I2C_ADDR_PRIMARY, *wire);
 
   checkIaqSensorStatus();
 
