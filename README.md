@@ -46,8 +46,8 @@ Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its 
 ```
 {
   "altitude": 10,
-  "yellowThreshold": 1000,
-  "redThreshold": 1400,
+  "yellowThreshold": 800,
+  "redThreshold": 1000,
   "darkRedThreshold": 2000,
   "ledPwm": 255,
   "mac": "xxxxyyzz",
@@ -60,8 +60,8 @@ A message to `co2monitor/<id>/down/setConfig` will set the node's configuration 
 ```
 {
   "altitude": 10,
-  "yellowThreshold": 1000,
-  "redThreshold": 1400,
+  "yellowThreshold": 800,
+  "redThreshold": 1000,
   "darkRedThreshold": 2000,
   "ledPwm": 255
 }

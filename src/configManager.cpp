@@ -20,8 +20,8 @@ Config config;
   "mqttHost": "1234567891123456789212345678931",
   "mqttServerPort": 65535,
   "altitude": 12345,
-  "yellowThreshold": 1000,
-  "redThreshold": 1400,
+  "yellowThreshold": 800,
+  "redThreshold": 1000,
   "darkRedThreshold": 2000,
   "ledPwm": 100
 }
@@ -51,8 +51,8 @@ void getDefaultConfiguration(Config& config) {
   strlcpy(config.mqttHost, DEFAULT_MQTT_HOST, sizeof(DEFAULT_MQTT_HOST));
   config.mqttServerPort = 1883;
   config.altitude = 5;
-  config.yellowThreshold = 1000;
-  config.redThreshold = 1400;
+  config.yellowThreshold = 800;
+  config.redThreshold = 1000;
   config.darkRedThreshold = 2000;
   config.ledPwm = 100;
 }
@@ -105,8 +105,8 @@ boolean loadConfiguration(Config& config) {
     sizeof(config.mqttHost));
   config.mqttServerPort = doc["mqttServerPort"] | 1883;
   config.altitude = doc["altitude"] | 5;
-  config.yellowThreshold = doc["yellowThreshold"] | 1000;
-  config.redThreshold = doc["redThreshold"] | 1400;
+  config.yellowThreshold = doc["yellowThreshold"] | 800;
+  config.redThreshold = doc["redThreshold"] | 1000;
   config.darkRedThreshold = doc["darkRedThreshold"] | 2000;
   config.ledPwm = doc["ledPwm"] | 100;
 
