@@ -41,7 +41,7 @@ Sensors readings can be published via MQTT for centralise storage and visualitio
 ```
 
 Supports requesting and sending of node configuration via MQTT.
-Sending `co2monitor/<id>/down/requestconfig` will triger the node to reply with its current settings under `co2monitor/<id>/up/config`
+Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its current settings under `co2monitor/<id>/up/config`
 
 ```
 {
@@ -49,21 +49,31 @@ Sending `co2monitor/<id>/down/requestconfig` will triger the node to reply with 
   "yellowThreshold": 1000,
   "redThreshold": 1400,
   "darkRedThreshold": 2000,
+  "ledPwm": 255,
   "mac": "xxxxyyzz",
   "ip": "192.168.1.2"
 }
 ```
 
-A message to `co2monitor/<id>/down/setconfig` will set the node's configuration to the provided parameters:
+A message to `co2monitor/<id>/down/setConfig` will set the node's configuration to the provided parameters:
 
 ```
 {
   "altitude": 10,
   "yellowThreshold": 1000,
   "redThreshold": 1400,
-  "darkRedThreshold": 2000
+  "darkRedThreshold": 2000,
+  "ledPwm": 255
 }
 ```
+
+A message to `co2monitor/<id>/down/setTemperatureOffset` will set the SCD3x/SCD4x's temperature offset (float, °C):
+
+```
+7.0
+```
+
+A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
 
 ## Supported sensors
 

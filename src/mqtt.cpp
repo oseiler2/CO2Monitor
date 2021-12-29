@@ -23,6 +23,7 @@ namespace mqtt {
   Model* model;
 
   calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
+  setTemperatureOffsetCallback_t setTemperatureOffsetCallback;
 
   void publishSensors() {
     xTaskNotify(mqttTask, X_CMD_PUBLISH_SENSORS, eSetBits);
@@ -43,14 +44,18 @@ namespace mqtt {
 
   void publishConfigurationInternal() {
     char buf[256];
-    char msg[256];
-    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,\"ledPwm\":%u,\"mac\":\"%s\",\"ip\":\"%s\"}",
+    char msg[384];
+    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
       config.altitude,
       config.yellowThreshold,
       config.redThreshold,
       config.darkRedThreshold,
+      I2C::scd30Present() ? "\"scd30\":true," : "",
+      I2C::scd40Present() ? "\"scd40\":true," : "",
+      I2C::bme680Present() ? "\"bme680\":true," : "",
+      I2C::lcdPresent() ? "\"lcd\":true," : "",
       config.ledPwm,
-      String((uint32_t)ESP.getEfuseMac(), HEX).c_str(),
+      (uint32_t)ESP.getEfuseMac(),
       WiFi.localIP().toString().c_str());
     sprintf(buf, "%s/%u/up/config", config.mqttTopic, config.deviceId);
     ESP_LOGI(TAG, "Publishing cofiguration: %s", msg);
@@ -71,29 +76,36 @@ namespace mqtt {
         calibrateCo2SensorCallback(reference);
       }
     } else {
-      sprintf(buf, "%s/%u/down/requestconfig", config.mqttTopic, config.deviceId);
+      sprintf(buf, "%s/%u/down/setTemperatureOffset", config.mqttTopic, config.deviceId);
       if (strncmp(topic, buf, strlen(buf)) == 0) {
-        publishConfiguration();
+        float tempOffset = atof(msg);
+        if (-10.0 < tempOffset && tempOffset <= 10.0)
+          setTemperatureOffsetCallback(tempOffset);
       } else {
-        sprintf(buf, "%s/%u/down/setconfig", config.mqttTopic, config.deviceId);
+        sprintf(buf, "%s/%u/down/getConfig", config.mqttTopic, config.deviceId);
         if (strncmp(topic, buf, strlen(buf)) == 0) {
-          StaticJsonDocument<256> doc;
-
-          DeserializationError error = deserializeJson(doc, msg);
-          if (error) {
-            ESP_LOGW(TAG, "Failed to parse message: %s", error.f_str());
-            return;
-          }
-          if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
-          if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
-          if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
-          if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
-          if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
-          saveConfiguration(config);
+          publishConfiguration();
         } else {
-          sprintf(buf, "%s/%u/down/reboot", config.mqttTopic, config.deviceId);
+          sprintf(buf, "%s/%u/down/setConfig", config.mqttTopic, config.deviceId);
           if (strncmp(topic, buf, strlen(buf)) == 0) {
-            esp_restart();
+            StaticJsonDocument<256> doc;
+
+            DeserializationError error = deserializeJson(doc, msg);
+            if (error) {
+              ESP_LOGW(TAG, "Failed to parse message: %s", error.f_str());
+              return;
+            }
+            if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
+            if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
+            if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
+            if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
+            if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
+            saveConfiguration(config);
+          } else {
+            sprintf(buf, "%s/%u/down/reboot", config.mqttTopic, config.deviceId);
+            if (strncmp(topic, buf, strlen(buf)) == 0) {
+              esp_restart();
+            }
           }
         }
       }
@@ -119,9 +131,10 @@ namespace mqtt {
     }
   }
 
-  void setupMqtt(Model* _model, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback) {
+  void setupMqtt(Model* _model, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback, setTemperatureOffsetCallback_t _setTemperatureOffsetCallback) {
     model = _model;
     calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
+    setTemperatureOffsetCallback = _setTemperatureOffsetCallback;
     IPAddress mqttHostIp;
 
     if (WiFi.hostByName(config.mqttHost, mqttHostIp)) {

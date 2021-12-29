@@ -33,6 +33,7 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
 
   vTaskDelay(pdMS_TO_TICKS(500));
+
   /*
     if (checkError(scd40->setTemperatureOffset(7.0f), "setTemperatureOffset")) {
       ESP_LOGD(TAG, "Temperature offset: %.1f", 7.0);
@@ -125,22 +126,66 @@ boolean SCD40::readScd40() {
 boolean SCD40::calibrateScd40ToReference(uint16_t co2Reference) {
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
-  I2C::giveMutex();
-  if (!success) return false;
-
+  if (!success) {
+    I2C::giveMutex();
+    ESP_LOGD(TAG, "failed to calibrateScd40ToReference");
+    return false;
+  }
   vTaskDelay(pdMS_TO_TICKS(500));
-
   uint16_t frcCorrection;
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   success = checkError(scd40->performForcedRecalibration(co2Reference, frcCorrection), "performForcedRecalibration");
-  I2C::giveMutex();
-  if (!success) return false;
+  if (!success) {
+    I2C::giveMutex();
+    ESP_LOGD(TAG, "failed to calibrateScd40ToReference");
+    return false;
+  }
   ESP_LOGD(TAG, "co2Reference: %u, frcCorrection %u", co2Reference, frcCorrection);
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   success = checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
   I2C::giveMutex();
-  if (!success) return false;
-  return true;
+  return success;
+}
+
+float SCD40::getTemperatureOffset() {
+  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
+  if (!success) {
+    I2C::giveMutex();
+    ESP_LOGD(TAG, "failed to getTemperatureOffset");
+    return false;
+  }
+  vTaskDelay(pdMS_TO_TICKS(500));
+  float temperatureOffset;
+  success = checkError(scd40->getTemperatureOffset(temperatureOffset), "getTemperatureOffset");
+  if (!success) {
+    I2C::giveMutex();
+    ESP_LOGD(TAG, "failed to getTemperatureOffset");
+    return false;
+  }
+  ESP_LOGD(TAG, "getTemperatureOffset: %.1f", temperatureOffset);
+  success = checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
+  I2C::giveMutex();
+  return temperatureOffset;
+}
+
+boolean SCD40::setTemperatureOffset(float temperatureOffset) {
+  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
+  if (!success) {
+    I2C::giveMutex();
+    ESP_LOGD(TAG, "failed to setTemperatureOffset");
+    return false;
+  }
+  vTaskDelay(pdMS_TO_TICKS(500));
+  success = checkError(scd40->setTemperatureOffset(temperatureOffset), "setTemperatureOffset");
+  if (!success) {
+    I2C::giveMutex();
+    ESP_LOGD(TAG, "failed to setTemperatureOffset");
+    return false;
+  }
+  ESP_LOGD(TAG, "setTemperatureOffset: %.1f", temperatureOffset);
+  success = checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
+  I2C::giveMutex();
+  return success;
 }
 
 TaskHandle_t SCD40::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {

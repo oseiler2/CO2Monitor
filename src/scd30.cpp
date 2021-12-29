@@ -52,11 +52,13 @@ SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   }
   ESP_LOGD(TAG, "Altitude offset: %u m", scd30->getAltitudeOffset());
 
-  retry = 0;
-  while (retry < MAX_RETRY && !scd30->setTemperatureOffset(430)) retry++;
-  if (retry >= MAX_RETRY) {
-    ESP_LOGW(TAG, "Failed to set temperature offset");
-  }
+  /*
+    retry = 0;
+    while (retry < MAX_RETRY && !scd30->setTemperatureOffset(430)) retry++;
+    if (retry >= MAX_RETRY) {
+      ESP_LOGW(TAG, "Failed to set temperature offset");
+    }
+  */
 
   ESP_LOGD(TAG, "Temperature offset: %.1f C", (float)scd30->getTemperatureOffset() / 100.0);
 
@@ -109,6 +111,24 @@ boolean SCD30::calibrateScd30ToReference(uint16_t co2Reference) {
   uint8_t retry = 0;
   while (retry++ < MAX_RETRY && !scd30->forceRecalibrationWithReference(co2Reference));
   ESP_LOGD(TAG, "co2Reference: %u, result %s", co2Reference, (retry < MAX_RETRY) ? "true" : "false");
+  I2C::giveMutex();
+  return (retry < MAX_RETRY);
+}
+
+float SCD30::getTemperatureOffset() {
+  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  float temperatureOffset = scd30->getTemperatureOffset() / 100.0;
+  ESP_LOGD(TAG, "Temperature offset: %.1f C", temperatureOffset);
+  I2C::giveMutex();
+  return temperatureOffset;
+}
+
+boolean SCD30::setTemperatureOffset(float temperatureOffset) {
+  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  uint8_t retry = 0;
+  while (retry < MAX_RETRY && !scd30->setTemperatureOffset(floor(temperatureOffset * 100))) retry++;
+  if (retry >= MAX_RETRY)
+    ESP_LOGW(TAG, "Failed to set temperature offset");
   I2C::giveMutex();
   return (retry < MAX_RETRY);
 }
