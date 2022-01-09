@@ -4,9 +4,11 @@
 #include <config.h>
 #include <ESPAsyncWebServer.h>
 
-extern AsyncWebServer webServer;
+namespace WifiManager {
+  extern AsyncWebServer webServer;
 
-void setupWifi();
-void startConfigPortal(updateMessageCallback_t updateMessageCallback);
+  void setupWifi();
+  void startConfigPortal(updateMessageCallback_t updateMessageCallback);
+}
 
 #endif

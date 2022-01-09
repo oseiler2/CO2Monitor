@@ -98,7 +98,7 @@ void setup() {
 
   I2C::initI2C();
 
-  setupWifi();
+  WifiManager::setupWifi();
 
   model = new Model(modelUpdatedEvt);
 
@@ -170,13 +170,14 @@ void setup() {
 void loop() {
 
   if ((digitalRead(TRIGGER_PIN) == LOW)) {
+    while (digitalRead(TRIGGER_PIN) == LOW);
     digitalWrite(LED_PIN, LOW);
-    startConfigPortal(updateMessage);
+    WifiManager::startConfigPortal(updateMessage);
   }
 
   if (WiFi.status() != WL_CONNECTED) {
     digitalWrite(LED_PIN, LOW);
-    setupWifi();
+    WifiManager::setupWifi();
   } else if (WiFi.status() == WL_CONNECTED) {
     digitalWrite(LED_PIN, HIGH);
   }
