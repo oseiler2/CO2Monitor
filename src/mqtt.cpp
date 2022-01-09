@@ -58,7 +58,7 @@ namespace mqtt {
       (uint32_t)ESP.getEfuseMac(),
       WiFi.localIP().toString().c_str());
     sprintf(buf, "%s/%u/up/config", config.mqttTopic, config.deviceId);
-    ESP_LOGI(TAG, "Publishing cofiguration: %s", msg);
+    ESP_LOGI(TAG, "Publishing configuration: %s", msg);
     mqtt_client.publish(buf, msg);
   }
 
@@ -69,46 +69,48 @@ namespace mqtt {
     msg[length] = 0x00;
     ESP_LOGI(TAG, "Message arrived [%s] %s", topic, msg);
 
-    sprintf(buf, "%s/%u/down/calibrate", config.mqttTopic, config.deviceId);
+    sprintf(buf, "%s/%u/down/", config.mqttTopic, config.deviceId);
+    int16_t cmdIdx = -1;
     if (strncmp(topic, buf, strlen(buf)) == 0) {
+      ESP_LOGI(TAG, "Device specific downlink message arrived [%s]", topic);
+      cmdIdx = strlen(buf);
+    }
+    sprintf(buf, "%s/down/", config.mqttTopic);
+    if (strncmp(topic, buf, strlen(buf)) == 0) {
+      ESP_LOGI(TAG, "Device agnostic downlink message arrived [%s]", topic);
+      cmdIdx = strlen(buf);
+    }
+    if (cmdIdx < 0) return;
+    strncpy(buf, topic + cmdIdx, strlen(topic) - cmdIdx + 1);
+    ESP_LOGI(TAG, "Received command [%s]", buf);
+
+    if (strncmp(buf, "calibrate", strlen(buf)) == 0) {
       int reference = atoi(msg);
       if (reference >= 400 && reference <= 2000) {
         calibrateCo2SensorCallback(reference);
       }
-    } else {
-      sprintf(buf, "%s/%u/down/setTemperatureOffset", config.mqttTopic, config.deviceId);
-      if (strncmp(topic, buf, strlen(buf)) == 0) {
-        float tempOffset = atof(msg);
-        if (-10.0 < tempOffset && tempOffset <= 10.0)
-          setTemperatureOffsetCallback(tempOffset);
-      } else {
-        sprintf(buf, "%s/%u/down/getConfig", config.mqttTopic, config.deviceId);
-        if (strncmp(topic, buf, strlen(buf)) == 0) {
-          publishConfiguration();
-        } else {
-          sprintf(buf, "%s/%u/down/setConfig", config.mqttTopic, config.deviceId);
-          if (strncmp(topic, buf, strlen(buf)) == 0) {
-            StaticJsonDocument<256> doc;
-
-            DeserializationError error = deserializeJson(doc, msg);
-            if (error) {
-              ESP_LOGW(TAG, "Failed to parse message: %s", error.f_str());
-              return;
-            }
-            if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
-            if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
-            if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
-            if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
-            if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
-            saveConfiguration(config);
-          } else {
-            sprintf(buf, "%s/%u/down/reboot", config.mqttTopic, config.deviceId);
-            if (strncmp(topic, buf, strlen(buf)) == 0) {
-              esp_restart();
-            }
-          }
-        }
+    } else if (strncmp(buf, "setTemperatureOffset", strlen(buf)) == 0) {
+      float tempOffset = atof(msg);
+      if (-10.0 < tempOffset && tempOffset <= 10.0) {
+        setTemperatureOffsetCallback(tempOffset);
       }
+    } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
+      publishConfiguration();
+    } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
+      StaticJsonDocument<256> doc;
+      DeserializationError error = deserializeJson(doc, msg);
+      if (error) {
+        ESP_LOGW(TAG, "Failed to parse message: %s", error.f_str());
+        return;
+      }
+      if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
+      if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
+      if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
+      if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
+      if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
+      saveConfiguration(config);
+    } else if (strncmp(buf, "reboot", strlen(buf)) == 0) {
+      esp_restart();
     }
   }
 
@@ -120,6 +122,8 @@ namespace mqtt {
       if (mqtt_client.connect(buf, config.mqttUsername, config.mqttPassword)) {
         ESP_LOGD(TAG, "MQTT connected");
         sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
+        mqtt_client.subscribe(buf);
+        sprintf(buf, "%s/down/#", config.mqttTopic);
         mqtt_client.subscribe(buf);
         sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
         mqtt_client.publish(buf, "{\"online\":true}");
