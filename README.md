@@ -22,7 +22,7 @@ The data collected by the sensors should be logged and made available for furthe
 
 Supports [ESPAsync WiFiManager](https://github.com/khoih-prog/ESPAsync_WiFiManager) to set up wireless credentials and further configuration.
 
-If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`
+If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`. A password can be configured in `ap_pw.h`.
 
 Once wifi credentials have been configured pressing the `Boot` button on the ESP32 puts the device in configuration mode:
 
@@ -30,7 +30,7 @@ Once wifi credentials have been configured pressing the `Boot` button on the ESP
 
 ## MQTT
 
-Sensors readings can be published via MQTT for centralise storage and visualition. Each node is configured with it's own id and will then publish under `co2monitor/<id>/up/sensors`. The top level topic `co2monitor` is configurable
+Sensor readings can be published via MQTT for centralised storage and visualition. Each node is configured with its own id and will then publish under `co2monitor/<id>/up/sensors`. The top level topic `co2monitor` is configurable. Downlink messages to nodes can be sent to each individual node using the id in the topic `co2monitor/<id>/down/<command>`, or to all nodes when omitting the id part `co2monitor/down/<command>`
 
 ```
 {
@@ -40,7 +40,6 @@ Sensors readings can be published via MQTT for centralise storage and visualitio
 }
 ```
 
-Supports requesting and sending of node configuration via MQTT.
 Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its current settings under `co2monitor/<id>/up/config`
 
 ```
@@ -88,6 +87,7 @@ A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
 - [Dot Star feather wing](https://www.adafruit.com/product/3449)
 - [Neopixel feather wing](https://www.adafruit.com/product/2945)
 - Neopixel strips
+- [HUB75 based RBG Matrix panels](https://www.adafruit.com/?q=RGB+LED+Matrix+Panel&sort=BestMatch)
 
 # Sensors
 
@@ -198,6 +198,26 @@ in `config.h` set
 
 ```
 #define SSD1306_HEIGHT  64
+```
+
+### [64x32 RBG Matrix panel](https://www.adafruit.com/?q=64x32+RGB+LED+Matrix&sort=BestMatch)
+
+in `config.h` set pin mappings as needed, e.g.
+
+```
+#define HUB75_R1 19
+#define HUB75_G1 18
+#define HUB75_B1 5
+#define HUB75_R2 17
+#define HUB75_G2 16
+#define HUB75_B2 4
+#define HUB75_CH_A 13
+#define HUB75_CH_B 12
+#define HUB75_CH_C 14
+#define HUB75_CH_D 27
+#define HUB75_CLK 26
+#define HUB75_LAT 25
+#define HUB75_OE 33
 ```
 
 ## RFM96
