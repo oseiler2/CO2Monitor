@@ -105,21 +105,18 @@ namespace WifiManager {
   }
 
   void updateConfiguration(ESPAsync_WiFiManager* wifiManager) {
-    ESP_LOGD(TAG, "deviceId: %s", deviceIdParam->getValue());
-    ESP_LOGD(TAG, "mqttTopic: %s", mqttTopicParam->getValue());
-    ESP_LOGD(TAG, "mqttUsername: %s", mqttUsernameParam->getValue());
-    ESP_LOGD(TAG, "mqttPassword: %s", mqttPasswordParam->getValue());
-    ESP_LOGD(TAG, "mqttHost: %s", mqttHostParam->getValue());
-    ESP_LOGD(TAG, "mqttPort: %s", mqttPortParam->getValue());
-    ESP_LOGD(TAG, "altitude: %s", altitudeParam->getValue());
-    ESP_LOGD(TAG, "yellowThreshold: %s", yellowThresholdParam->getValue());
-    ESP_LOGD(TAG, "redThreshold: %s", redThresholdParam->getValue());
-    ESP_LOGD(TAG, "darkRedThreshold: %s", darkRedThresholdParam->getValue());
-    ESP_LOGD(TAG, "ledPwm: %s", ledPwmParam->getValue());
-
-    ESP_LOGD(TAG, "safeConfigFlag: %u", safeConfigFlag);
-
     if (safeConfigFlag) {
+      ESP_LOGD(TAG, "deviceId: %s", deviceIdParam->getValue());
+      ESP_LOGD(TAG, "mqttTopic: %s", mqttTopicParam->getValue());
+      ESP_LOGD(TAG, "mqttUsername: %s", mqttUsernameParam->getValue());
+      ESP_LOGD(TAG, "mqttPassword: %s", mqttPasswordParam->getValue());
+      ESP_LOGD(TAG, "mqttHost: %s", mqttHostParam->getValue());
+      ESP_LOGD(TAG, "mqttPort: %s", mqttPortParam->getValue());
+      ESP_LOGD(TAG, "altitude: %s", altitudeParam->getValue());
+      ESP_LOGD(TAG, "yellowThreshold: %s", yellowThresholdParam->getValue());
+      ESP_LOGD(TAG, "redThreshold: %s", redThresholdParam->getValue());
+      ESP_LOGD(TAG, "darkRedThreshold: %s", darkRedThresholdParam->getValue());
+      ESP_LOGD(TAG, "ledPwm: %s", ledPwmParam->getValue());
       config.deviceId = (uint16_t)atoi(deviceIdParam->getValue());
       strncpy(config.mqttTopic, mqttTopicParam->getValue(), MQTT_TOPIC_ID_LEN);
       strncpy(config.mqttUsername, mqttUsernameParam->getValue(), MQTT_USERNAME_LEN);
@@ -132,6 +129,8 @@ namespace WifiManager {
       config.darkRedThreshold = (uint16_t)atoi(darkRedThresholdParam->getValue());
       config.ledPwm = (uint8_t)atoi(ledPwmParam->getValue());
       saveConfiguration(config);
+      delay(1000);
+      esp_restart();
     }
     delete deviceIdParam;
     delete mqttTopicParam;
@@ -144,10 +143,6 @@ namespace WifiManager {
     delete redThresholdParam;
     delete darkRedThresholdParam;
     delete ledPwmParam;
-    if (safeConfigFlag) {
-      delay(1000);
-      esp_restart();
-    }
   }
 
   void setupWifi() {
