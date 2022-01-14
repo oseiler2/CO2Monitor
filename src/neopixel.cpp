@@ -12,7 +12,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel) {
   cyclicTimer->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
 
   this->strip->begin();
-  this->strip->setBrightness(20);
+  this->strip->setBrightness(config.ledPwm);
   this->strip->show(); // Initialize all pixels to 'off'
   fill(this->strip->Color(255, 0, 0)); // Red
   delay(500);
@@ -38,18 +38,27 @@ void Neopixel::fill(uint32_t c) {
 }
 
 void Neopixel::update() {
-  if (model->getCo2() < config.yellowThreshold && this->status != GREEN) {
-    this->status = GREEN;
-    fill(this->strip->Color(0, 255, 0)); // Green
-  } else if (model->getCo2() < config.redThreshold && this->status != YELLOW) {
-    this->status = YELLOW;
-    fill(this->strip->Color(255, 255, 0)); // Yellow
-  } else if (model->getCo2() < config.darkRedThreshold && this->status != RED) {
-    this->status = RED;
-    fill(this->strip->Color(255, 0, 0)); // Red
-  } else if (model->getCo2() >= config.darkRedThreshold && this->status != DARK_RED) {
-    this->status = DARK_RED;
-    fill(this->strip->Color(255, 0, 0)); // Red
+  this->strip->setBrightness(config.ledPwm);
+  if (model->getCo2() < config.yellowThreshold) {
+    if (this->status != GREEN) {
+      this->status = GREEN;
+      fill(this->strip->Color(0, 255, 0)); // Green
+    }
+  } else if (model->getCo2() < config.redThreshold) {
+    if (this->status != YELLOW) {
+      this->status = YELLOW;
+      fill(this->strip->Color(255, 255, 0)); // Yellow
+    }
+  } else if (model->getCo2() < config.darkRedThreshold) {
+    if (this->status != RED) {
+      this->status = RED;
+      fill(this->strip->Color(255, 0, 0)); // Red
+    }
+  } else if (model->getCo2() >= config.darkRedThreshold) {
+    if (this->status != DARK_RED) {
+      this->status = DARK_RED;
+      fill(this->strip->Color(255, 0, 0)); // Red
+    }
   }
 }
 
