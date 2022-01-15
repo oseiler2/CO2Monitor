@@ -6,6 +6,8 @@
 
 ![](img/SCD40_case.jpg)
 
+![](img/Neopixel-feather.jpg)
+
 # Use case
 
 A large risk of Covid-19 transmission stems from airborne virus particles that can linger in poorly ventilated spaces for hours. This has been recognised by the WHO. To lower the risk of infection, particularly in busier indoor settings, good ventilation and regular air exchange are key.
