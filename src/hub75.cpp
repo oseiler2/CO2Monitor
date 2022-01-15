@@ -36,20 +36,34 @@ HUB75::~HUB75() {
 }
 
 void HUB75::update() {
-  matrix->fillScreen(0);
   matrix->setBrightness8(config.ledPwm);
+  Status oldStatus = this->status;
   if (model->getCo2() < config.yellowThreshold) {
-    this->status = GREEN;
+    if (this->status != GREEN) {
+      this->status = GREEN;
+    }
   } else if (model->getCo2() < config.redThreshold) {
-    this->status = YELLOW;
+    if (this->status != YELLOW) {
+      this->status = YELLOW;
+    }
   } else if (model->getCo2() < config.darkRedThreshold) {
-    this->status = RED;
+    if (this->status != RED) {
+      this->status = RED;
+    }
   } else if (model->getCo2() >= config.darkRedThreshold) {
-    this->status = DARK_RED;
+    if (this->status != DARK_RED) {
+      this->status = DARK_RED;
+    }
   }
   ESP_LOGD(TAG, "HUB75 update: %u => %i", model->getCo2(), status);
-  matrix->drawRGBBitmap(0, 0, smileys[status], 32, 32);
-
+  if (oldStatus != this->status) {
+    // only redraw smiley on status change
+    matrix->fillRect(0, 0, 32, 32, 0);
+    matrix->drawRGBBitmap(0, 0, smileys[status], 32, 32);
+  }
+  // clear co2 reading and message
+  matrix->fillRect(33, 0, 32, 32, 0);
+  // show co2 reading
   if (model->getCo2() > 9999) {
     matrix->drawBitmap(35, 24, digits[9], 10, 8, matrix->color565(255, 255, 255));
     matrix->drawBitmap(35, 16, digits[9], 10, 8, matrix->color565(255, 255, 255));
@@ -65,8 +79,8 @@ void HUB75::update() {
     if (model->getCo2() > 0)
       matrix->drawBitmap(35, 0, digits[model->getCo2() % 10], 10, 8, matrix->color565(255, 255, 255));
   }
+  // show message
   matrix->drawBitmap(48, 0, messages[status], 16, 32, matrix->color565(255, 255, 255));
-
 }
 
 void HUB75::timer() {
