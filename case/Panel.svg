@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="73mm" height="98mm" viewBox="0 0 73 98" transform="scale (1, -1)" transform-origin="center">
+<g>
+<path d="M 7 0 
+         h 59
+         a 7 7 0 0 1 7 7
+         v 84
+         a 7 7 0 0 1 -7 7
+         h -59
+         a 7 7 0 0 1 -7 -7
+         v -84
+         a 7 7 0 0 1 7 -7
+         Z" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+
+
+
+
+ <circle cx="7" cy="7" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+ <circle cx="66" cy="7" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+ <circle cx="7" cy="91" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+ <circle cx="66" cy="91" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+</g>
+
+<!--
+<g>
+  <rect x="57.34" y="33.21" width="15.66" height="30.48" stroke="black" fill="black" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none" />
+</g>
+-->
+
+</svg>
+
+<!--
+<style>
+    .small { font: italic 5px sans-serif; }
+  </style>
+
+<text x="7" y="7" class="small">(7,7)</text>
+<text x="66" y="7" class="small">(66,7)</text>
+<text x="7" y="91" class="small">(7,91)</text>
+<text x="66" y="91" class="small">(66,91)</text>
+
+LEDs
+33.21
+7.62
+63,69
+57.34
+64.96, 56.07
+64.96, 48.45
+64.96, 40.83
+-->
