@@ -2,6 +2,9 @@
 
 **ESP32 DevKit (30pin) or Feather based**
 
+Inspired by and many thanks to
+[make-IoT / CO2-Ampel](https://github.com/make-IoT/CO2-Ampel) and [Umwelt-Campus](https://www.umwelt-campus.de/en/forschung/projekte/iot-werkstatt/translate-to-englisch-ideen-zur-corona-krise)
+
 ![](img/SCD30_lcd.jpg)
 
 ![](img/SCD40_case.jpg)
