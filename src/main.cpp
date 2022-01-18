@@ -18,6 +18,10 @@
 #include <i2c.h>
 #include <wifiManager.h>
 
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <Update.h>
+
 Model* model;
 LCD* lcd;
 TrafficLight* trafficLight;
