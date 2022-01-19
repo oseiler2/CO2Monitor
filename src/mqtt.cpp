@@ -8,6 +8,7 @@
 #include <i2c.h>
 #include <configManager.h>
 #include <model.h>
+#include <wifiManager.h>
 
 #include <ArduinoJson.h>
 
@@ -109,6 +110,8 @@ namespace mqtt {
       if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
       if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
       saveConfiguration(config);
+    } else if (strncmp(buf, "resetWifi", strlen(buf)) == 0) {
+      WifiManager::resetSettings();
     } else if (strncmp(buf, "reboot", strlen(buf)) == 0) {
       esp_restart();
     }
@@ -117,6 +120,7 @@ namespace mqtt {
   void reconnect() {
     char buf[256];
     sprintf(buf, "CO2Monitor-%u-%x", config.deviceId, ESP.getEfuseMac());
+    while (!WiFi.isConnected()) { vTaskDelay(pdMS_TO_TICKS(100)); }
     while (!mqtt_client.connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
       if (mqtt_client.connect(buf, config.mqttUsername, config.mqttPassword)) {

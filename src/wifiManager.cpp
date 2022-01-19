@@ -170,4 +170,10 @@ namespace WifiManager {
     ESP_LOGD(TAG, "startConfigPortal end");
   }
 
+  void resetSettings() {
+    //    ESPAsync_WiFiManager::resetSettings();
+    WiFi.disconnect(true, true);
+    WiFi.begin("0", "0");
+  }
+
 }

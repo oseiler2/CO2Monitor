@@ -9,6 +9,7 @@ namespace WifiManager {
 
   void setupWifi();
   void startConfigPortal(updateMessageCallback_t updateMessageCallback);
+  void resetSettings();
 }
 
 #endif

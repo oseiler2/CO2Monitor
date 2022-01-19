@@ -98,8 +98,6 @@ void setup() {
 
   I2C::initI2C();
 
-  WifiManager::setupWifi();
-
   model = new Model(modelUpdatedEvt);
 
   if (I2C::scd30Present()) scd30 = new SCD30(&Wire, model, updateMessage);
@@ -159,7 +157,7 @@ void setup() {
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
-  //  attachInterrupt(TRIGGER_PIN, buttonPressed, FALLING);
+  WifiManager::setupWifi();
 
   ESP_LOGI(TAG, "Setup done.");
   if (I2C::lcdPresent()) {
