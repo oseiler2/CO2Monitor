@@ -9,6 +9,7 @@
 #include <configManager.h>
 #include <model.h>
 #include <wifiManager.h>
+#include <ota.h>
 
 #include <ArduinoJson.h>
 
@@ -46,7 +47,8 @@ namespace mqtt {
   void publishConfigurationInternal() {
     char buf[256];
     char msg[384];
-    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
+    sprintf(msg, "{\"appVersion\":%u,\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
+      APP_VERSION,
       config.altitude,
       config.yellowThreshold,
       config.redThreshold,
@@ -112,6 +114,8 @@ namespace mqtt {
       saveConfiguration(config);
     } else if (strncmp(buf, "resetWifi", strlen(buf)) == 0) {
       WifiManager::resetSettings();
+    } else if (strncmp(buf, "ota", strlen(buf)) == 0) {
+      OTA::checkForUpdate();
     } else if (strncmp(buf, "reboot", strlen(buf)) == 0) {
       esp_restart();
     }

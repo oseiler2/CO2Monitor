@@ -10,20 +10,38 @@
 #include <housekeeping.h>
 #include <Wire.h>
 #include <lcd.h>
+#ifdef HAS_LEDS
 #include <trafficLight.h>
+#endif
+#ifdef HAS_NEOPIXEL
 #include <neopixel.h>
+#endif
+#ifdef HAS_FEATHER_MATRIX
 #include <featherMatrix.h>
+#endif
+#ifdef HAS_HUB75
 #include <hub75.h>
+#endif
 #include <bme680.h>
 #include <i2c.h>
 #include <wifiManager.h>
+#include <ota.h>
+
 
 Model* model;
 LCD* lcd;
+#ifdef HAS_LEDS 
 TrafficLight* trafficLight;
+#endif
+#ifdef HAS_NEOPIXEL
 Neopixel* neopixel;
+#endif
+#ifdef HAS_FEATHER_MATRIX
 FeatherMatrix* featherMatrix;
+#endif
+#ifdef HAS_HUB75
 HUB75* hub75;
+#endif
 SCD30* scd30;
 SCD40* scd40;
 BME680* bme680;
@@ -39,10 +57,18 @@ void updateMessage(char const* msg) {
 
 void modelUpdatedEvt() {
   if (lcd) lcd->update();
+#ifdef HAS_LEDS
   if (trafficLight) trafficLight->update();
+#endif
+#ifdef HAS_NEOPIXEL
   if (neopixel) neopixel->update();
+#endif
+#ifdef HAS_FEATHER_MATRIX
   if (featherMatrix) featherMatrix->update();
+#endif
+#ifdef HAS_HUB75
   if (hub75) hub75->update();
+#endif
   mqtt::publishSensors();
 }
 
@@ -105,19 +131,19 @@ void setup() {
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage);
   if (I2C::lcdPresent()) lcd = new LCD(&Wire, model);
 
-#if defined(GREEN_LED_PIN) && defined(YELLOW_LED_PIN) && defined(RED_LED_PIN)
+#ifdef HAS_LEDS
   trafficLight = new TrafficLight(model, RED_LED_PIN, YELLOW_LED_PIN, GREEN_LED_PIN);
 #endif
 
-#if defined(NEOPIXEL_PIN) && defined(NEOPIXEL_NUM)
+#ifdef HAS_NEOPIXEL
   neopixel = new Neopixel(model, NEOPIXEL_PIN, NEOPIXEL_NUM);
 #endif
 
-#if defined(FEATHER_MATRIX_DATAPIN) && defined(FEATHER_MATRIX_CLOCKPIN)
+#ifdef HAS_FEATHER_MATRIX
   featherMatrix = new FeatherMatrix(model, FEATHER_MATRIX_DATAPIN, FEATHER_MATRIX_CLOCKPIN);
 #endif
 
-#if defined(HUB75_R1) && defined(HUB75_G1) && defined(HUB75_B1) && defined(HUB75_R2) && defined(HUB75_G2) && defined(HUB75_B2) && defined(HUB75_CH_A) && defined(HUB75_CH_B) && defined(HUB75_CH_C) && defined(HUB75_CH_D) && defined(HUB75_CLK) && defined(HUB75_LAT) && defined(HUB75_OE)
+#ifdef HAS_HUB75
   hub75 = new HUB75(model);
 #endif
 
@@ -130,6 +156,15 @@ void setup() {
     2,                  // priority of the task
     &mqtt::mqttTask,          // task handle
     0);                 // CPU core
+
+  xTaskCreatePinnedToCore(OTA::otaLoop,  // task function
+    "otaLoop",         // name of task
+    8192,               // stack size of task
+    (void*)1,           // parameter of the task
+    2,                  // priority of the task
+    &OTA::otaTask,          // task handle
+    1);                 // CPU core
+
 
   if (I2C::scd30Present()) {
     scd30Task = scd30->start(
