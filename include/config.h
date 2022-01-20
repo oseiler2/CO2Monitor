@@ -1,6 +1,11 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+#define APP_VERSION           1
+#define OTA_HOST              "host"
+#define OTA_URL               "/co2monitor/firmware.json"
+#define OTA_APP               "co2monitor"
+
 #define TRIGGER_PIN           0
 #define LED_PIN               2
 

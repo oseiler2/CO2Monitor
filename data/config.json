@@ -1,0 +1,13 @@
+{
+  "deviceId": 0,
+  "mqttTopic": "co2monitor",
+  "mqttUsername": "co2monitor",
+  "mqttPassword": "co2monitor",
+  "mqttHost": "127.0.0.1",
+  "mqttServerPort": 1883,
+  "altitude": 5,
+  "yellowThreshold": 800,
+  "redThreshold": 1000,
+  "darkRedThreshold": 1400,
+  "ledPwm": 255
+}

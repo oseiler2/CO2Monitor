@@ -1,6 +1,7 @@
 #include "housekeeping.h"
 #include <mqtt.h>
 #include <i2c.h>
+#include <ota.h>
 
 namespace housekeeping {
   Ticker cyclicTimer;
@@ -11,6 +12,8 @@ namespace housekeeping {
       ESP.getMaxAllocHeap(), uxTaskGetStackHighWaterMark(NULL));
     ESP_LOGD(TAG, "Mqttloop %d bytes left | Taskstate = %d",
       uxTaskGetStackHighWaterMark(mqtt::mqttTask), eTaskGetState(mqtt::mqttTask));
+    ESP_LOGD(TAG, "Otaloop %d bytes left | Taskstate = %d",
+      uxTaskGetStackHighWaterMark(OTA::otaTask), eTaskGetState(OTA::otaTask));
     if (I2C::scd30Present() && scd30Task) {
       ESP_LOGD(TAG, "SCD30Loop %d bytes left | Taskstate = %d",
         uxTaskGetStackHighWaterMark(scd30Task), eTaskGetState(scd30Task));

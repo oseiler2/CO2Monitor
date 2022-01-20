@@ -25,10 +25,8 @@
 #include <bme680.h>
 #include <i2c.h>
 #include <wifiManager.h>
+#include <ota.h>
 
-#include <WiFiClientSecure.h>
-#include <HTTPClient.h>
-#include <Update.h>
 
 Model* model;
 LCD* lcd;
@@ -160,6 +158,15 @@ void setup() {
     2,                  // priority of the task
     &mqtt::mqttTask,          // task handle
     0);                 // CPU core
+
+  xTaskCreatePinnedToCore(OTA::otaLoop,  // task function
+    "otaLoop",         // name of task
+    8192,               // stack size of task
+    (void*)1,           // parameter of the task
+    2,                  // priority of the task
+    &OTA::otaTask,          // task handle
+    1);                 // CPU core
+
 
   if (I2C::scd30Present()) {
     scd30Task = scd30->start(

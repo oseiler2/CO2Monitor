@@ -8,6 +8,7 @@
 #include <i2c.h>
 #include <configManager.h>
 #include <model.h>
+#include <ota.h>
 
 #include <ArduinoJson.h>
 
@@ -45,7 +46,8 @@ namespace mqtt {
   void publishConfigurationInternal() {
     char buf[256];
     char msg[384];
-    sprintf(msg, "{\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
+    sprintf(msg, "{\"appVersion\":%u,\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
+      APP_VERSION,
       config.altitude,
       config.yellowThreshold,
       config.redThreshold,
@@ -109,6 +111,8 @@ namespace mqtt {
       if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
       if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
       saveConfiguration(config);
+    } else if (strncmp(buf, "ota", strlen(buf)) == 0) {
+      OTA::checkForUpdate();
     } else if (strncmp(buf, "reboot", strlen(buf)) == 0) {
       esp_restart();
     }
