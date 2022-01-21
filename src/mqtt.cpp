@@ -147,16 +147,7 @@ namespace mqtt {
     model = _model;
     calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
     setTemperatureOffsetCallback = _setTemperatureOffsetCallback;
-    IPAddress mqttHostIp;
-
-    if (WiFi.hostByName(config.mqttHost, mqttHostIp)) {
-      ESP_LOGI(TAG, "Resolved MQTT host %s to IP %s", config.mqttHost, mqttHostIp.toString().c_str());
-    } else {
-      ESP_LOGI(TAG, "Could not resolve %s", config.mqttHost);
-      return;
-    }
-
-    mqtt_client.setServer(mqttHostIp, config.mqttServerPort);
+    mqtt_client.setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client.setCallback(callback);
   }
 
