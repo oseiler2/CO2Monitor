@@ -194,6 +194,10 @@ void setup() {
 
   WifiManager::setupWifi();
 
+#ifdef OTA_POLL
+  OTA::setupOta();
+#endif
+
   ESP_LOGI(TAG, "Setup done.");
   if (I2C::lcdPresent()) {
     lcd->updateMessage("Setup done.");

@@ -5,6 +5,7 @@
 #define OTA_HOST              "host"
 #define OTA_URL               "/co2monitor/firmware.json"
 #define OTA_APP               "co2monitor"
+//#define OTA_POLL
 
 #define TRIGGER_PIN           0
 #define LED_PIN               2

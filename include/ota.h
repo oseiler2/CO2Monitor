@@ -4,6 +4,7 @@
 #include "globals.h"
 
 namespace OTA {
+  void setupOta();
   void checkForUpdate();
   extern TaskHandle_t otaTask;
   void otaLoop(void* pvParameters);

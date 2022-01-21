@@ -3,8 +3,16 @@
 #include <esp32fota.h>
 #include <Arduino.h>
 #include <config.h>
+#include <Ticker.h>
 
 namespace OTA {
+
+  Ticker cyclicTimer;
+
+  void setupOta() {
+    cyclicTimer.attach(1060 * 60 * 24, checkForUpdate);
+  }
+
 
   const uint32_t X_CMD_CHECK_FOR_UPDATE = bit(1);
   TaskHandle_t otaTask;
