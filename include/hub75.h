@@ -15,6 +15,7 @@ public:
   ~HUB75();
 
   void update();
+  void stopDMA();
 
 private:
   Model* model;

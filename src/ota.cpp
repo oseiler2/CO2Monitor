@@ -8,11 +8,14 @@
 namespace OTA {
 
   Ticker cyclicTimer;
+  preUpdateCallback_t preUpdateCallback;
 
-  void setupOta() {
+  void setupOta(preUpdateCallback_t _preUpdateCallback) {
+    preUpdateCallback = _preUpdateCallback;
+#ifdef OTA_POLL
     cyclicTimer.attach(1060 * 60 * 24, checkForUpdate);
+#endif
   }
-
 
   const uint32_t X_CMD_CHECK_FOR_UPDATE = bit(1);
   TaskHandle_t otaTask;
@@ -33,6 +36,7 @@ namespace OTA {
     bool shouldExecuteFirmwareUpdate = secureEsp32FOTA.execHTTPSCheck();
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
+      if (preUpdateCallback) preUpdateCallback();
       secureEsp32FOTA.executeOTA();
     } else {
       ESP_LOGD(TAG, "No firmware update available");

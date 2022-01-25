@@ -49,6 +49,12 @@ TaskHandle_t scd30Task;
 TaskHandle_t scd40Task;
 TaskHandle_t bme680Task;
 
+void stopHub75DMA() {
+#ifdef HAS_HUB75
+  if (hub75) hub75->stopDMA();
+#endif
+}
+
 void updateMessage(char const* msg) {
   if (lcd) {
     lcd->updateMessage(msg);
@@ -165,7 +171,6 @@ void setup() {
     &OTA::otaTask,          // task handle
     1);                 // CPU core
 
-
   if (I2C::scd30Present()) {
     scd30Task = scd30->start(
       "scd30Loop",        // name of task
@@ -194,9 +199,7 @@ void setup() {
 
   WifiManager::setupWifi();
 
-#ifdef OTA_POLL
-  OTA::setupOta();
-#endif
+  OTA::setupOta(stopHub75DMA);
 
   ESP_LOGI(TAG, "Setup done.");
   if (I2C::lcdPresent()) {
@@ -209,6 +212,7 @@ void loop() {
   if ((digitalRead(TRIGGER_PIN) == LOW)) {
     while (digitalRead(TRIGGER_PIN) == LOW);
     digitalWrite(LED_PIN, LOW);
+    stopHub75DMA();
     WifiManager::startConfigPortal(updateMessage);
   }
 

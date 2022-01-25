@@ -35,6 +35,10 @@ HUB75::~HUB75() {
   if (this->matrix) delete matrix;
 }
 
+void HUB75::stopDMA() {
+  if (this->matrix) matrix->stopDMAoutput();
+}
+
 void HUB75::update() {
   matrix->setBrightness8(config.ledPwm);
   Status oldStatus = this->status;
