@@ -16,11 +16,11 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel) {
   this->strip->show(); // Initialize all pixels to 'off'
   fill(this->strip->Color(255, 0, 0)); // Red
   delay(500);
-  fill(this->strip->Color(255, 255, 0)); // Yellow
+  fill(this->strip->Color(255, 70, 0)); // Amber
   delay(500);
   fill(this->strip->Color(0, 255, 0)); // Green
   delay(500);
-  fill(this->strip->Color(0, 0, 0)); // Green
+  fill(this->strip->Color(0, 0, 0)); // off
 
   this->status = UNDEFINED;
 }
@@ -47,7 +47,7 @@ void Neopixel::update() {
   } else if (model->getCo2() < config.redThreshold) {
     if (this->status != YELLOW) {
       this->status = YELLOW;
-      fill(this->strip->Color(255, 255, 0)); // Yellow
+      fill(this->strip->Color(255, 70, 0)); // Amber
     }
   } else if (model->getCo2() < config.darkRedThreshold) {
     if (this->status != RED) {
@@ -68,6 +68,6 @@ void Neopixel::timer() {
     if (toggle)
       fill(this->strip->Color(255, 0, 0)); // Red
     else
-      fill(this->strip->Color(0, 0, 255));
+      fill(this->strip->Color(0, 0, 0));
   }
 }
