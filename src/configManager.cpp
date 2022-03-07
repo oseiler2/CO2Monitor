@@ -26,7 +26,7 @@ Config config;
   "ledPwm": 100
 }
 */
-#define CONFIG_SIZE 512
+#define CONFIG_SIZE 768
 
 void setupConfigManager() {
   if (!LITTLEFS.begin(true)) {
@@ -51,9 +51,9 @@ void getDefaultConfiguration(Config& config) {
   strlcpy(config.mqttHost, DEFAULT_MQTT_HOST, sizeof(DEFAULT_MQTT_HOST));
   config.mqttServerPort = 1883;
   config.altitude = 5;
-  config.yellowThreshold = 800;
-  config.redThreshold = 1000;
-  config.darkRedThreshold = 2000;
+  config.yellowThreshold = 700;
+  config.redThreshold = 900;
+  config.darkRedThreshold = 1200;
   config.ledPwm = 100;
 }
 
@@ -105,9 +105,9 @@ boolean loadConfiguration(Config& config) {
     sizeof(config.mqttHost));
   config.mqttServerPort = doc["mqttServerPort"] | 1883;
   config.altitude = doc["altitude"] | 5;
-  config.yellowThreshold = doc["yellowThreshold"] | 800;
-  config.redThreshold = doc["redThreshold"] | 1000;
-  config.darkRedThreshold = doc["darkRedThreshold"] | 2000;
+  config.yellowThreshold = doc["yellowThreshold"] | 700;
+  config.redThreshold = doc["redThreshold"] | 900;
+  config.darkRedThreshold = doc["darkRedThreshold"] | 1200;
   config.ledPwm = doc["ledPwm"] | 100;
 
   file.close();
