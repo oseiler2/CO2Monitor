@@ -5,9 +5,46 @@
 Inspired by and many thanks to
 [make-IoT / CO2-Ampel](https://github.com/make-IoT/CO2-Ampel) and [Umwelt-Campus](https://www.umwelt-campus.de/en/forschung/projekte/iot-werkstatt/translate-to-englisch-ideen-zur-corona-krise)
 
+There are now 2 new PCB designs, one for SMD components and another one solely using easy to solder through-hole components.
+
+## SMD
+
+- ESP 32 Devkit (30 pin)
+- SCD40 or SCD30 CO2 sensor
+- optional BME680 IAQ/VOC sensor
+- optional 128x64 0.96 inch OLED display
+- alternatively Feather wing footprint for easy expansion modules
+- combined footprints for either 3 Neopixels (WS2812B 5050) or 3 x 5mm red/yellow/green LEDs
+- I2C JST-PH connector for additional connectivity (e.g. SPS30 particulate matter sensor)
+
+![](img/SMD-Neopixel.jpg)
+
+## Through hole
+
+- uses only through hole components and can be hand soldered
+- ESP 32 Devkit (30 pin)
+- SCD30 NDIR CO2 sensor
+- optional 128x64 0.96 inch OLED display
+- 3 x 5mm red/yellow/green LEDs
+- I2C JST-PH connector for additional connectivity (e.g. SPS30 particulate matter sensor)
+
+![](img/TH-SCD30.jpg)
+
+## First generation
+
+- ESP 32 Devkit (30 pin)
+- SCD40 or SCD30 CO2 sensor
+- optional BME680 IAQ/VOC sensor
+- Feather wing footprint for easy expansion modules
+- 3 x 5mm red/yellow/green LEDs
+- I2C JST-PH connector for additional connectivity (e.g. SPS30 particulate matter sensor)
+- RFM96 LoRa modem and u.Fl/SMA footprint
+
 ![](img/SCD30_lcd.jpg)
 
 ![](img/SCD40_case.jpg)
+
+## First generation with Neopixel feather wing
 
 ![](img/Neopixel-feather.jpg)
 
@@ -84,6 +121,7 @@ A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
 - [SCD3x CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensors-scd30/)
 - [SCD4x CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensor-scd4x/)
 - [BME680 IAQ, VOC, temperature and humidity sensor](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/)
+- [SPS30 Small Particulate matter sensor](https://sensirion.com/products/catalog/SPS30/) (coming soon)
 
 ## Supported displays
 
@@ -100,7 +138,7 @@ The presence of supported I2C based sensors/displays will be automatically detec
 
 ## SCD3x
 
-A SCD3x sensor can be connected to the designated footprint and will provide CO2, temperature and humidity readings via I2C. It supports a separate ready signal which is connected to the ESP32.
+A SCD3x NDIR sensor can be connected to the designated footprint and will provide CO2, temperature and humidity readings via I2C. It supports a separate ready signal which is connected to the ESP32.
 
 ## SCD4x
 
@@ -110,9 +148,13 @@ A SCD4x sensor can be soldered directly onto the pcb and provides CO2, temperatu
 
 A BME680 sensor can be directly soldered onto the dedicates footprint or connected via the I2C JST header [Adafruit BME680](https://www.adafruit.com/product/3660), [STEMMA to JST SH Cable](https://www.adafruit.com/product/4424) to provide additional VOC and AIQ measurements.
 
+## SPS30 Particulate matter sensor
+
+Coming soon
+
 ## other
 
-Other I2C based sensors can be wired using the JST I2C header.
+Other I2C based sensors can be wired using the JST-PH I2C header.
 
 # Hardware
 
@@ -126,7 +168,7 @@ When an ESP32 is used the feather footprint can be used to drive feather wings. 
 
 A feather controller can be used to drive the sensors and LEDs, but unfortunately not the RFM96.
 
-## Pin mapping
+## Pin mapping (first generation)
 
 | ESP32 Devkit (30 pin) | fn       | Feather pin | fn    | LEDs   | SCD3x/4x/BME680 | RFM96   |
 | --------------------- | -------- | ----------- | ----- | ------ | --------------- | ------- |
