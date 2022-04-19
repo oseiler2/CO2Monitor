@@ -13,7 +13,7 @@ public:
   Neopixel(Model* model, uint8_t pin, uint8_t numPixel);
   ~Neopixel();
 
-  void update();
+  void update(uint16_t mask);
 
 private:
   void fill(uint32_t c);

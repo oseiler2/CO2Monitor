@@ -61,21 +61,21 @@ void updateMessage(char const* msg) {
   }
 }
 
-void modelUpdatedEvt() {
-  if (lcd) lcd->update();
+void modelUpdatedEvt(uint16_t mask) {
+  if (lcd) lcd->update(mask);
 #ifdef HAS_LEDS
-  if (trafficLight) trafficLight->update();
+  if (trafficLight) trafficLight->update(mask);
 #endif
 #ifdef HAS_NEOPIXEL
-  if (neopixel) neopixel->update();
+  if (neopixel) neopixel->update(mask);
 #endif
 #ifdef HAS_FEATHER_MATRIX
-  if (featherMatrix) featherMatrix->update();
+  if (featherMatrix) featherMatrix->update(mask);
 #endif
 #ifdef HAS_HUB75
-  if (hub75) hub75->update();
+  if (hub75) hub75->update(mask);
 #endif
-  mqtt::publishSensors();
+  if (mask != M_NONE) mqtt::publishSensors();
 }
 
 void calibrateCo2SensorCallback(uint16_t co2Reference) {

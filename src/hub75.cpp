@@ -39,7 +39,8 @@ void HUB75::stopDMA() {
   if (this->matrix) matrix->stopDMAoutput();
 }
 
-void HUB75::update() {
+void HUB75::update(uint16_t mask) {
+  if (!mask || M_CO2) return;
   matrix->setBrightness8(config.ledPwm);
   Status oldStatus = this->status;
   if (model->getCo2() < config.yellowThreshold) {

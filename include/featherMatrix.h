@@ -13,7 +13,7 @@ public:
   FeatherMatrix(Model* model, uint8_t dataPin, uint8_t clockPin);
   ~FeatherMatrix();
 
-  void update();
+  void update(uint16_t mask);
 
 private:
   void timer();

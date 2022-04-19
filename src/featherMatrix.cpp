@@ -51,7 +51,8 @@ FeatherMatrix::~FeatherMatrix() {
   if (this->matrix) delete matrix;
 };
 
-void FeatherMatrix::update() {
+void FeatherMatrix::update(uint16_t mask) {
+  if (!mask || M_CO2) return;
   if (model->getCo2() < config.yellowThreshold) {
     matrix->setTextColor(matrix->Color(0, 255, 0));
   } else if (model->getCo2() < config.redThreshold) {

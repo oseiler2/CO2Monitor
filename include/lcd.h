@@ -13,7 +13,7 @@ public:
   ~LCD();
 
   void updateMessage(char const* msg);
-  void update();
+  void update(uint16_t mask);
 
 private:
   Model* model;

@@ -12,7 +12,7 @@ public:
   TrafficLight(Model* model, uint8_t pinRed, uint8_t pinYellow, uint8_t pinGreen);
   ~TrafficLight();
 
-  void update();
+  void update(uint16_t mask);
 
 private:
   void timer();

@@ -62,7 +62,8 @@ TrafficLight::~TrafficLight() {
   if (this->cyclicTimer) delete cyclicTimer;
 }
 
-void TrafficLight::update() {
+void TrafficLight::update(uint16_t mask) {
+  if (!mask || M_CO2) return;
   if (model->getCo2() < config.yellowThreshold) {
     if (this->status != GREEN) {
       this->status = GREEN;

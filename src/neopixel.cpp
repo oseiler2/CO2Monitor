@@ -37,7 +37,8 @@ void Neopixel::fill(uint32_t c) {
   this->strip->show();
 }
 
-void Neopixel::update() {
+void Neopixel::update(uint16_t mask) {
+  if (!mask || M_CO2) return;
   this->strip->setBrightness(config.ledPwm);
   if (model->getCo2() < config.yellowThreshold) {
     if (this->status != GREEN) {

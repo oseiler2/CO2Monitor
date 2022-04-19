@@ -14,7 +14,7 @@ public:
   HUB75(Model* _model);
   ~HUB75();
 
-  void update();
+  void update(uint16_t mask);
   void stopDMA();
 
 private:
