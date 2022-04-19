@@ -20,6 +20,10 @@ void Model::updateModel(float temperature, float humidity, uint16_t pressure, ui
   modelUpdatedEvt(M_TEMPERATURE || M_HUMIDITY || M_PRESSURE || M_IAQ);
 }
 
+void Model::updateModel(uint16_t pm0_5, uint16_t pm1_0, uint16_t pm2_5, uint16_t pm4, uint16_t pm10) {
+  modelUpdatedEvt(M_PM0_5 || M_PM1_0 || M_PM2_5 || M_PM4 || M_PM10);
+}
+
 uint16_t Model::getCo2() {
   return this->co2;
 }
@@ -39,3 +43,24 @@ uint16_t Model::getPressure() {
 uint16_t Model::getIAQ() {
   return this->iaq;
 }
+
+uint16_t Model::getPM0_5() {
+  return this->pm0_5;
+}
+
+uint16_t Model::getPM1_0() {
+  return this->pm10;
+}
+
+uint16_t Model::getPM2_5() {
+  return this->pm2_5;
+}
+
+uint16_t Model::getPM4() {
+  return this->pm4;
+}
+
+uint16_t Model::getPM10() {
+  return this->pm10;
+}
+

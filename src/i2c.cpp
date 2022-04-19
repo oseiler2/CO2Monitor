@@ -6,6 +6,7 @@ namespace I2C {
   boolean lcdDetected = false;
   boolean scd30Detected = false;
   boolean scd40Detected = false;
+  boolean sps30Detected = false;
   boolean bme680Detected = false;
 
   boolean lcdPresent() {
@@ -18,6 +19,10 @@ namespace I2C {
 
   boolean scd40Present() {
     return scd40Detected;
+  }
+
+  boolean sps30Present() {
+    return sps30Detected;
   }
 
   boolean bme680Present() {
@@ -61,6 +66,9 @@ namespace I2C {
         } else if (addr == SCD40_I2C_ADR) {
           scd40Detected = true;
           ESP_LOGD(TAG, "SDC40 found");
+        } else if (addr == SPS30_I2C_ADR) {
+          sps30Detected = true;
+          ESP_LOGD(TAG, "SPS30 found");
         } else if (addr == BME680_I2C_ADR) {
           bme680Detected = true;
           ESP_LOGD(TAG, "BME680 found");

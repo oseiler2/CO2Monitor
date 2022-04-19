@@ -7,6 +7,7 @@
 #include <mqtt.h>
 #include <scd30.h>
 #include <scd40.h>
+#include <sps_30.h>
 #include <housekeeping.h>
 #include <Wire.h>
 #include <lcd.h>
@@ -44,9 +45,11 @@ HUB75* hub75;
 #endif
 SCD30* scd30;
 SCD40* scd40;
+SPS_30* sps30;
 BME680* bme680;
 TaskHandle_t scd30Task;
 TaskHandle_t scd40Task;
+TaskHandle_t sps30Task;
 TaskHandle_t bme680Task;
 
 void stopHub75DMA() {
@@ -134,6 +137,7 @@ void setup() {
 
   if (I2C::scd30Present()) scd30 = new SCD30(&Wire, model, updateMessage);
   if (I2C::scd40Present()) scd40 = new SCD40(&Wire, model, updateMessage);
+  if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage);
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage);
   if (I2C::lcdPresent()) lcd = new LCD(&Wire, model);
 
@@ -182,6 +186,14 @@ void setup() {
   if (I2C::scd40Present()) {
     scd40Task = scd40->start(
       "scd40Loop",        // name of task
+      4096,               // stack size of task
+      2,                  // priority of the task
+      1);                 // CPU core
+  }
+
+  if (I2C::sps30Present()) {
+    sps30Task = sps30->start(
+      "sps30Loop",        // name of task
       4096,               // stack size of task
       2,                  // priority of the task
       1);                 // CPU core

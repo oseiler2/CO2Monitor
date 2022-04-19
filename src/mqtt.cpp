@@ -55,6 +55,7 @@ namespace mqtt {
       config.darkRedThreshold,
       I2C::scd30Present() ? "\"scd30\":true," : "",
       I2C::scd40Present() ? "\"scd40\":true," : "",
+      I2C::sps30Present() ? "\"sps30\":true," : "",
       I2C::bme680Present() ? "\"bme680\":true," : "",
       I2C::lcdPresent() ? "\"lcd\":true," : "",
       config.ledPwm,

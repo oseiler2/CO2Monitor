@@ -13,5 +13,6 @@ namespace housekeeping {
 extern TaskHandle_t scd30Task;
 extern TaskHandle_t scd40Task;
 extern TaskHandle_t bme680Task;
+extern TaskHandle_t sps30Task;
 
 #endif

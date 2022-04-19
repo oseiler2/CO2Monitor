@@ -22,6 +22,10 @@ namespace housekeeping {
       ESP_LOGD(TAG, "SCD40Loop %d bytes left | Taskstate = %d",
         uxTaskGetStackHighWaterMark(scd40Task), eTaskGetState(scd40Task));
     }
+    if (I2C::sps30Present() && sps30Task) {
+      ESP_LOGD(TAG, "SPS30Loop %d bytes left | Taskstate = %d",
+        uxTaskGetStackHighWaterMark(sps30Task), eTaskGetState(sps30Task));
+    }
     if (I2C::bme680Present() && bme680Task) {
       ESP_LOGD(TAG, "BME680Loop %d bytes left | Taskstate = %d",
         uxTaskGetStackHighWaterMark(bme680Task), eTaskGetState(bme680Task));
