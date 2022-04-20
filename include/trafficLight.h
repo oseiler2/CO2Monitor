@@ -12,15 +12,12 @@ public:
   TrafficLight(Model* model, uint8_t pinRed, uint8_t pinYellow, uint8_t pinGreen);
   ~TrafficLight();
 
-  void update(uint16_t mask);
+  void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
 
 private:
   void timer();
 
-  typedef enum { UNDEFINED, GREEN, YELLOW, RED, DARK_RED } TrafficLightStatus;
-
   Model* model;
-  TrafficLightStatus status;
   uint8_t pinRed;
   uint8_t pinYellow;
   uint8_t pinGreen;

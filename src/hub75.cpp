@@ -26,7 +26,6 @@ HUB75::HUB75(Model* _model) {
 
   // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
   cyclicTimer->attach(0.3, +[](HUB75* instance) { instance->timer(); }, this);
-  this->status = UNDEFINED;
   this->toggle = false;
   ESP_LOGD(TAG, "HUB75 initialised");
 }
@@ -39,32 +38,13 @@ void HUB75::stopDMA() {
   if (this->matrix) matrix->stopDMAoutput();
 }
 
-void HUB75::update(uint16_t mask) {
-  if (!mask || M_CO2) return;
+void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   matrix->setBrightness8(config.ledPwm);
-  Status oldStatus = this->status;
-  if (model->getCo2() < config.yellowThreshold) {
-    if (this->status != GREEN) {
-      this->status = GREEN;
-    }
-  } else if (model->getCo2() < config.redThreshold) {
-    if (this->status != YELLOW) {
-      this->status = YELLOW;
-    }
-  } else if (model->getCo2() < config.darkRedThreshold) {
-    if (this->status != RED) {
-      this->status = RED;
-    }
-  } else if (model->getCo2() >= config.darkRedThreshold) {
-    if (this->status != DARK_RED) {
-      this->status = DARK_RED;
-    }
-  }
-  ESP_LOGD(TAG, "HUB75 update: %u => %i", model->getCo2(), status);
-  if (oldStatus != this->status) {
+  //  ESP_LOGD(TAG, "HUB75 update: %u => %i", model->getCo2(), newStatus);
+  if (oldStatus != newStatus) {
     // only redraw smiley on status change
     matrix->fillRect(0, 0, 32, 32, 0);
-    matrix->drawRGBBitmap(0, 0, smileys[status], 32, 32);
+    matrix->drawRGBBitmap(0, 0, smileys[newStatus], 32, 32);
   }
   // clear co2 reading and message
   matrix->fillRect(33, 0, 32, 32, 0);
@@ -85,13 +65,13 @@ void HUB75::update(uint16_t mask) {
       matrix->drawBitmap(35, 0, digits[model->getCo2() % 10], 10, 8, matrix->color565(255, 255, 255));
   }
   // show message
-  matrix->drawBitmap(48, 0, messages[status], 16, 32, matrix->color565(255, 255, 255));
+  matrix->drawBitmap(48, 0, messages[newStatus], 16, 32, matrix->color565(255, 255, 255));
 }
 
 void HUB75::timer() {
-  if (this->status == DARK_RED) {
+  if (model->getStatus() == DARK_RED) {
     if (toggle)
-      matrix->drawRGBBitmap(0, 0, smileys[status], 32, 32);
+      matrix->drawRGBBitmap(0, 0, smileys[model->getStatus()], 32, 32);
     else
       matrix->fillRect(0, 0, 32, 32, 0);
     toggle = !toggle;

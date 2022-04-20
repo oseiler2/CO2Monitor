@@ -10,7 +10,7 @@ namespace mqtt {
 
   void setupMqtt(Model* _model, calibrateCo2SensorCallback_t calibrateCo2SensorCallback, setTemperatureOffsetCallback_t _setTemperatureOffsetCallback);
 
-  void publishSensors();
+  void publishSensors(uint16_t mask);
   void publishConfiguration();
 
   void mqttLoop(void* pvParameters);

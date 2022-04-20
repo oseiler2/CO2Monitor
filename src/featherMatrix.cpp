@@ -51,15 +51,14 @@ FeatherMatrix::~FeatherMatrix() {
   if (this->matrix) delete matrix;
 };
 
-void FeatherMatrix::update(uint16_t mask) {
-  if (!mask || M_CO2) return;
-  if (model->getCo2() < config.yellowThreshold) {
+void FeatherMatrix::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
+  if (newStatus == GREEN) {
     matrix->setTextColor(matrix->Color(0, 255, 0));
-  } else if (model->getCo2() < config.redThreshold) {
+  } else if (newStatus == YELLOW) {
     matrix->setTextColor(matrix->Color(200, 255, 0));
-  } else if (model->getCo2() < config.darkRedThreshold) {
+  } else if (newStatus == RED) {
     matrix->setTextColor(matrix->Color(255, 0, 0));
-  } else {
+  } else if (newStatus == DARK_RED) {
     matrix->setTextColor(matrix->Color(255, 0, 128));
   }
   matrix->fillScreen(0);

@@ -13,17 +13,14 @@ public:
   Neopixel(Model* model, uint8_t pin, uint8_t numPixel);
   ~Neopixel();
 
-  void update(uint16_t mask);
+  void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
 
 private:
   void fill(uint32_t c);
   void timer();
 
-  typedef enum { UNDEFINED, GREEN, YELLOW, RED, DARK_RED } NeopixelStatus;
-
   Adafruit_NeoPixel* strip;
   Model* model;
-  NeopixelStatus status;
   Ticker* cyclicTimer;
   boolean toggle;
 };

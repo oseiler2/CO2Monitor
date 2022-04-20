@@ -73,7 +73,6 @@ void BME680::updateState(void) {
   }
 }
 
-
 void BME680::checkIaqSensorStatus() {
   if (bme680->status != BSEC_OK) {
     if (bme680->status < BSEC_OK) {
@@ -102,6 +101,7 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
   if (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY))) return;
 
   bme680->begin(BME680_I2C_ADDR_PRIMARY, *wire);
+  bme680->setTemperatureOffset(7.0);
 
   checkIaqSensorStatus();
 
@@ -139,7 +139,6 @@ BME680::~BME680() {
   if (this->bme680) delete bme680;
 }
 
-
 boolean BME680::readBme680() {
   this->updateMessageCallback("readBme680");
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
@@ -150,20 +149,22 @@ boolean BME680::readBme680() {
     ESP_LOGD(TAG, "Temperature: %.1f C (raw %.1f C)", bme680->temperature, bme680->rawTemperature);
     ESP_LOGD(TAG, "Humidity: %.1f %% (raw %.1f %%)", bme680->humidity, bme680->rawHumidity);
     ESP_LOGD(TAG, "Pressure: %.1f hPa", bme680->pressure / 100);
-    ESP_LOGD(TAG, "Gas Resistance: %.1f kOhm", bme680->gasResistance / 1000);
-    ESP_LOGD(TAG, "Comp gas Value: %.1f, accuracy: %u", bme680->compGasValue, bme680->compGasAccuracy);
-    ESP_LOGD(TAG, "Gas percentage: %.1f, accuracy: %u", bme680->gasPercentage, bme680->gasPercentageAcccuracy);
+    //    ESP_LOGD(TAG, "Gas Resistance: %.1f kOhm", bme680->gasResistance / 1000);
+    //    ESP_LOGD(TAG, "Comp gas Value: %.1f, accuracy: %u", bme680->compGasValue, bme680->compGasAccuracy);
+    //    ESP_LOGD(TAG, "Gas percentage: %.1f, accuracy: %u", bme680->gasPercentage, bme680->gasPercentageAcccuracy);
     ESP_LOGD(TAG, "IAQ: %.1f, accuracy: %u", bme680->iaq, bme680->iaqAccuracy);
-    ESP_LOGD(TAG, "Static IAQ: %.1f, accuracy: %u", bme680->staticIaq, bme680->staticIaqAccuracy);
-    ESP_LOGD(TAG, "CO2 equiv: %.1f, accuracy: %u", bme680->co2Equivalent, bme680->co2Accuracy);
-    ESP_LOGD(TAG, "Breath Voc equiv: %.1f, accuracy: %u", bme680->breathVocEquivalent, bme680->breathVocAccuracy);
+    //    ESP_LOGD(TAG, "Static IAQ: %.1f, accuracy: %u", bme680->staticIaq, bme680->staticIaqAccuracy);
+    //    ESP_LOGD(TAG, "CO2 equiv: %.1f, accuracy: %u", bme680->co2Equivalent, bme680->co2Accuracy);
+    //    ESP_LOGD(TAG, "Breath Voc equiv: %.1f, accuracy: %u", bme680->breathVocEquivalent, bme680->breathVocAccuracy);
     ESP_LOGD(TAG, "Run in status: %.1f, Stab status: %.1f", bme680->runInStatus, bme680->stabStatus);
     updateMessageCallback("");
 
     if (bme680->runInStatus && bme680->iaqAccuracy >= 3) {
-
+      model->updateModel(bme680->temperature, bme680->humidity, (uint16_t)(bme680->pressure / 100), (uint16_t)(bme680->iaq));
+    } else {
+      model->updateModel(bme680->temperature, bme680->humidity, (uint16_t)(bme680->pressure / 100), 0);
     }
-    //    model->updateModel(model->getCo2(), bme680->temperature, bme680->humidity);
+
     updateState();
   } else {
     checkIaqSensorStatus();

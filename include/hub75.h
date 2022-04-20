@@ -14,16 +14,12 @@ public:
   HUB75(Model* _model);
   ~HUB75();
 
-  void update(uint16_t mask);
+  void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
   void stopDMA();
 
 private:
   Model* model;
   MatrixPanel_I2S_DMA* matrix;
-
-  typedef enum { UNDEFINED = -1, GREEN = 0, YELLOW = 1, RED = 2, DARK_RED = 3 } Status;
-
-  Status status;
 
   void timer();
   Ticker* cyclicTimer;
