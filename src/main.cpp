@@ -64,21 +64,21 @@ void updateMessage(char const* msg) {
   }
 }
 
-void modelUpdatedEvt(uint16_t mask) {
-  if (lcd) lcd->update(mask);
+void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
+  if (lcd) lcd->update(mask, oldStatus, newStatus);
 #ifdef HAS_LEDS
-  if (trafficLight) trafficLight->update(mask);
+  if (trafficLight) trafficLight->update(mask, oldStatus, newStatus);
 #endif
 #ifdef HAS_NEOPIXEL
-  if (neopixel) neopixel->update(mask);
+  if (neopixel) neopixel->update(mask, oldStatus, newStatus);
 #endif
 #ifdef HAS_FEATHER_MATRIX
-  if (featherMatrix) featherMatrix->update(mask);
+  if (featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
 #endif
 #ifdef HAS_HUB75
-  if (hub75) hub75->update(mask);
+  if (hub75) hub75->update(mask, oldStatus, newStatus);
 #endif
-  if (mask != M_NONE) mqtt::publishSensors();
+  if (mask != M_NONE) mqtt::publishSensors(mask);
 }
 
 void calibrateCo2SensorCallback(uint16_t co2Reference) {

@@ -15,10 +15,16 @@
 
 namespace mqtt {
 
-  const uint32_t X_CMD_PUBLISH_SENSORS = bit(1);
-  const uint32_t X_CMD_PUBLISH_CONFIGURATION = bit(2);
+  struct MqttMessage {
+    uint8_t cmd;
+    uint16_t mask;
+  };
+
+  const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
+  const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
 
   TaskHandle_t mqttTask;
+  QueueHandle_t mqttQueue;
 
   WiFiClient wifiClient;
   PubSubClient mqtt_client(wifiClient);
@@ -27,21 +33,46 @@ namespace mqtt {
   calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
   setTemperatureOffsetCallback_t setTemperatureOffsetCallback;
 
-  void publishSensors() {
-    xTaskNotify(mqttTask, X_CMD_PUBLISH_SENSORS, eSetBits);
+  void publishSensors(uint16_t mask) {
+    MqttMessage msg;
+    msg.cmd = X_CMD_PUBLISH_SENSORS;
+    msg.mask = mask;
+    xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
-  void publishSensorsInteral() {
-    char buf[256];
+  void publishSensorsInteral(uint16_t mask) {
+    char topic[256];
     char msg[256];
-    sprintf(msg, "{\"co2\":%u,\"temperature\":\"%.1f\",\"humidity\":\"%.1f\"}", model->getCo2(), model->getTemperature(), model->getHumidity());
-    sprintf(buf, "%s/%u/up/sensors", config.mqttTopic, config.deviceId);
+    sprintf(topic, "%s/%u/up/sensors", config.mqttTopic, config.deviceId);
+
+    char buf[8];
+    StaticJsonDocument<512> json;
+    if (mask & M_CO2) json["co2"] = model->getCo2();
+    if (mask & M_TEMPERATURE) {
+      sprintf(buf, "%.1f", model->getTemperature());
+      json["temperature"] = buf;
+    }
+    if (mask & M_HUMIDITY) {
+      sprintf(buf, "%.1f", model->getHumidity());
+      json["humidity"] = buf;
+    }
+    if (mask & M_PRESSURE) json["pressure"] = model->getPressure();
+    if (mask & M_IAQ) json["iaq"] = model->getIAQ();
+
+    // Serialize JSON to file
+    if (serializeJson(json, msg) == 0) {
+      ESP_LOGW(TAG, "Failed to serialise payload");
+      return;
+    }
     ESP_LOGI(TAG, "Publishing sensor values: %s", msg);
-    mqtt_client.publish(buf, msg);
+    mqtt_client.publish(topic, msg);
   }
 
   void publishConfiguration() {
-    xTaskNotify(mqttTask, X_CMD_PUBLISH_CONFIGURATION, eSetBits);
+    MqttMessage msg;
+    msg.cmd = X_CMD_PUBLISH_CONFIGURATION;
+    msg.mask = 0;
+    xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
   void publishConfigurationInternal() {
@@ -145,6 +176,11 @@ namespace mqtt {
   }
 
   void setupMqtt(Model* _model, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback, setTemperatureOffsetCallback_t _setTemperatureOffsetCallback) {
+    mqttQueue = xQueueCreate(10, sizeof(struct MqttMessage*));
+    if (mqttQueue == NULL) {
+      ESP_LOGE(TAG, "Queue creation failed!");
+    }
+
     model = _model;
     calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
     setTemperatureOffsetCallback = _setTemperatureOffsetCallback;
@@ -154,21 +190,15 @@ namespace mqtt {
 
   void mqttLoop(void* pvParameters) {
     _ASSERT((uint32_t)pvParameters == 1);
-    uint32_t taskNotification;
     BaseType_t notified;
+    MqttMessage msg;
     while (1) {
-      notified = xTaskNotifyWait(0x00,     // Don't clear any bits on entry
-        ULONG_MAX,                         // Clear all bits on exit
-        &taskNotification,                 // Receives the notification value
-        pdMS_TO_TICKS(100));
+      notified = xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
       if (notified == pdPASS) {
-        if (taskNotification & X_CMD_PUBLISH_CONFIGURATION) {
-          taskNotification &= ~X_CMD_PUBLISH_CONFIGURATION;
+        if (msg.cmd == X_CMD_PUBLISH_CONFIGURATION) {
           publishConfigurationInternal();
-        }
-        if (taskNotification & X_CMD_PUBLISH_SENSORS) {
-          taskNotification &= ~X_CMD_PUBLISH_SENSORS;
-          publishSensorsInteral();
+        } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
+          publishSensorsInteral(msg.mask);
         }
       }
       if (!mqtt_client.connected()) {

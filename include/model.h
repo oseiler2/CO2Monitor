@@ -5,8 +5,6 @@
 
 const float NaN = sqrt(-1);
 
-typedef void (*modelUpdatedEvt_t)(uint16_t mask);
-
 typedef enum {
   M_NONE = 0,
   M_CO2 = 1 << 0,
@@ -20,6 +18,16 @@ typedef enum {
   M_PM4 = 1 << 8,
   M_PM10 = 1 << 9
 } Measurement;
+
+typedef enum {
+  UNDEFINED = 0,
+  GREEN,
+  YELLOW,
+  RED,
+  DARK_RED
+} TrafficLightStatus;
+
+typedef void (*modelUpdatedEvt_t)(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
 
 class Model {
 public:
@@ -38,11 +46,15 @@ public:
   uint16_t getPM4();
   uint16_t getPM10();
 
+  TrafficLightStatus getStatus();
+
   void updateModel(uint16_t co2, float temperature, float humidity);
   void updateModel(float temperature, float humidity, uint16_t pressure, uint16_t iaq);
   void updateModel(uint16_t pm0_5, uint16_t pm1_0, uint16_t pm2_5, uint16_t pm4, uint16_t pm10);
 
 private:
+
+  TrafficLightStatus status;
   float temperature;
   float humidity;
   uint16_t co2;
@@ -54,6 +66,7 @@ private:
   uint16_t pm4;
   uint16_t pm10;
   modelUpdatedEvt_t modelUpdatedEvt;
+  void updateStatus();
 
 };
 

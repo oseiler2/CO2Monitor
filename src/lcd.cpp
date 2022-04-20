@@ -44,8 +44,7 @@ void LCD::updateMessage(char const* msg) {
   I2C::giveMutex();
 }
 
-void LCD::update(uint16_t mask) {
-  if (!mask || M_CO2) return;
+void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
   if (model->getCo2() != 0) {
     // 8-24 vs 12-40

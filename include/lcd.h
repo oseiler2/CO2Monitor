@@ -13,7 +13,7 @@ public:
   ~LCD();
 
   void updateMessage(char const* msg);
-  void update(uint16_t mask);
+  void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
 
 private:
   Model* model;

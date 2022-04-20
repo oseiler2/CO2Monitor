@@ -55,48 +55,35 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
   ledcWrite(pwmChannelYellow, 0);
   ledcWrite(pwmChannelGreen, 0);
   delay(500);
-  this->status = UNDEFINED;
 }
 
 TrafficLight::~TrafficLight() {
   if (this->cyclicTimer) delete cyclicTimer;
 }
 
-void TrafficLight::update(uint16_t mask) {
-  if (!mask || M_CO2) return;
-  if (model->getCo2() < config.yellowThreshold) {
-    if (this->status != GREEN) {
-      this->status = GREEN;
-      ledcWrite(pwmChannelRed, 0);
-      ledcWrite(pwmChannelYellow, 0);
-      ledcWrite(pwmChannelGreen, config.ledPwm);
-    }
-  } else if (model->getCo2() < config.redThreshold) {
-    if (this->status != YELLOW) {
-      this->status = YELLOW;
-      ledcWrite(pwmChannelRed, 0);
-      ledcWrite(pwmChannelYellow, config.ledPwm);
-      ledcWrite(pwmChannelGreen, 0);
-    }
-  } else if (model->getCo2() < config.darkRedThreshold) {
-    if (this->status != RED) {
-      this->status = RED;
-      ledcWrite(pwmChannelRed, config.ledPwm);
-      ledcWrite(pwmChannelYellow, 0);
-      ledcWrite(pwmChannelGreen, 0);
-    }
-  } else if (model->getCo2() >= config.darkRedThreshold) {
-    if (this->status != DARK_RED) {
-      this->status = DARK_RED;
-      ledcWrite(pwmChannelRed, config.ledPwm);
-      ledcWrite(pwmChannelYellow, 0);
-      ledcWrite(pwmChannelGreen, 0);
-    }
+void TrafficLight::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
+  if (oldStatus == newStatus) return;
+  if (newStatus == GREEN) {
+    ledcWrite(pwmChannelRed, 0);
+    ledcWrite(pwmChannelYellow, 0);
+    ledcWrite(pwmChannelGreen, config.ledPwm);
+  } else if (newStatus == YELLOW) {
+    ledcWrite(pwmChannelRed, 0);
+    ledcWrite(pwmChannelYellow, config.ledPwm);
+    ledcWrite(pwmChannelGreen, 0);
+  } else if (newStatus == RED) {
+    ledcWrite(pwmChannelRed, config.ledPwm);
+    ledcWrite(pwmChannelYellow, 0);
+    ledcWrite(pwmChannelGreen, 0);
+  } else if (newStatus == DARK_RED) {
+    ledcWrite(pwmChannelRed, config.ledPwm);
+    ledcWrite(pwmChannelYellow, 0);
+    ledcWrite(pwmChannelGreen, 0);
   }
 }
 
 void TrafficLight::timer() {
-  if (this->status == DARK_RED) {
+  if (model->getStatus() == DARK_RED) {
     if (ledcRead(pwmChannelRed) == 0)
       ledcWrite(pwmChannelRed, config.ledPwm);
     else

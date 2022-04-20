@@ -21,8 +21,6 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel) {
   fill(this->strip->Color(0, 255, 0)); // Green
   delay(500);
   fill(this->strip->Color(0, 0, 0)); // off
-
-  this->status = UNDEFINED;
 }
 
 Neopixel::~Neopixel() {
@@ -37,35 +35,23 @@ void Neopixel::fill(uint32_t c) {
   this->strip->show();
 }
 
-void Neopixel::update(uint16_t mask) {
-  if (!mask || M_CO2) return;
+void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   this->strip->setBrightness(config.ledPwm);
-  if (model->getCo2() < config.yellowThreshold) {
-    if (this->status != GREEN) {
-      this->status = GREEN;
-      fill(this->strip->Color(0, 255, 0)); // Green
-    }
-  } else if (model->getCo2() < config.redThreshold) {
-    if (this->status != YELLOW) {
-      this->status = YELLOW;
-      fill(this->strip->Color(255, 70, 0)); // Amber
-    }
-  } else if (model->getCo2() < config.darkRedThreshold) {
-    if (this->status != RED) {
-      this->status = RED;
-      fill(this->strip->Color(255, 0, 0)); // Red
-    }
-  } else if (model->getCo2() >= config.darkRedThreshold) {
-    if (this->status != DARK_RED) {
-      this->status = DARK_RED;
-      fill(this->strip->Color(255, 0, 0)); // Red
-    }
+  if (oldStatus == newStatus) return;
+  if (newStatus == GREEN) {
+    fill(this->strip->Color(0, 255, 0)); // Green
+  } else if (newStatus == YELLOW) {
+    fill(this->strip->Color(255, 70, 0)); // Amber
+  } else if (newStatus == RED) {
+    fill(this->strip->Color(255, 0, 0)); // Red
+  } else if (newStatus == DARK_RED) {
+    fill(this->strip->Color(255, 0, 0)); // Red
   }
 }
 
 void Neopixel::timer() {
   this->toggle = !(this->toggle);
-  if (this->status == DARK_RED) {
+  if (model->getStatus() == DARK_RED) {
     if (toggle)
       fill(this->strip->Color(255, 0, 0)); // Red
     else
