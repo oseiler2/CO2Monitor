@@ -7,6 +7,11 @@ Model::Model(modelUpdatedEvt_t _modelUpdatedEvt) {
   this->co2 = 0;
   this->pressure = 0;
   this->iaq = 0;
+  this->pm0_5 = 0;
+  this->pm1_0 = 0;
+  this->pm2_5 = 0;
+  this->pm4 = 0;
+  this->pm10 = 0;
   this->modelUpdatedEvt = _modelUpdatedEvt;
   this->status = UNDEFINED;
 }
@@ -61,12 +66,17 @@ void Model::updateModel(float _temperature, float _humidity, uint16_t _pressure,
   modelUpdatedEvt(M_TEMPERATURE | M_HUMIDITY | M_PRESSURE | (_iaq != 0 ? M_IAQ : M_NONE), oldStatus, this->status);
 }
 
-TrafficLightStatus Model::getStatus() {
-  return this->status;
+void Model::updateModel(uint16_t _pm0_5, uint16_t _pm1_0, uint16_t _pm2_5, uint16_t _pm4, uint16_t _pm10) {
+  this->pm0_5 = _pm0_5;
+  this->pm1_0 = _pm1_0;
+  this->pm2_5 = _pm2_5;
+  this->pm4 = _pm4;
+  this->pm10 = _pm10;
+  modelUpdatedEvt(M_PM0_5 | M_PM1_0 | M_PM2_5 | M_PM4 | M_PM10, this->status, this->status);
 }
 
-void Model::updateModel(uint16_t pm0_5, uint16_t pm1_0, uint16_t pm2_5, uint16_t pm4, uint16_t pm10) {
-  modelUpdatedEvt(M_PM0_5 || M_PM1_0 || M_PM2_5 || M_PM4 || M_PM10);
+TrafficLightStatus Model::getStatus() {
+  return this->status;
 }
 
 uint16_t Model::getCo2() {

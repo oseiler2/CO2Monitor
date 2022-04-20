@@ -58,6 +58,11 @@ namespace mqtt {
     }
     if (mask & M_PRESSURE) json["pressure"] = model->getPressure();
     if (mask & M_IAQ) json["iaq"] = model->getIAQ();
+    if (mask & M_PM0_5) json["pm0.5"] = model->getPM0_5();
+    if (mask & M_PM1_0) json["pm1"] = model->getPM1_0();
+    if (mask & M_PM2_5) json["pm2.5"] = model->getPM2_5();
+    if (mask & M_PM4) json["pm4"] = model->getPM4();
+    if (mask & M_PM10) json["pm10"] = model->getPM10();
 
     // Serialize JSON to file
     if (serializeJson(json, msg) == 0) {
