@@ -41,7 +41,7 @@ public:
   uint16_t getPressure();
   uint16_t getIAQ();
   uint16_t getPM0_5();
-  uint16_t getPM1_0();
+  uint16_t getPM1();
   uint16_t getPM2_5();
   uint16_t getPM4();
   uint16_t getPM10();
@@ -50,7 +50,7 @@ public:
 
   void updateModel(uint16_t co2, float temperature, float humidity);
   void updateModel(float temperature, float humidity, uint16_t pressure, uint16_t iaq);
-  void updateModel(uint16_t pm0_5, uint16_t pm1_0, uint16_t pm2_5, uint16_t pm4, uint16_t pm10);
+  void updateModel(uint16_t pm0_5, uint16_t pm1, uint16_t pm2_5, uint16_t pm4, uint16_t pm10);
 
 private:
 
@@ -61,7 +61,7 @@ private:
   uint16_t pressure;
   uint16_t iaq;
   uint16_t pm0_5;
-  uint16_t pm1_0;
+  uint16_t pm1;
   uint16_t pm2_5;
   uint16_t pm4;
   uint16_t pm10;

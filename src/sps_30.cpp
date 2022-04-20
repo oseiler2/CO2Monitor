@@ -68,8 +68,9 @@ boolean SPS_30::readSps30() {
   I2C::giveMutex();
   this->updateMessageCallback("");
   if (ret == ERR__OK) {
-    ESP_LOGD(TAG, "SPS30 MassPM1:%.1f, MassPM2:%.1f, MassPM4:%.1f, MassPM1:%.1f, MassPM1:%.1f, NumPM0:%.1f, NumPM1:%.1f, NumPM2:%.1f, NumPM4:%.1f, NumPM10:%.1f, PartSize:%.1f", val.MassPM1, val.MassPM2, val.MassPM4, val.MassPM10, val.NumPM0, val.NumPM1, val.NumPM2, val.NumPM4, val.NumPM10, val.PartSize);
-    model->updateModel((uint16_t)val.NumPM0, (uint16_t)val.NumPM1, (uint16_t)val.NumPM2, (uint16_t)val.NumPM4, (uint16_t)val.NumPM10);
+    //    ESP_LOGD(TAG, "SPS30 MassPM1:%.1f, MassPM2:%.1f, MassPM4:%.1f, MassPM10:%.1f, NumPM0:%.1f, NumPM1:%.1f, NumPM2:%.1f, NumPM4:%.1f, NumPM10:%.1f, PartSize:%.1f",
+    //      val.MassPM1, val.MassPM2, val.MassPM4, val.MassPM10, val.NumPM0, val.NumPM1, val.NumPM2, val.NumPM4, val.NumPM10, val.PartSize);
+    model->updateModel((uint16_t)(val.NumPM0 + 0.5f), (uint16_t)(val.NumPM1 + 0.5f), (uint16_t)(val.NumPM2 + 0.5f), (uint16_t)(val.NumPM4 + 0.5f), (uint16_t)(val.NumPM10 + 0.5f));
   }
   return (ret == ERR__OK);
 }
