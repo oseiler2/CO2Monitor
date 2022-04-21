@@ -83,7 +83,7 @@ namespace mqtt {
   void publishConfigurationInternal() {
     char buf[256];
     char msg[384];
-    sprintf(msg, "{\"appVersion\":%u,\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
+    sprintf(msg, "{\"appVersion\":%u,\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
       APP_VERSION,
       config.altitude,
       config.yellowThreshold,
