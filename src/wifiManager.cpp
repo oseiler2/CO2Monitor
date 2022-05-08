@@ -118,10 +118,10 @@ namespace WifiManager {
       ESP_LOGD(TAG, "darkRedThreshold: %s", darkRedThresholdParam->getValue());
       ESP_LOGD(TAG, "ledPwm: %s", ledPwmParam->getValue());
       config.deviceId = (uint16_t)atoi(deviceIdParam->getValue());
-      strncpy(config.mqttTopic, mqttTopicParam->getValue(), MQTT_TOPIC_ID_LEN);
-      strncpy(config.mqttUsername, mqttUsernameParam->getValue(), MQTT_USERNAME_LEN);
-      strncpy(config.mqttPassword, mqttPasswordParam->getValue(), MQTT_PASSWORD_LEN);
-      strncpy(config.mqttHost, mqttHostParam->getValue(), MQTT_HOSTNAME_LEN);
+      strncpy(config.mqttTopic, mqttTopicParam->getValue(), MQTT_TOPIC_ID_LEN + 1);
+      strncpy(config.mqttUsername, mqttUsernameParam->getValue(), MQTT_USERNAME_LEN + 1);
+      strncpy(config.mqttPassword, mqttPasswordParam->getValue(), MQTT_PASSWORD_LEN + 1);
+      strncpy(config.mqttHost, mqttHostParam->getValue(), MQTT_HOSTNAME_LEN + 1);
       config.mqttServerPort = (uint16_t)atoi(mqttPortParam->getValue());
       config.altitude = (uint16_t)atoi(altitudeParam->getValue());
       config.yellowThreshold = (uint16_t)atoi(yellowThresholdParam->getValue());
