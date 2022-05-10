@@ -60,7 +60,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
 
   // see if only CO2 sensor is present
-  if ((I2C::scd30Present() || I2C::scd40Present()) && !(I2C::bme680Present())) {
+  if ((I2C::scd30Present() || I2C::scd40Present()) && !I2C::bme680Present() && !I2C::sps30Present()) {
     // 8-24 vs 12-40
     this->display->writeFillRect(4, line1_y, 120, line_height * 3, BLACK);
     this->display->setTextSize(1);
@@ -109,6 +109,17 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
         this->display->print("IAQ: ----");
       } else {
         this->display->printf("IAQ: %4u", model->getIAQ());
+      }
+    }
+    if (mask & M_PM10) {
+      this->display->writeFillRect(0, line3_y, 128, line_height, BLACK);
+      this->display->setFont(SSD1306_HEIGHT == 32 ? NULL : FONT_9);
+      this->display->setTextSize(1);
+      this->display->setCursor(0, line3_y + (SSD1306_HEIGHT == 32 ? 0 : (line_height - 4)));
+      if (model->getPM10() == 0) {
+        this->display->print("PM: ----");
+      } else {
+        this->display->printf("PM: %4u", model->getPM10());
       }
     }
   }
