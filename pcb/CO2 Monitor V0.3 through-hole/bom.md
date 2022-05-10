@@ -25,3 +25,5 @@
 | Power Supply   | old USB-A phone charger       |                                                  |              |                              |                                                                                                           |                                                                                                            |
 | USB cable      | micro USB                     |                                                  |              |                              |                                                                                                           |                                                                                                            |
 | diffusor film  | 2x3 cm                        |                                                  | 2            |                              |                                                                                                           |                                                                                                            |
+
+![](bom.jpg)
