@@ -83,20 +83,38 @@ namespace mqtt {
   void publishConfigurationInternal() {
     char buf[256];
     char msg[384];
-    sprintf(msg, "{\"appVersion\":%u,\"altitude\":%u,\"yellowThreshold\":%u,\"redThreshold\":%u,\"darkRedThreshold\":%u,%s%s%s%s%s\"ledPwm\":%u,\"mac\":\"%x\",\"ip\":\"%s\"}",
-      APP_VERSION,
-      config.altitude,
-      config.yellowThreshold,
-      config.redThreshold,
-      config.darkRedThreshold,
-      I2C::scd30Present() ? "\"scd30\":true," : "",
-      I2C::scd40Present() ? "\"scd40\":true," : "",
-      I2C::sps30Present() ? "\"sps30\":true," : "",
-      I2C::bme680Present() ? "\"bme680\":true," : "",
-      I2C::lcdPresent() ? "\"lcd\":true," : "",
-      config.ledPwm,
-      (uint32_t)ESP.getEfuseMac(),
-      WiFi.localIP().toString().c_str());
+    StaticJsonDocument<512> json;
+    json["appVersion"] = APP_VERSION;
+    json["altitude"] = config.altitude;
+    json["yellowThreshold"] = config.yellowThreshold;
+    json["redThreshold"] = config.redThreshold;
+    json["darkRedThreshold"] = config.darkRedThreshold;
+    json["ledPwm"] = config.ledPwm;
+    sprintf(buf, "%x", (uint32_t)ESP.getEfuseMac());
+    json["mac"] = buf;
+    sprintf(buf, "%s", WiFi.localIP().toString().c_str());
+    json["ip"] = buf;
+    if (I2C::scd30Present())
+      json["scd30"] = true;
+    if (I2C::scd40Present())
+      json["scd40"] = true;
+    if (I2C::bme680Present())
+      json["bme680"] = true;
+    if (I2C::lcdPresent())
+      json["lcd"] = true;
+    if (I2C::sps30Present())
+      json["sps30"] = true;
+#ifdef HAS_NEOPIXEL
+    json["neopxl"] = NEOPIXEL_NUM;
+#endif
+#ifdef HAS_LEDS
+    json["leds"] = true;
+#endif
+
+    if (serializeJson(json, msg) == 0) {
+      ESP_LOGW(TAG, "Failed to serialise payload");
+      return;
+    }
     sprintf(buf, "%s/%u/up/config", config.mqttTopic, config.deviceId);
     ESP_LOGI(TAG, "Publishing configuration: %s", msg);
     mqtt_client.publish(buf, msg);
@@ -160,7 +178,7 @@ namespace mqtt {
 
   void reconnect() {
     char buf[256];
-    sprintf(buf, "CO2Monitor-%u-%x", config.deviceId, ESP.getEfuseMac());
+    sprintf(buf, "CO2Monitor-%u-%x", config.deviceId, (uint32_t)ESP.getEfuseMac());
     while (!WiFi.isConnected()) { vTaskDelay(pdMS_TO_TICKS(100)); }
     while (!mqtt_client.connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
@@ -181,7 +199,7 @@ namespace mqtt {
   }
 
   void setupMqtt(Model* _model, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback, setTemperatureOffsetCallback_t _setTemperatureOffsetCallback) {
-    mqttQueue = xQueueCreate(10, sizeof(struct MqttMessage*));
+    mqttQueue = xQueueCreate(2, sizeof(struct MqttMessage*));
     if (mqttQueue == NULL) {
       ESP_LOGE(TAG, "Queue creation failed!");
     }
