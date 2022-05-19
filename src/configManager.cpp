@@ -54,7 +54,7 @@ void getDefaultConfiguration(Config& config) {
   config.yellowThreshold = 700;
   config.redThreshold = 900;
   config.darkRedThreshold = 1200;
-  config.ledPwm = 100;
+  config.ledPwm = 255;
 }
 
 void logConfiguration(const Config& config) {
@@ -108,7 +108,7 @@ boolean loadConfiguration(Config& config) {
   config.yellowThreshold = doc["yellowThreshold"] | 700;
   config.redThreshold = doc["redThreshold"] | 900;
   config.darkRedThreshold = doc["darkRedThreshold"] | 1200;
-  config.ledPwm = doc["ledPwm"] | 100;
+  config.ledPwm = doc["ledPwm"] | 255;
 
   file.close();
   ESP_LOGD(TAG, "###################### loadConfiguration");
