@@ -15,6 +15,7 @@
 #define FONT_9 &FreeMono9pt7b
 
 LCD::LCD(TwoWire* _wire, Model* _model) {
+  priorityMessageActive = false;
   this->model = _model;
   display = new Adafruit_SSD1306(128, SSD1306_HEIGHT, _wire, -1, 50000, I2C_CLK);
 
@@ -46,6 +47,7 @@ const uint8_t line3_y = SSD1306_HEIGHT == 32 ? 16 : 40;
 const uint8_t line_height = SSD1306_HEIGHT == 32 ? 8 : 16;
 
 void LCD::updateMessage(char const* msg) {
+  if (priorityMessageActive) return;
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
   this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
   this->display->setFont(NULL);
@@ -56,7 +58,28 @@ void LCD::updateMessage(char const* msg) {
   I2C::giveMutex();
 }
 
+void LCD::setPriorityMessage(char const* msg) {
+  if (!I2C::takeMutex(pdMS_TO_TICKS(2000))) return;
+  this->priorityMessageActive = true;
+  this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
+  this->display->setFont(NULL);
+  this->display->setCursor(0, status_y);
+  this->display->setTextSize(1);
+  this->display->printf("%-21s", msg);
+  this->display->display();
+  I2C::giveMutex();
+}
+
+void LCD::clearPriorityMessage() {
+  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
+  this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
+  this->display->display();
+  this->priorityMessageActive = false;
+  I2C::giveMutex();
+}
+
 void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
+  if (priorityMessageActive && SSD1306_HEIGHT == 32) return;
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
 
   // see if only CO2 sensor is present

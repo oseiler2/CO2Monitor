@@ -61,6 +61,18 @@ void updateMessage(char const* msg) {
   }
 }
 
+void setPriorityMessage(char const* msg) {
+  if (lcd) {
+    lcd->setPriorityMessage(msg);
+  }
+}
+
+void clearPriorityMessage() {
+  if (lcd) {
+    lcd->clearPriorityMessage();
+  }
+}
+
 void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (lcd) lcd->update(mask, oldStatus, newStatus);
 #ifdef HAS_LEDS
@@ -197,7 +209,7 @@ void setup() {
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
-  WifiManager::setupWifi();
+  WifiManager::setupWifi(setPriorityMessage, clearPriorityMessage);
 
   OTA::setupOta(stopHub75DMA);
 
@@ -213,12 +225,12 @@ void loop() {
     while (digitalRead(TRIGGER_PIN) == LOW);
     digitalWrite(LED_PIN, LOW);
     stopHub75DMA();
-    WifiManager::startConfigPortal(updateMessage);
+    WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
   }
 
   if (WiFi.status() != WL_CONNECTED) {
     digitalWrite(LED_PIN, LOW);
-    WifiManager::setupWifi();
+    WifiManager::setupWifi(setPriorityMessage, clearPriorityMessage);
   } else if (WiFi.status() == WL_CONNECTED) {
     digitalWrite(LED_PIN, HIGH);
   }
