@@ -32,6 +32,7 @@ namespace mqtt {
 
   calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
   setTemperatureOffsetCallback_t setTemperatureOffsetCallback;
+  getTemperatureOffsetCallback_t getTemperatureOffsetCallback;
 
   void publishSensors(uint16_t mask) {
     MqttMessage msg;
@@ -103,7 +104,8 @@ namespace mqtt {
 #ifdef HAS_LEDS
     json["leds"] = true;
 #endif
-
+    sprintf(buf, "%.1f", getTemperatureOffsetCallback());
+    json["tempOffset"] = buf;
     if (serializeJson(json, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
@@ -191,7 +193,7 @@ namespace mqtt {
     }
   }
 
-  void setupMqtt(Model* _model, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback, setTemperatureOffsetCallback_t _setTemperatureOffsetCallback) {
+  void setupMqtt(Model* _model, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback, setTemperatureOffsetCallback_t _setTemperatureOffsetCallback, getTemperatureOffsetCallback_t _getTemperatureOffsetCallback) {
     mqttQueue = xQueueCreate(2, sizeof(struct MqttMessage*));
     if (mqttQueue == NULL) {
       ESP_LOGE(TAG, "Queue creation failed!");
@@ -200,6 +202,7 @@ namespace mqtt {
     model = _model;
     calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
     setTemperatureOffsetCallback = _setTemperatureOffsetCallback;
+    getTemperatureOffsetCallback = _getTemperatureOffsetCallback;
     mqtt_client.setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client.setCallback(callback);
   }

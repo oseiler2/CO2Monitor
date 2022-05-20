@@ -100,6 +100,11 @@ void setTemperatureOffsetCallback(float temperatureOffset) {
   if (I2C::scd40Present() && scd40) scd40->setTemperatureOffset(temperatureOffset);
 }
 
+float getTemperatureOffsetCallback() {
+  if (I2C::scd30Present() && scd30) return scd30->getTemperatureOffset();
+  if (I2C::scd40Present() && scd40) return scd40->getTemperatureOffset();
+}
+
 void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
@@ -165,7 +170,7 @@ void setup() {
   hub75 = new HUB75(model);
 #endif
 
-  mqtt::setupMqtt(model, calibrateCo2SensorCallback, setTemperatureOffsetCallback);
+  mqtt::setupMqtt(model, calibrateCo2SensorCallback, setTemperatureOffsetCallback, getTemperatureOffsetCallback);
 
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
