@@ -7,8 +7,8 @@
 namespace WifiManager {
   extern AsyncWebServer webServer;
 
-  void setupWifi();
-  void startConfigPortal(updateMessageCallback_t updateMessageCallback);
+  void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback);
+  void startConfigPortal(updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback);
   void resetSettings();
 }
 

@@ -14,11 +14,15 @@ public:
 
   void updateMessage(char const* msg);
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
+  void setPriorityMessage(char const* msg);
+  void clearPriorityMessage();
 
 private:
   Model* model;
 
   Adafruit_SSD1306* display;
+
+  boolean priorityMessageActive;
 };
 
 

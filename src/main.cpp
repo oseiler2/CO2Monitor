@@ -64,6 +64,18 @@ void updateMessage(char const* msg) {
   }
 }
 
+void setPriorityMessage(char const* msg) {
+  if (lcd) {
+    lcd->setPriorityMessage(msg);
+  }
+}
+
+void clearPriorityMessage() {
+  if (lcd) {
+    lcd->clearPriorityMessage();
+  }
+}
+
 void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (lcd) lcd->update(mask, oldStatus, newStatus);
 #ifdef HAS_LEDS
@@ -89,6 +101,11 @@ void calibrateCo2SensorCallback(uint16_t co2Reference) {
 void setTemperatureOffsetCallback(float temperatureOffset) {
   if (I2C::scd30Present() && scd30) scd30->setTemperatureOffset(temperatureOffset);
   if (I2C::scd40Present() && scd40) scd40->setTemperatureOffset(temperatureOffset);
+}
+
+float getTemperatureOffsetCallback() {
+  if (I2C::scd30Present() && scd30) return scd30->getTemperatureOffset();
+  if (I2C::scd40Present() && scd40) return scd40->getTemperatureOffset();
 }
 
 void setup() {
@@ -157,7 +174,7 @@ void setup() {
   hub75 = new HUB75(model);
 #endif
 
-  mqtt::setupMqtt(model, calibrateCo2SensorCallback, setTemperatureOffsetCallback);
+  mqtt::setupMqtt(model, calibrateCo2SensorCallback, setTemperatureOffsetCallback, getTemperatureOffsetCallback);
 
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
@@ -209,7 +226,7 @@ void setup() {
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
-  WifiManager::setupWifi();
+  WifiManager::setupWifi(setPriorityMessage, clearPriorityMessage);
 
   OTA::setupOta(stopHub75DMA);
 
@@ -225,12 +242,12 @@ void loop() {
     while (digitalRead(TRIGGER_PIN) == LOW);
     digitalWrite(LED_PIN, LOW);
     stopHub75DMA();
-    WifiManager::startConfigPortal(updateMessage);
+    WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
   }
 
   if (WiFi.status() != WL_CONNECTED) {
     digitalWrite(LED_PIN, LOW);
-    WifiManager::setupWifi();
+    WifiManager::setupWifi(setPriorityMessage, clearPriorityMessage);
   } else if (WiFi.status() == WL_CONNECTED) {
     digitalWrite(LED_PIN, HIGH);
   }

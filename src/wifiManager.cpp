@@ -145,20 +145,22 @@ namespace WifiManager {
     delete ledPwmParam;
   }
 
-  void setupWifi() {
+  void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {
     AsyncWebServer webServer(HTTP_PORT);
     DNSServer dnsServer;
     ESPAsync_WiFiManager* wifiManager;
     wifiManager = new ESPAsync_WiFiManager(&webServer, &dnsServer, "CO2 Monitor");
     setupWifiManager(wifiManager);
+    setPriorityMessageCallback(("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str());
     wifiManager->autoConnect(("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str(), AP_PW);
     updateConfiguration(wifiManager);
     delete wifiManager;
+    clearPriorityMessageCallback();
     ESP_LOGD(TAG, "setupWifi end");
   }
 
-  void startConfigPortal(updateMessageCallback_t updateMessageCallback) {
-    updateMessageCallback(String((uint32_t)ESP.getEfuseMac(), HEX).c_str());
+  void startConfigPortal(updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {
+    setPriorityMessageCallback(("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str());
     AsyncWebServer webServer(HTTP_PORT);
     DNSServer dnsServer;
     ESPAsync_WiFiManager* wifiManager;
@@ -167,6 +169,7 @@ namespace WifiManager {
     wifiManager->startConfigPortal(("CO2-Monitor-" + String((uint32_t)ESP.getEfuseMac(), HEX)).c_str(), AP_PW);
     updateConfiguration(wifiManager);
     delete wifiManager;
+    clearPriorityMessageCallback();
     ESP_LOGD(TAG, "startConfigPortal end");
   }
 

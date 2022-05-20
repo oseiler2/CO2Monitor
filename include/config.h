@@ -12,7 +12,7 @@
 
 #define SCD30_RDY_PIN         35
 
-#define SSD1306_HEIGHT        32
+#define SSD1306_HEIGHT        64
 
 #define HAS_LEDS
 
@@ -25,8 +25,8 @@
 //#define HAS_NEOPIXEL
 
 #ifdef HAS_NEOPIXEL
-#define NEOPIXEL_PIN          32
-#define NEOPIXEL_NUM          9
+#define NEOPIXEL_PIN          16
+#define NEOPIXEL_NUM          3
 #endif
 
 //#define HAS_FEATHER_MATRIX
@@ -59,5 +59,7 @@
 static const char* CONFIG_FILENAME = "/config.json";
 
 typedef void (*updateMessageCallback_t)(char const*);
+typedef void (*setPriorityMessageCallback_t)(char const*);
+typedef void (*clearPriorityMessageCallback_t)(void);
 
 #endif
