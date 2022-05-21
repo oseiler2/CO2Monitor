@@ -6,6 +6,9 @@
 #include <i2c.h>
 #include <configManager.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 boolean SCD40::checkError(uint16_t error, char const* msg) {
   if (error != 0) {
     char errorMessage[256];

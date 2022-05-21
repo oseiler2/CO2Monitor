@@ -6,6 +6,9 @@
 #include <LITTLEFS.h>
 #include <ArduinoJson.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 Config config;
 
 // Allocate a temporary JsonDocument

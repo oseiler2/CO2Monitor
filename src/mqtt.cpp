@@ -13,6 +13,9 @@
 
 #include <ArduinoJson.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 namespace mqtt {
 
   struct MqttMessage {

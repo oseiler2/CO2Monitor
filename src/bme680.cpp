@@ -7,6 +7,9 @@
 #include <configManager.h>
 #include <EEPROM.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 const uint8_t bsec_config_iaq[] = {
 #include "config/generic_33v_3s_4d/bsec_iaq.txt"
 };

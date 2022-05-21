@@ -8,6 +8,9 @@
 #include <configManager.h>
 #include <lcd.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 namespace WifiManager {
 #define HTTP_PORT 80
 
