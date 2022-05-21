@@ -3,7 +3,7 @@
 #include <configManager.h>
 
 #include <FS.h>
-#include <LITTLEFS.h>
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 
 // Local logging tag
@@ -32,9 +32,9 @@ Config config;
 #define CONFIG_SIZE 768
 
 void setupConfigManager() {
-  if (!LITTLEFS.begin(true)) {
+  if (!LittleFS.begin(true)) {
     ESP_LOGW(TAG, "LittleFS failed! Already tried formatting.");
-    if (!LITTLEFS.begin()) {
+    if (!LittleFS.begin()) {
       delay(100);
       ESP_LOGW(TAG, "LittleFS failed second time!");
     }
@@ -75,7 +75,7 @@ void logConfiguration(const Config& config) {
 }
 
 boolean loadConfiguration(Config& config) {
-  File file = LITTLEFS.open(CONFIG_FILENAME, "r");
+  File file = LittleFS.open(CONFIG_FILENAME, "r");
   if (!file) {
     ESP_LOGW(TAG, "Could not open config file");
     return false;
@@ -123,12 +123,12 @@ boolean saveConfiguration(const Config& config) {
   ESP_LOGD(TAG, "###################### saveConfiguration");
   logConfiguration(config);
   // Delete existing file, otherwise the configuration is appended to the file
-  if (LITTLEFS.exists(CONFIG_FILENAME)) {
-    LITTLEFS.remove(CONFIG_FILENAME);
+  if (LittleFS.exists(CONFIG_FILENAME)) {
+    LittleFS.remove(CONFIG_FILENAME);
   }
 
   // Open file for writing
-  File file = LITTLEFS.open(CONFIG_FILENAME, "w");
+  File file = LittleFS.open(CONFIG_FILENAME, "w");
   if (!file) {
     ESP_LOGW(TAG, "Could not create config file for writing");
     return false;
@@ -165,7 +165,7 @@ boolean saveConfiguration(const Config& config) {
 // Prints the content of a file to the Serial
 void printFile() {
   // Open file for reading
-  File file = LITTLEFS.open(CONFIG_FILENAME, "r");
+  File file = LittleFS.open(CONFIG_FILENAME, "r");
   if (!file) {
     ESP_LOGW(TAG, "Could not open config file");
     return;
