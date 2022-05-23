@@ -28,6 +28,8 @@
 #include <wifiManager.h>
 #include <ota.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
 
 Model* model;
 LCD* lcd;

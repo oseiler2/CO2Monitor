@@ -2,6 +2,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 namespace I2C {
   boolean lcdDetected = false;
   boolean scd30Detected = false;

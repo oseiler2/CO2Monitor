@@ -1,6 +1,9 @@
 #include <model.h>
 #include <configManager.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 Model::Model(modelUpdatedEvt_t _modelUpdatedEvt) {
   this->temperature = NaN;
   this->humidity = NaN;

@@ -9,6 +9,9 @@
 #include <esp32-hal-timer.h>
 #include "freertos/FreeRTOS.h"
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 #define MAX_RETRY 5
 
 const uint32_t X_CMD_DATA_READY = bit(1);

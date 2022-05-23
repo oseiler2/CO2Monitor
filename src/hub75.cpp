@@ -6,6 +6,9 @@
 #include <digits.h>
 #include <message.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 #define USE_FASTLINES
 
 HUB75::HUB75(Model* _model) {

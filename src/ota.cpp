@@ -5,6 +5,9 @@
 #include <config.h>
 #include <Ticker.h>
 
+// Local logging tag
+static const char TAG[] = __FILE__;
+
 namespace OTA {
 
   Ticker cyclicTimer;
@@ -15,7 +18,7 @@ namespace OTA {
 #ifdef OTA_POLL
     cyclicTimer.attach(1060 * 60 * 24, checkForUpdate);
 #endif
-  }
+}
 
   const uint32_t X_CMD_CHECK_FOR_UPDATE = bit(1);
   TaskHandle_t otaTask;
