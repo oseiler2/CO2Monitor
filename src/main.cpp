@@ -150,6 +150,8 @@ void setup() {
 
   Wire.begin(SDA, SCL, I2C_CLK);
 
+  // allow SPS30 to come up
+  delay(500);
   I2C::initI2C();
 
   model = new Model(modelUpdatedEvt);
