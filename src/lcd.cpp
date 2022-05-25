@@ -134,15 +134,15 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
         this->display->printf("IAQ: %4u", model->getIAQ());
       }
     }
-    if (mask & M_PM10) {
+    if (mask & M_PM2_5) {
       this->display->writeFillRect(0, line3_y, 128, line_height, BLACK);
       this->display->setFont(SSD1306_HEIGHT == 32 ? NULL : FONT_9);
       this->display->setTextSize(1);
       this->display->setCursor(0, line3_y + (SSD1306_HEIGHT == 32 ? 0 : (line_height - 4)));
       if (model->getPM10() == 0) {
-        this->display->print("PM: ----");
+        this->display->print("PM2.5: ----");
       } else {
-        this->display->printf("PM: %4u", model->getPM10());
+        this->display->printf("PM2.5: %4u", model->getPM2_5());
       }
     }
   }

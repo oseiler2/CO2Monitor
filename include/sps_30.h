@@ -13,6 +13,11 @@ public:
   SPS_30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback);
   ~SPS_30();
 
+  uint32_t getAutoCleanInterval();
+  boolean setAutoCleanInterval(uint32_t intervalInSeconds);
+  boolean clean();
+  uint8_t getStatus();
+
   TaskHandle_t start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core);
 
 private:

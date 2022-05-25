@@ -110,6 +110,23 @@ float getTemperatureOffsetCallback() {
   if (I2C::scd40Present() && scd40) return scd40->getTemperatureOffset();
 }
 
+uint32_t getSPS30AutoCleanInterval() {
+  if (I2C::sps30Present && sps30) return sps30->getAutoCleanInterval();
+}
+
+boolean setSPS30AutoCleanInterval(uint32_t intervalInSeconds) {
+  if (I2C::sps30Present && sps30) return sps30->setAutoCleanInterval(intervalInSeconds);
+}
+
+boolean cleanSPS30() {
+  if (I2C::sps30Present && sps30) return sps30->clean();
+}
+
+uint8_t getSPS30Status() {
+  if (I2C::sps30Present && sps30) return sps30->getStatus();
+}
+
+
 void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
@@ -151,7 +168,6 @@ void setup() {
   Wire.begin(SDA, SCL, I2C_CLK);
 
   // allow SPS30 to come up
-  delay(500);
   I2C::initI2C();
 
   model = new Model(modelUpdatedEvt);
@@ -178,7 +194,15 @@ void setup() {
   hub75 = new HUB75(model);
 #endif
 
-  mqtt::setupMqtt(model, calibrateCo2SensorCallback, setTemperatureOffsetCallback, getTemperatureOffsetCallback);
+  mqtt::setupMqtt(
+    model,
+    calibrateCo2SensorCallback,
+    setTemperatureOffsetCallback,
+    getTemperatureOffsetCallback,
+    getSPS30AutoCleanInterval,
+    setSPS30AutoCleanInterval,
+    cleanSPS30,
+    getSPS30Status);
 
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
