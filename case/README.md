@@ -7,10 +7,11 @@ The case consists of a 3d printed body and a laser cut transparent acrylic front
 There are 2 versions of the main body available, with either 10mm or 15mm clearance over the PCB.
 The 15mm version is recommended for a little more room inside.
 
-| file               | standoff length | screw length |
-| ------------------ | --------------- | ------------ |
-| Case v0.3_10mm.STL | 10mm            | 20mm         |
-| Case v0.3_15mm.STL | 15mm            | 25mm         |
+| file                | description             | standoff length | screw length |
+| ------------------- | ----------------------- | --------------- | ------------ |
+| Case v0.3_10mm.STL  | flat case               | 10mm            | 20mm         |
+| Case v0.3_15mm.STL  | normal case             | 15mm            | 25mm         |
+| Case v0.3_10mmSPS30 | includes room for SPS30 | 10mm            | 25mm         |
 
 The body should be printed in the following orientation
 

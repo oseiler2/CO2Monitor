@@ -76,6 +76,8 @@ Once wifi credentials have been configured pressing the `Boot` button on the ESP
 
 Sensor readings can be published via MQTT for centralised storage and visualition. Each node is configured with its own id and will then publish under `co2monitor/<id>/up/sensors`. The top level topic `co2monitor` is configurable. Downlink messages to nodes can be sent to each individual node using the id in the topic `co2monitor/<id>/down/<command>`, or to all nodes when omitting the id part `co2monitor/down/<command>`
 
+SCD3x/SCD4x
+
 ```
 {
   "co2": 752,
@@ -84,17 +86,51 @@ Sensor readings can be published via MQTT for centralised storage and visualitio
 }
 ```
 
+BME680
+
+```
+{
+  "iaq": 19,
+  "temperature": "19.2",
+  "humidity": "75.6",
+  "pressure": 1014
+}
+```
+
+SPS30
+
+```
+{
+  "pm0.5": 16,
+  "pm1": 19,
+  "pm2.5": 19,
+  "pm4": 19,
+  "pm10": 19
+}
+```
+
 Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its current settings under `co2monitor/<id>/up/config`
 
 ```
 {
+  "appVersion": 1,
   "altitude": 10,
-  "yellowThreshold": 800,
-  "redThreshold": 1000,
-  "darkRedThreshold": 2000,
+  "yellowThreshold": 700,
+  "redThreshold": 900,
+  "darkRedThreshold": 1200,
   "ledPwm": 255,
-  "mac": "xxxxyyzz",
-  "ip": "192.168.1.2"
+  "mac": "xxyyzz",
+  "ip": "1.2.3.4",
+  "scd40": true,
+  "scd30": true,
+  "bme680": true,
+  "lcd": true,
+  "leds": true,
+  "sps30": true,
+  "sps30AutoCleanInt": 604800,
+  "sps30Status": 0,
+  "neopxl": 3,
+  "tempOffset": "7.0"
 }
 ```
 
@@ -103,9 +139,9 @@ A message to `co2monitor/<id>/down/setConfig` will set the node's configuration 
 ```
 {
   "altitude": 10,
-  "yellowThreshold": 800,
-  "redThreshold": 1000,
-  "darkRedThreshold": 2000,
+  "yellowThreshold": 700,
+  "redThreshold": 900,
+  "darkRedThreshold": 1200,
   "ledPwm": 255
 }
 ```
@@ -116,6 +152,20 @@ A message to `co2monitor/<id>/down/setTemperatureOffset` will set the SCD3x/SCD4
 7.0
 ```
 
+A message to `co2monitor/<id>/down/calibrate` will manually calibrate the SCD3x/SCD4x sensor to the given value:
+
+```
+412
+```
+
+A message to `co2monitor/<id>/down/setSPS30AutoCleanInterval` will set the SPS30 fan auto-clean interval in seconds to the given value:
+
+```
+604800
+```
+
+A message to `co2monitor/<id>/down/cleanSPS30` will run a fan clean on the SPS30.
+
 A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
 
 ## Supported sensors
@@ -123,7 +173,7 @@ A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
 - [SCD3x CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensors-scd30/)
 - [SCD4x CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensor-scd4x/)
 - [BME680 IAQ, VOC, temperature and humidity sensor](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/)
-- [SPS30 Small Particulate matter sensor](https://sensirion.com/products/catalog/SPS30/) (coming soon)
+- [SPS30 Small Particulate matter sensor](https://sensirion.com/products/catalog/SPS30/)
 
 ## Supported displays
 
@@ -152,7 +202,15 @@ A BME680 sensor can be directly soldered onto the dedicates footprint or connect
 
 ## SPS30 Particulate matter sensor
 
-Coming soon
+The SPS30 sensor can be connected to the I2C and 5V JST connectors of the pcb.
+
+| fn  | I2C | 5V  | SPS30 |
+| --- | --- | --- | ----- |
+| VDD |     | +5V | 1     |
+| SDA | SDA |     | 2     |
+| SCL | SCL |     | 3     |
+| SEL | GND |     | 4     |
+| GND |     | GND | 5     |
 
 ## other
 
@@ -170,40 +228,45 @@ When an ESP32 is used the feather footprint can be used to drive feather wings. 
 
 A feather controller can be used to drive the sensors and LEDs, but unfortunately not the RFM96.
 
-## Pin mapping (first generation)
+## Pin mapping
 
-| ESP32 Devkit (30 pin) | fn       | Feather pin | fn    | LEDs   | SCD3x/4x/BME680 | RFM96   |
-| --------------------- | -------- | ----------- | ----- | ------ | --------------- | ------- |
-| 1                     | EN       |             |       |        |                 |         |
-| 2                     | VP-D36   | 9           | A4    |        |                 |         |
-| 3                     | VN-D39   | 8           | A3    |        |                 |         |
-| 4                     | D34      | 7           | A2    |        |                 |         |
-| 5                     | D35      |             |       |        | RDY (SCD3x)     |         |
-| 6                     | D32      | 20          | D6    |        |                 | (RESET) |
-| 7                     | D33      | 22          | D10   |        |                 |         |
-| 8                     | D25      | 6           | A1    | Red    |                 |         |
-| 9                     | D26      | 5           | A0    | Yellow |                 |         |
-| 10                    | D27      | 23          | D11   | Green  |                 |         |
-| 11                    | D14      | 19          | D5    |        |                 | RESET   |
-| 12                    | D12      | 24          | D12   |        |                 |         |
-| 13                    | D13      | 25          | D13   |        |                 |         |
-| 14                    | GND      |             |       |        |                 |         |
-| 15                    | V_in     |             | V_USB |        |                 |         |
-| 16                    | 3V3      |             |       |        |                 |         |
-| 17                    | GND      |             |       |        |                 |         |
-| 18                    | D15      | 21          | D9    |        |                 |         |
-| 19                    | D2       |             |       |        |                 |         |
-| 20                    | D4       | 10          | A5    |        |                 |         |
-| 21                    | D16      |             |       |        |                 | DIO1    |
-| 22                    | D17      |             |       |        |                 | DIO0    |
-| 23                    | D5/CS0   |             |       |        |                 | NSS     |
-| 24                    | D18/SCK  | 11          | SCK   |        |                 | SCK     |
-| 25                    | D19/MISO | 13          | MISO  |        |                 | MISO    |
-| 26                    | D21/SDA  | 17          | SDA   |        | SDA             |         |
-| 27                    | D3/Rx    | 14          | Rx    |        |                 |         |
-| 28                    | D1/TxD   | 15          | Tx    |        |                 |         |
-| 29                    | D22/SCL  | 18          | SCL   |        | SCL             |         |
-| 30                    | D23/MOSI | 12          | MOSI  |        |                 | MOSI    |
+| ESP32 Devkit (30 pin) | fn       | Feather pin | fn    | LEDs   | SCD3x/4x/BME680/SPS30 | Neopixel |
+| --------------------- | -------- | ----------- | ----- | ------ | --------------------- | -------- |
+| 1                     | EN       |             |       |        |                       |          |
+| 2                     | VP-D36   | 9           | A4    |        |                       |          |
+| 3                     | VN-D39   | 8           | A3    |        |                       |          |
+| 4                     | D34      | 7           | A2    |        |                       |          |
+| 5                     | D35      |             |       |        | RDY (SCD3x)           |          |
+| 6                     | D32      | 20          | D6    |        |                       |          |
+| 7                     | D33      | 22          | D10   |        |                       |          |
+| 8                     | D25      | 6           | A1    | Red    |                       |          |
+| 9                     | D26      | 5           | A0    | Yellow |                       |          |
+| 10                    | D27      | 23          | D11   | Green  |                       |          |
+| 11                    | D14      | 19          | D5    |        |                       |          |
+| 12                    | D12      | 24          | D12   |        |                       |          |
+| 13                    | D13      | 25          | D13   |        |                       |          |
+| 14                    | GND      |             |       |        |                       |          |
+| 15                    | V_in     | 26          | V_USB |        |                       |          |
+| 16                    | 3V3      | 2           | 3V3   |        |                       |          |
+| 17                    | GND      | 4           | GND   |        |                       |          |
+| 18                    | D15      | 21          | D9    |        |                       |          |
+| 19                    | D2       |             |       |        |                       |          |
+| 20                    | D4       | 10          | A5    |        |                       |          |
+| 21                    | D16      |             |       |        |                       | DIN      |
+| 22                    | D17      |             |       |        |                       |          |
+| 23                    | D5/CS0   |             |       |        |                       |          |
+| 24                    | D18/SCK  | 11          | SCK   |        |                       |          |
+| 25                    | D19/MISO | 13          | MISO  |        |                       |          |
+| 26                    | D21/SDA  | 17          | SDA   |        | SDA                   |          |
+| 27                    | D3/Rx    | 14          | Rx    |        |                       |          |
+| 28                    | D1/TxD   | 15          | Tx    |        |                       |          |
+| 29                    | D22/SCL  | 18          | SCL   |        | SCL                   |          |
+| 30                    | D23/MOSI | 12          | MOSI  |        |                       |          |
+|                       |          | 1           | RST   |        |                       |
+|                       |          | 3           | AREF  |        |                       |
+|                       |          | 16          | aux   |        |                       |
+|                       |          | 27          | En    |        |                       |
+|                       |          | 28          | VBat  |        |                       |
 
 ## LEDs
 
@@ -213,29 +276,40 @@ The board has room for 3 x 5mm LEDs for traffic light style indication. Each is 
 - [Yellow, 9.3cd, 30°, 20 mA, 2.1 V](https://nz.element14.com/broadcom-limited/hlmp-el3g-vx0dd/led-amber-9-3cd-590nm-th/dp/2900814) (use 60Ω resistor)
 - [Red, 9.3cd, 30°, 20 mA, 2.1 V](https://nz.element14.com/broadcom-limited/hlmp-eg3a-wx0dd/led-5mm-alingap-red-30deg/dp/1706677) (use 60Ω resistor)
 
-## Neopixel
-
-in `config.h` uncomment
+In `config.h` uncomment `HAS_LEDS` and check the `GREEN_LED_PIN`, `YELLOW_LED_PIN` and `NEOPRED_LED_PINIXEL_NUM` settings
 
 ```
-#define NEOPIXEL_PIN          4   // pin
-#define NEOPIXEL_NUM          8   // number ofNeopixels
+#define HAS_LEDS
+#define GREEN_LED_PIN 27
+#define YELLOW_LED_PIN 26
+#define RED_LED_PIN 25
+```
+
+## Neopixel
+
+In `config.h` uncomment `HAS_NEOPIXEL` and check the `NEOPIXEL_PIN` and `NEOPIXEL_NUM` settings
+
+```
+#define HAS_NEOPIXEL
+#define NEOPIXEL_PIN          3   // pin
+#define NEOPIXEL_NUM          16  // number ofNeopixels
 ```
 
 ## Feather wings
 
 ### [6 x 12 DotStar](https://www.adafruit.com/product/3449)
 
-in `config.h` uncomment
+In `config.h` uncomment `#define HAS_FEATHER_MATRIX` and check the `FEATHER_MATRIX_DATAPIN` and `FEATHER_MATRIX_CLOCKPIN` settings
 
 ```
+#define HAS_FEATHER_MATRIX
 #define FEATHER_MATRIX_DATAPIN    27
 #define FEATHER_MATRIX_CLOCKPIN   13
 ```
 
 ### [128x32 OLED](https://www.adafruit.com/product/2900)
 
-in `config.h` set
+In `config.h` change
 
 ```
 #define SSD1306_HEIGHT  32
@@ -243,7 +317,7 @@ in `config.h` set
 
 ### [128x64 OLED](https://www.aliexpress.com/wholesale?SearchText=128X64+SSD1306)
 
-in `config.h` set
+In `config.h` set
 
 ```
 #define SSD1306_HEIGHT  64
@@ -269,6 +343,6 @@ in `config.h` set pin mappings as needed, e.g.
 #define HUB75_OE 33
 ```
 
-## RFM96
+## RFM96 (first generation)
 
 This allows adding a LoRa modem when no WiFi is available to transmit measurements.
