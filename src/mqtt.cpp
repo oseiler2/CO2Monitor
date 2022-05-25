@@ -36,6 +36,10 @@ namespace mqtt {
   calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
   setTemperatureOffsetCallback_t setTemperatureOffsetCallback;
   getTemperatureOffsetCallback_t getTemperatureOffsetCallback;
+  getSPS30AutoCleanIntervalCallback_t getSPS30AutoCleanIntervalCallback;
+  setSPS30AutoCleanIntervalCallback_t setSPS30AutoCleanIntervalCallback;
+  cleanSPS30Callback_t cleanSPS30Callback;
+  getSPS30StatusCallback_t getSPS30StatusCallback;
 
   void publishSensors(uint16_t mask) {
     MqttMessage msg;
@@ -44,7 +48,7 @@ namespace mqtt {
     xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
-  void publishSensorsInteral(uint16_t mask) {
+  void publishSensorsInternal(uint16_t mask) {
     char topic[256];
     char msg[256];
     sprintf(topic, "%s/%u/up/sensors", config.mqttTopic, config.deviceId);
@@ -62,14 +66,19 @@ namespace mqtt {
     }
     if (mask & M_PRESSURE) json["pressure"] = model->getPressure();
     if (mask & M_IAQ) json["iaq"] = model->getIAQ();
+    if (mask & M_PM0_5) json["pm0.5"] = model->getPM0_5();
+    if (mask & M_PM1_0) json["pm1"] = model->getPM1();
+    if (mask & M_PM2_5) json["pm2.5"] = model->getPM2_5();
+    if (mask & M_PM4) json["pm4"] = model->getPM4();
+    if (mask & M_PM10) json["pm10"] = model->getPM10();
 
     // Serialize JSON to file
     if (serializeJson(json, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
     }
-    ESP_LOGI(TAG, "Publishing sensor values: %s", msg);
-    mqtt_client.publish(topic, msg);
+    ESP_LOGI(TAG, "Publishing sensor values: %s:%s", topic, msg);
+    if (!mqtt_client.publish(topic, msg)) ESP_LOGE(TAG, "publish failed!");
   }
 
   void publishConfiguration() {
@@ -80,8 +89,8 @@ namespace mqtt {
   }
 
   void publishConfigurationInternal() {
-    char buf[256];
-    char msg[384];
+    char buf[384];
+    char msg[512];
     StaticJsonDocument<512> json;
     json["appVersion"] = APP_VERSION;
     json["altitude"] = config.altitude;
@@ -101,6 +110,11 @@ namespace mqtt {
       json["bme680"] = true;
     if (I2C::lcdPresent())
       json["lcd"] = true;
+    if (I2C::sps30Present()) {
+      json["sps30"] = true;
+      json["sps30AutoCleanInt"] = getSPS30AutoCleanIntervalCallback();
+      json["sps30Status"] = getSPS30StatusCallback();
+    }
 #ifdef HAS_NEOPIXEL
     json["neopxl"] = NEOPIXEL_NUM;
 #endif
@@ -114,8 +128,8 @@ namespace mqtt {
       return;
     }
     sprintf(buf, "%s/%u/up/config", config.mqttTopic, config.deviceId);
-    ESP_LOGI(TAG, "Publishing configuration: %s", msg);
-    mqtt_client.publish(buf, msg);
+    ESP_LOGI(TAG, "Publishing configuration: %s:%s", buf, msg);
+    if (!mqtt_client.publish(buf, msg)) ESP_LOGE(TAG, "publish failed!");
   }
 
   void callback(char* topic, byte* payload, unsigned int length) {
@@ -150,6 +164,12 @@ namespace mqtt {
       if (-10.0 < tempOffset && tempOffset <= 10.0) {
         setTemperatureOffsetCallback(tempOffset);
       }
+    } else if (strncmp(buf, "setSPS30AutoCleanInterval", strlen(buf)) == 0) {
+      char* eptr;
+      long interval = std::strtoul(msg, &eptr, 10);
+      setSPS30AutoCleanIntervalCallback(interval);
+    } else if (strncmp(buf, "cleanSPS30", strlen(buf)) == 0) {
+      cleanSPS30Callback();
     } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
       publishConfiguration();
     } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
@@ -196,7 +216,16 @@ namespace mqtt {
     }
   }
 
-  void setupMqtt(Model* _model, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback, setTemperatureOffsetCallback_t _setTemperatureOffsetCallback, getTemperatureOffsetCallback_t _getTemperatureOffsetCallback) {
+  void setupMqtt(
+    Model* _model,
+    calibrateCo2SensorCallback_t _calibrateCo2SensorCallback,
+    setTemperatureOffsetCallback_t _setTemperatureOffsetCallback,
+    getTemperatureOffsetCallback_t _getTemperatureOffsetCallback,
+    getSPS30AutoCleanIntervalCallback_t _getSPS30AutoCleanIntervalCallback,
+    setSPS30AutoCleanIntervalCallback_t _setSPS30AutoCleanIntervalCallback,
+    cleanSPS30Callback_t _cleanSPS30Callback,
+    getSPS30StatusCallback_t _getSPS30StatusCallback
+  ) {
     mqttQueue = xQueueCreate(2, sizeof(struct MqttMessage*));
     if (mqttQueue == NULL) {
       ESP_LOGE(TAG, "Queue creation failed!");
@@ -206,8 +235,14 @@ namespace mqtt {
     calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
     setTemperatureOffsetCallback = _setTemperatureOffsetCallback;
     getTemperatureOffsetCallback = _getTemperatureOffsetCallback;
+    getSPS30AutoCleanIntervalCallback = _getSPS30AutoCleanIntervalCallback;
+    setSPS30AutoCleanIntervalCallback = _setSPS30AutoCleanIntervalCallback;
+    cleanSPS30Callback = _cleanSPS30Callback;
+    getSPS30StatusCallback = _getSPS30StatusCallback;
+
     mqtt_client.setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client.setCallback(callback);
+    mqtt_client.setBufferSize(512);
   }
 
   void mqttLoop(void* pvParameters) {
@@ -220,7 +255,7 @@ namespace mqtt {
         if (msg.cmd == X_CMD_PUBLISH_CONFIGURATION) {
           publishConfigurationInternal();
         } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
-          publishSensorsInteral(msg.mask);
+          publishSensorsInternal(msg.mask);
         }
       }
       if (!mqtt_client.connected()) {

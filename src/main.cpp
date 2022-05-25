@@ -7,6 +7,7 @@
 #include <mqtt.h>
 #include <scd30.h>
 #include <scd40.h>
+#include <sps_30.h>
 #include <housekeeping.h>
 #include <Wire.h>
 #include <lcd.h>
@@ -46,9 +47,11 @@ HUB75* hub75;
 #endif
 SCD30* scd30;
 SCD40* scd40;
+SPS_30* sps30;
 BME680* bme680;
 TaskHandle_t scd30Task;
 TaskHandle_t scd40Task;
+TaskHandle_t sps30Task;
 TaskHandle_t bme680Task;
 
 void stopHub75DMA() {
@@ -107,6 +110,23 @@ float getTemperatureOffsetCallback() {
   if (I2C::scd40Present() && scd40) return scd40->getTemperatureOffset();
 }
 
+uint32_t getSPS30AutoCleanInterval() {
+  if (I2C::sps30Present && sps30) return sps30->getAutoCleanInterval();
+}
+
+boolean setSPS30AutoCleanInterval(uint32_t intervalInSeconds) {
+  if (I2C::sps30Present && sps30) return sps30->setAutoCleanInterval(intervalInSeconds);
+}
+
+boolean cleanSPS30() {
+  if (I2C::sps30Present && sps30) return sps30->clean();
+}
+
+uint8_t getSPS30Status() {
+  if (I2C::sps30Present && sps30) return sps30->getStatus();
+}
+
+
 void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
@@ -147,12 +167,14 @@ void setup() {
 
   Wire.begin(SDA, SCL, I2C_CLK);
 
+  // allow SPS30 to come up
   I2C::initI2C();
 
   model = new Model(modelUpdatedEvt);
 
   if (I2C::scd30Present()) scd30 = new SCD30(&Wire, model, updateMessage);
   if (I2C::scd40Present()) scd40 = new SCD40(&Wire, model, updateMessage);
+  if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage);
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage);
   if (I2C::lcdPresent()) lcd = new LCD(&Wire, model);
 
@@ -172,7 +194,15 @@ void setup() {
   hub75 = new HUB75(model);
 #endif
 
-  mqtt::setupMqtt(model, calibrateCo2SensorCallback, setTemperatureOffsetCallback, getTemperatureOffsetCallback);
+  mqtt::setupMqtt(
+    model,
+    calibrateCo2SensorCallback,
+    setTemperatureOffsetCallback,
+    getTemperatureOffsetCallback,
+    getSPS30AutoCleanInterval,
+    setSPS30AutoCleanInterval,
+    cleanSPS30,
+    getSPS30Status);
 
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
@@ -201,6 +231,14 @@ void setup() {
   if (I2C::scd40Present()) {
     scd40Task = scd40->start(
       "scd40Loop",        // name of task
+      4096,               // stack size of task
+      2,                  // priority of the task
+      1);                 // CPU core
+  }
+
+  if (I2C::sps30Present()) {
+    sps30Task = sps30->start(
+      "sps30Loop",        // name of task
       4096,               // stack size of task
       2,                  // priority of the task
       1);                 // CPU core
