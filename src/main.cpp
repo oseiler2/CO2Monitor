@@ -165,7 +165,7 @@ void setup() {
     printFile();
   }
 
-  Wire.begin(SDA, SCL, I2C_CLK);
+  Wire.begin(SDA, SCL, (uint32_t)I2C_CLK);
 
   // allow SPS30 to come up
   I2C::initI2C();
