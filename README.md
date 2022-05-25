@@ -216,6 +216,10 @@ The SPS30 sensor can be connected to the I2C and 5V JST connectors of the pcb.
 
 Other I2C based sensors can be wired using the JST-PH I2C header.
 
+# Calibration
+
+CO2 sensors need to be regularly calibrated to provide reliable measurements. The used sensors support auto-calibration and that is enabled in the firmware. It works by looking over measurements over a period and calibrating the lowest value against 420ppm (configurable in the firmware). This is based on the assumption that the monitor 'sees' clean outside air about once a week. If that cannot be achieved the firmware also allows for a forced calibration against a given value. Please also make sure to set the altitude setting according to the monitor location. For details please check the sensors' datasheets.
+
 # Hardware
 
 The board was designed to use an ESP32 or a Feather controller
