@@ -98,7 +98,7 @@ namespace mqtt {
     json["redThreshold"] = config.redThreshold;
     json["darkRedThreshold"] = config.darkRedThreshold;
     json["ledPwm"] = config.ledPwm;
-    sprintf(buf, "%x", (uint32_t)ESP.getEfuseMac());
+    sprintf(buf, "%s", WifiManager::getMac().c_str());
     json["mac"] = buf;
     sprintf(buf, "%s", WiFi.localIP().toString().c_str());
     json["ip"] = buf;
@@ -196,7 +196,7 @@ namespace mqtt {
 
   void reconnect() {
     char buf[256];
-    sprintf(buf, "CO2Monitor-%u-%x", config.deviceId, (uint32_t)ESP.getEfuseMac());
+    sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     while (!WiFi.isConnected()) { vTaskDelay(pdMS_TO_TICKS(100)); }
     while (!mqtt_client.connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");

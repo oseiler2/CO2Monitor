@@ -126,7 +126,6 @@ uint8_t getSPS30Status() {
   if (I2C::sps30Present && sps30) return sps30->getStatus();
 }
 
-
 void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
@@ -134,6 +133,9 @@ void setup() {
   Serial.begin(115200);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
   ESP_LOGI(TAG, "Starting...");
+
+  // try to connect with known settings
+  WiFi.begin();
 
   esp_chip_info_t chip_info;
   esp_chip_info(&chip_info);
@@ -163,7 +165,7 @@ void setup() {
     getDefaultConfiguration(config);
     saveConfiguration(config);
     printFile();
-  }
+}
 
   Wire.begin(SDA, SCL, I2C_CLK);
 

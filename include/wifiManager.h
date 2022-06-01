@@ -10,6 +10,7 @@ namespace WifiManager {
   void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback);
   void startConfigPortal(updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback);
   void resetSettings();
+  String getMac();
 }
 
 #endif
