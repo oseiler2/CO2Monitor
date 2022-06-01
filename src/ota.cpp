@@ -1,7 +1,7 @@
 #include <ota.h>
-#include <ota_cert.h>
 #include <esp32fota.h>
 #include <Arduino.h>
+#include <LittleFS.h>
 #include <config.h>
 #include <Ticker.h>
 
@@ -28,19 +28,15 @@ namespace OTA {
   }
 
   void checkForUpdateInternal() {
-    WiFiClientSecure clientForOta;
-    secureEsp32FOTA secureEsp32FOTA(OTA_APP, APP_VERSION);
+    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
 
-    secureEsp32FOTA._host = OTA_HOST;
-    secureEsp32FOTA._descriptionOfFirmwareURL = OTA_URL;
-    secureEsp32FOTA._certificate = const_cast<char*>(ota_cert);
-    secureEsp32FOTA.clientForOta = clientForOta;
+    esp32FOTA.checkURL = OTA_URL;
 
-    bool shouldExecuteFirmwareUpdate = secureEsp32FOTA.execHTTPSCheck();
+    bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
       if (preUpdateCallback) preUpdateCallback();
-      secureEsp32FOTA.executeOTA();
+      esp32FOTA.execOTA();
     } else {
       ESP_LOGD(TAG, "No firmware update available");
     }
