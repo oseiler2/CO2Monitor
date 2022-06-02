@@ -94,8 +94,6 @@ SCD40::~SCD40() {
 
 
 boolean SCD40::readScd40() {
-  this->updateMessageCallback("readScd40");
-
   // check if data is ready
   uint16_t dataReady;
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
