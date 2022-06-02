@@ -1,0 +1,24 @@
+#!/bin/bash -e
+#
+# Helper script to trigger an OTA on a device.
+
+DEVICE="$1"
+if [ -z "$DEVICE" ]; then
+  echo "Usage: $0 DEVICE"
+  exit 1
+fi
+FORCE_URL="$2"
+
+. otadest.conf 2>/dev/null || /bin/true
+if [ -z "$OTAHOST" ]; then
+  echo "Create otadest.conf first! See push-ota for instructions."
+  exit 1
+fi
+
+if [ -z "$FORCE_URL" ]; then
+  # Notify
+  mosquitto_pub -h "$OTAHOST" -t "co2monitor/${DEVICE}/down/ota" -m ''
+else
+  # Force with specified URL
+  mosquitto_pub -h "$OTAHOST" -t "co2monitor/${DEVICE}/down/forceota" -m "$FORCE_URL"
+fi

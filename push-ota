@@ -1,0 +1,43 @@
+#!/bin/bash -e
+#
+# Helper script for remote/OTA driven development. Builds a new firmware,
+# copies it to the OTA host, and then optionally triggers an OTA on the
+# specified device.
+
+MODEL="$1"
+if [ -z "$MODEL" ]; then
+  echo "Usage: $0 MODEL [DEVICE_ID]"
+  exit 1
+fi
+
+. otadest.conf 2>/dev/null || /bin/true
+if [ -z "$OTAHOST" -o -z "$OTAPATH" ]; then
+  echo "Create otadest.conf first!"
+  echo "Example content:"
+  echo "OTAHOST=hostname"
+  echo "OTAPATH=fs/path/on/host"
+  echo "OTAURL=https://host/url/path/"
+  exit 1
+fi
+
+pio run -e "$MODEL"
+firmware=$(find ".pio/build/${MODEL}" -name 'co2monitor_*.bin' -cmin -1 | head -n1)
+if [ -z "${firmware}" ]; then
+  echo "No firmware found from the last minute. Build failed?"
+  exit 1
+fi
+
+scp "$firmware" "gen-firmwarejson.py" "${OTAHOST}:${OTAPATH}"
+
+if [ "${MODEL: -8}" == ":release" ]; then
+  ssh "$OTAHOST" "cd $OTAPATH && ./gen-firmwarejson.py"
+  if [ ! -z "$2" ]; then
+    ./trigger-ota "$2"
+  fi
+else
+  if [ ! -z "$2" ]; then
+    base=$(basename "$firmware")
+    ./trigger-ota "$2" "${OTAURL}${base}"
+  fi
+fi
+
