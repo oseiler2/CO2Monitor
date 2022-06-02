@@ -1,7 +1,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#define APP_VERSION           1
+#define APP_VERSION           VERSION
 #define OTA_HOST              "host"
 #define OTA_URL               "/co2monitor/firmware.json"
 #define OTA_APP               "co2monitor"

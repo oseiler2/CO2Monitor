@@ -117,7 +117,8 @@ void setup() {
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
   Serial.begin(115200);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
-  ESP_LOGI(TAG, "Starting...");
+  ESP_LOGI(TAG, "CO2 Monitor (%s) v%s. Built from %s @ %s",
+    MODEL, APP_VERSION, GIT_REV, BUILD_TIMESTAMP);
 
   // try to connect with known settings
   WiFi.begin();
