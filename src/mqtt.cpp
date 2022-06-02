@@ -123,6 +123,7 @@ namespace mqtt {
 #endif
     sprintf(buf, "%.1f", getTemperatureOffsetCallback());
     json["tempOffset"] = buf;
+    json["otaUrl"] = config.otaUrl;
     if (serializeJson(json, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
@@ -184,6 +185,7 @@ namespace mqtt {
       if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
       if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
       if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
+      if (doc["otaUrl"]) strlcpy(config.otaUrl, doc["otaUrl"], sizeof(config.otaUrl));
       saveConfiguration(config);
     } else if (strncmp(buf, "resetWifi", strlen(buf)) == 0) {
       WifiManager::resetSettings();
