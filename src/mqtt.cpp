@@ -211,7 +211,10 @@ namespace mqtt {
         sprintf(buf, "%s/down/#", config.mqttTopic);
         mqtt_client.subscribe(buf);
         sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
-        mqtt_client.publish(buf, "{\"online\":true}");
+        mqtt_client.publish(buf,
+          "{\"online\":true, \"version\":" VERSION
+          ", \"build_timestamp\": \"" BUILD_TIMESTAMP "\""
+          ", \"git_rev\":\"" GIT_REV "\"}");
         vTaskDelay(pdMS_TO_TICKS(1000));
       } else {
         ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client.state());

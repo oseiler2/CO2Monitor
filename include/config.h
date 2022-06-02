@@ -1,8 +1,8 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#define APP_VERSION           1
-#define OTA_APP               "co2monitor"
+#define APP_VERSION           VERSION
+#define OTA_APP               "co2monitor-" MODEL
 //#define OTA_POLL
 
 #define TRIGGER_PIN           0
@@ -12,7 +12,7 @@
 
 #define SSD1306_HEIGHT        64
 
-#define HAS_LEDS
+//#define HAS_LEDS
 
 #ifdef HAS_LEDS
 #define GREEN_LED_PIN         27
