@@ -72,6 +72,7 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   if (checkError(scd40->getSensorAltitude(sensor_altitude), "getSensorAltitude")) {
     if (sensor_altitude != config.altitude) {
       checkError(scd40->setSensorAltitude(config.altitude), "setSensorAltitude");
+      checkError(scd40->persistSettings(), "persistSettings");
     }
   }
 
@@ -171,6 +172,10 @@ float SCD40::getTemperatureOffset() {
 }
 
 boolean SCD40::setTemperatureOffset(float temperatureOffset) {
+  if (temperatureOffset < 0) {
+    ESP_LOGW(TAG, "Negative temperature offset not supported");
+    return false;
+  }
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
   if (!success) {
@@ -181,9 +186,12 @@ boolean SCD40::setTemperatureOffset(float temperatureOffset) {
   vTaskDelay(pdMS_TO_TICKS(500));
   success = checkError(scd40->setTemperatureOffset(temperatureOffset), "setTemperatureOffset");
   if (!success) {
-    I2C::giveMutex();
     ESP_LOGD(TAG, "failed to setTemperatureOffset");
-    return false;
+  } else {
+    success = checkError(scd40->persistSettings(), "persistSettings");
+    if (!success) {
+      ESP_LOGD(TAG, "failed to persist temperatureOffset");
+    }
   }
   ESP_LOGD(TAG, "setTemperatureOffset: %.1f", temperatureOffset);
   success = checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");

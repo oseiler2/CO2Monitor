@@ -127,6 +127,10 @@ float SCD30::getTemperatureOffset() {
 }
 
 boolean SCD30::setTemperatureOffset(float temperatureOffset) {
+  if (temperatureOffset < 0) {
+    ESP_LOGW(TAG, "Negative temperature offset not supported");
+    return false;
+  }
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   uint8_t retry = 0;
   while (retry < MAX_RETRY && !scd30->setTemperatureOffset(floor(temperatureOffset * 100))) retry++;

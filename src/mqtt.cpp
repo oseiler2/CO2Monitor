@@ -161,7 +161,7 @@ namespace mqtt {
       }
     } else if (strncmp(buf, "setTemperatureOffset", strlen(buf)) == 0) {
       float tempOffset = atof(msg);
-      if (-10.0 < tempOffset && tempOffset <= 10.0) {
+      if (0 <= tempOffset && tempOffset <= 10.0) {
         setTemperatureOffsetCallback(tempOffset);
       }
     } else if (strncmp(buf, "setSPS30AutoCleanInterval", strlen(buf)) == 0) {
