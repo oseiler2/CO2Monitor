@@ -5,6 +5,8 @@
 #include <config.h>
 #include <Ticker.h>
 
+#include "configManager.h"
+
 // Local logging tag
 static const char TAG[] = __FILE__;
 
@@ -29,8 +31,7 @@ namespace OTA {
 
   void checkForUpdateInternal() {
     esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
-
-    esp32FOTA.checkURL = OTA_URL;
+    esp32FOTA.checkURL = String(config.otaUrl);
 
     bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
     if (shouldExecuteFirmwareUpdate) {

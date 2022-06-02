@@ -5,6 +5,7 @@
   "mqttPassword": "co2monitor",
   "mqttHost": "127.0.0.1",
   "mqttServerPort": 1883,
+  "otaUrl": "https://otahost/co2/firmware.json",
   "altitude": 5,
   "yellowThreshold": 700,
   "redThreshold": 900,

@@ -138,6 +138,7 @@ namespace mqtt {
     json["hub75Oe"] = config.hub75Oe;
     sprintf(buf, "%.1f", getTemperatureOffsetCallback());
     json["tempOffset"] = buf;
+    json["otaUrl"] = config.otaUrl;
     if (serializeJson(json, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
@@ -195,6 +196,7 @@ namespace mqtt {
         return;
       }
       bool rebootRequired = false;
+      if (doc["otaUrl"]) strlcpy(config.otaUrl, doc["otaUrl"], sizeof(config.otaUrl));
       if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
       if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
       if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
