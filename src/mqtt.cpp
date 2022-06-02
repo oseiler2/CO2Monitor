@@ -191,6 +191,8 @@ namespace mqtt {
       WifiManager::resetSettings();
     } else if (strncmp(buf, "ota", strlen(buf)) == 0) {
       OTA::checkForUpdate();
+    } else if (strncmp(buf, "forceota", strlen(buf)) == 0) {
+      OTA::forceUpdate(msg);
     } else if (strncmp(buf, "reboot", strlen(buf)) == 0) {
       esp_restart();
     }
