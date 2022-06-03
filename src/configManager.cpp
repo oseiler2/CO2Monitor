@@ -161,23 +161,3 @@ boolean saveConfiguration(const Config& config) {
   ESP_LOGD(TAG, "Stored configuration successfully");
   return true;
 }
-
-// Prints the content of a file to the Serial
-void printFile() {
-  // Open file for reading
-  File file = LittleFS.open(CONFIG_FILENAME, "r");
-  if (!file) {
-    ESP_LOGW(TAG, "Could not open config file");
-    return;
-  }
-
-  // Extract each characters by one by one
-  while (file.available()) {
-    Serial.print((char)file.read());
-  }
-  Serial.println();
-
-  // Close the file
-  file.close();
-}
-

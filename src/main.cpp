@@ -108,22 +108,27 @@ void setTemperatureOffsetCallback(float temperatureOffset) {
 float getTemperatureOffsetCallback() {
   if (I2C::scd30Present() && scd30) return scd30->getTemperatureOffset();
   if (I2C::scd40Present() && scd40) return scd40->getTemperatureOffset();
+  return NaN;
 }
 
 uint32_t getSPS30AutoCleanInterval() {
   if (I2C::sps30Present && sps30) return sps30->getAutoCleanInterval();
+  return 0;
 }
 
 boolean setSPS30AutoCleanInterval(uint32_t intervalInSeconds) {
   if (I2C::sps30Present && sps30) return sps30->setAutoCleanInterval(intervalInSeconds);
+  return false;
 }
 
 boolean cleanSPS30() {
   if (I2C::sps30Present && sps30) return sps30->clean();
+  return false;
 }
 
 uint8_t getSPS30Status() {
   if (I2C::sps30Present && sps30) return sps30->getStatus();
+  return false;
 }
 
 void setup() {
@@ -160,14 +165,12 @@ void setup() {
     ESP.getFlashChipSpeed());
 
   setupConfigManager();
-  printFile();
   if (!loadConfiguration(config)) {
     getDefaultConfiguration(config);
     saveConfiguration(config);
-    printFile();
-}
+  }
 
-  Wire.begin(SDA, SCL, (uint32_t)I2C_CLK);
+  Wire.begin((int)SDA, (int)SCL, (uint32_t)I2C_CLK);
 
   // allow SPS30 to come up
   I2C::initI2C();
@@ -261,9 +264,11 @@ void setup() {
   OTA::setupOta(stopHub75DMA);
 
   ESP_LOGI(TAG, "Setup done.");
+#ifdef SHOW_DEBUG_MSGS
   if (I2C::lcdPresent()) {
     lcd->updateMessage("Setup done.");
   }
+#endif
 }
 
 void loop() {

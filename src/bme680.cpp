@@ -143,7 +143,9 @@ BME680::~BME680() {
 }
 
 boolean BME680::readBme680() {
+#ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readBme680");
+#endif
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   boolean run = bme680->run();
   I2C::giveMutex();
@@ -160,7 +162,9 @@ boolean BME680::readBme680() {
     //    ESP_LOGD(TAG, "CO2 equiv: %.1f, accuracy: %u", bme680->co2Equivalent, bme680->co2Accuracy);
     //    ESP_LOGD(TAG, "Breath Voc equiv: %.1f, accuracy: %u", bme680->breathVocEquivalent, bme680->breathVocAccuracy);
     ESP_LOGD(TAG, "Run in status: %.1f, Stab status: %.1f", bme680->runInStatus, bme680->stabStatus);
+#ifdef SHOW_DEBUG_MSGS
     updateMessageCallback("");
+#endif
 
     if (bme680->runInStatus && bme680->iaqAccuracy >= 3) {
       model->updateModel(bme680->temperature, bme680->humidity, (uint16_t)(bme680->pressure / 100), (uint16_t)(bme680->iaq));
@@ -171,7 +175,9 @@ boolean BME680::readBme680() {
     updateState();
   } else {
     checkIaqSensorStatus();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("");
+#endif
     return false;
   }
   return true;

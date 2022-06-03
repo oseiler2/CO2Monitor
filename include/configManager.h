@@ -32,7 +32,6 @@ void setupConfigManager();
 void getDefaultConfiguration(Config& config);
 boolean loadConfiguration(Config& config);
 boolean saveConfiguration(const Config& config);
-void printFile();
 
 extern Config config;
 

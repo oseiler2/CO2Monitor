@@ -54,7 +54,7 @@
 #define HUB75_OE 25
 #endif
 
-#define I2C_CLK 50000     // SCD30 recommendation of 50kHz
+#define I2C_CLK 50000UL   // SCD30 recommendation of 50kHz
 
 static const char* CONFIG_FILENAME = "/config.json";
 
