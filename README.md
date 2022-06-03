@@ -60,6 +60,17 @@ Poorly ventilated rooms often feel stale and ‘stuffy’, but by the time we ca
 
 The data collected by the sensors should be logged and made available for further consumption. It can be visualised a central school wide dashboard and used to establish a baseline and understand patterns or identify rooms that are more difficult to ventilate, as well as potentially alerting or to remotely check a room before another group uses it.
 
+These CO2 Monitors have been tested in collaboration with researchers from the public health department of university of Otago.
+
+## Resources
+
+- [RNZ interview](https://www.rnz.co.nz/national/programmes/afternoons/audio/2018840570/handyman-dad-builds-units-to-monitor-class-air-quality)
+- [The What, How and Why of CO2 Monitoring](https://makezine.com/2021/05/17/the-what-how-and-why-of-co-monitoring/)
+- [Ventilation in NZ schools during the Omicron wave – results from a preliminary study](https://blogs.otago.ac.nz/pubhealthexpert/ventilation-in-nz-schools-during-the-omicron-wave-results-from-a-preliminary-study/)
+- [Ministry of Education Indoor Air Quality and Thermal Comfort](https://assets.education.govt.nz/public/Documents/Primary-Secondary/Property/Design/Indoor-Air-Quality-and-Thermal-Comfort-V2-v2.0-2022.pdf)
+- [What size particle is important to transmission of COVID-19?](https://www.aerosol.mech.ubc.ca/what-size-particle-is-important-to-transmission/)
+- [Comparison of Low-Cost Particulate Matter Sensors for Indoor Air Monitoring during COVID-19 Lockdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7766947/pdf/sensors-20-07290.pdf)
+
 # Firmware
 
 ## Wifi
@@ -68,7 +79,7 @@ Supports [ESPAsync WiFiManager](https://github.com/khoih-prog/ESPAsync_WiFiManag
 
 If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`. A password can be configured in `ap_pw.h`.
 
-Once wifi credentials have been configured pressing the `Boot` button on the ESP32 puts the device in configuration mode:
+Once wifi credentials have been configured pressing the `Boot` button for more than 1 second on the ESP32 puts the device in configuration mode:
 
 <img src="img/configuration.png">
 
