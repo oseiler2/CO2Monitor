@@ -194,33 +194,37 @@ namespace mqtt {
         ESP_LOGW(TAG, "Failed to parse message: %s", error.f_str());
         return;
       }
+      bool rebootRequired = false;
       if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
       if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
       if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
       if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
       if (doc["brightness"].as<uint8_t>()) config.brightness = doc["brightness"];
-      if (doc["ssd1306Rows"].as<uint8_t>()) config.ssd1306Rows = doc["ssd1306Rows"];
-      if (doc["greenLed"].as<uint8_t>()) config.greenLed = doc["greenLed"];
-      if (doc["yellowLed"].as<uint8_t>()) config.yellowLed = doc["yellowLed"];
-      if (doc["redLed"].as<uint8_t>()) config.redLed = doc["redLed"];
-      if (doc["neopixelData"].as<uint8_t>()) config.neopixelData = doc["neopixelData"];
-      if (doc["neopixelNumber"].as<uint8_t>()) config.neopixelNumber = doc["neopixelNumber"];
-      if (doc["featherMatrixData"].as<uint8_t>()) config.featherMatrixData = doc["featherMatrixData"];
-      if (doc["featherMatrixClock"].as<uint8_t>()) config.featherMatrixClock = doc["featherMatrixClock"];
-      if (doc["hub75R1"].as<uint8_t>()) config.hub75R1 = doc["hub75R1"];
-      if (doc["hub75G1"].as<uint8_t>()) config.hub75G1 = doc["hub75G1"];
-      if (doc["hub75B1"].as<uint8_t>()) config.hub75B1 = doc["hub75B1"];
-      if (doc["hub75R2"].as<uint8_t>()) config.hub75R2 = doc["hub75R2"];
-      if (doc["hub75G2"].as<uint8_t>()) config.hub75G2 = doc["hub75G2"];
-      if (doc["hub75B2"].as<uint8_t>()) config.hub75B2 = doc["hub75B2"];
-      if (doc["hub75ChA"].as<uint8_t>()) config.hub75ChA = doc["hub75ChA"];
-      if (doc["hub75ChB"].as<uint8_t>()) config.hub75ChB = doc["hub75ChB"];
-      if (doc["hub75ChC"].as<uint8_t>()) config.hub75ChC = doc["hub75ChC"];
-      if (doc["hub75ChD"].as<uint8_t>()) config.hub75ChD = doc["hub75ChD"];
-      if (doc["hub75Clk"].as<uint8_t>()) config.hub75Clk = doc["hub75Clk"];
-      if (doc["hub75Lat"].as<uint8_t>()) config.hub75Lat = doc["hub75Lat"];
-      if (doc["hub75Oe"].as<uint8_t>()) config.hub75Oe = doc["hub75Oe"];
-      saveConfiguration(config);
+      if (doc["ssd1306Rows"].as<uint8_t>()) { config.ssd1306Rows = doc["ssd1306Rows"];rebootRequired = true; }
+      if (doc["greenLed"].as<uint8_t>()) { config.greenLed = doc["greenLed"];rebootRequired = true; }
+      if (doc["yellowLed"].as<uint8_t>()) { config.yellowLed = doc["yellowLed"];rebootRequired = true; }
+      if (doc["redLed"].as<uint8_t>()) { config.redLed = doc["redLed"];rebootRequired = true; }
+      if (doc["neopixelData"].as<uint8_t>()) { config.neopixelData = doc["neopixelData"];rebootRequired = true; }
+      if (doc["neopixelNumber"].as<uint8_t>()) { config.neopixelNumber = doc["neopixelNumber"];rebootRequired = true; }
+      if (doc["featherMatrixData"].as<uint8_t>()) { config.featherMatrixData = doc["featherMatrixData"];rebootRequired = true; }
+      if (doc["featherMatrixClock"].as<uint8_t>()) { config.featherMatrixClock = doc["featherMatrixClock"];rebootRequired = true; }
+      if (doc["hub75R1"].as<uint8_t>()) { config.hub75R1 = doc["hub75R1"];rebootRequired = true; }
+      if (doc["hub75G1"].as<uint8_t>()) { config.hub75G1 = doc["hub75G1"];rebootRequired = true; }
+      if (doc["hub75B1"].as<uint8_t>()) { config.hub75B1 = doc["hub75B1"];rebootRequired = true; }
+      if (doc["hub75R2"].as<uint8_t>()) { config.hub75R2 = doc["hub75R2"];rebootRequired = true; }
+      if (doc["hub75G2"].as<uint8_t>()) { config.hub75G2 = doc["hub75G2"];rebootRequired = true; }
+      if (doc["hub75B2"].as<uint8_t>()) { config.hub75B2 = doc["hub75B2"];rebootRequired = true; }
+      if (doc["hub75ChA"].as<uint8_t>()) { config.hub75ChA = doc["hub75ChA"];rebootRequired = true; }
+      if (doc["hub75ChB"].as<uint8_t>()) { config.hub75ChB = doc["hub75ChB"];rebootRequired = true; }
+      if (doc["hub75ChC"].as<uint8_t>()) { config.hub75ChC = doc["hub75ChC"];rebootRequired = true; }
+      if (doc["hub75ChD"].as<uint8_t>()) { config.hub75ChD = doc["hub75ChD"];rebootRequired = true; }
+      if (doc["hub75Clk"].as<uint8_t>()) { config.hub75Clk = doc["hub75Clk"];rebootRequired = true; }
+      if (doc["hub75Lat"].as<uint8_t>()) { config.hub75Lat = doc["hub75Lat"];rebootRequired = true; }
+      if (doc["hub75Oe"].as<uint8_t>()) { config.hub75Oe = doc["hub75Oe"];rebootRequired = true; }
+      if (saveConfiguration(config) && rebootRequired) {
+        delay(1000);
+        esp_restart();
+      }
     } else if (strncmp(buf, "resetWifi", strlen(buf)) == 0) {
       WifiManager::resetSettings();
     } else if (strncmp(buf, "ota", strlen(buf)) == 0) {

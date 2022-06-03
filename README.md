@@ -164,7 +164,7 @@ Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its 
 }
 ```
 
-A message to `co2monitor/<id>/down/setConfig` will set the node's configuration to the provided parameters:
+A message to `co2monitor/<id>/down/setConfig` will set the node's configuration to the provided parameters. Note that changes to the hardware configuration will trigger a reboot.
 
 ```
 {
