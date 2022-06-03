@@ -32,6 +32,9 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
 #define pwmChannelGreen   2
 #define pwmResolution     8
 
+  pinMode(pinRed, OUTPUT);
+  pinMode(pinYellow, OUTPUT);
+  pinMode(pinGreen, OUTPUT);
   ledcSetup(pwmChannelRed, pwmFreq, pwmResolution);
   ledcSetup(pwmChannelYellow, pwmFreq, pwmResolution);
   ledcSetup(pwmChannelGreen, pwmFreq, pwmResolution);
@@ -42,13 +45,10 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
   ledcWrite(pwmChannelYellow, 0);
   ledcWrite(pwmChannelGreen, 0);
 
-  pinMode(pinRed, OUTPUT);
   ledcWrite(pwmChannelRed, config.ledPwm);
   delay(500);
-  pinMode(pinYellow, OUTPUT);
   ledcWrite(pwmChannelYellow, config.ledPwm);
   delay(500);
-  pinMode(pinGreen, OUTPUT);
   ledcWrite(pwmChannelGreen, config.ledPwm);
   delay(500);
   ledcWrite(pwmChannelRed, 0);
