@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <lcd.h>
 #include <i2c.h>
+#include <configManager.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -17,7 +18,7 @@
 LCD::LCD(TwoWire* _wire, Model* _model) {
   priorityMessageActive = false;
   this->model = _model;
-  display = new Adafruit_SSD1306(128, SSD1306_HEIGHT, _wire, -1, 50000, I2C_CLK);
+  display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, 50000, I2C_CLK);
 
   if (!I2C::takeMutex(portMAX_DELAY)) return;
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
@@ -35,16 +36,16 @@ LCD::~LCD() {
 };
 
 // status line
-const uint8_t status_y = SSD1306_HEIGHT == 32 ? 24 : 0;
+const uint8_t status_y = config.ssd1306Rows == 32 ? 24 : 0;
 const uint8_t status_height = 8;
 // temperature/humidity line. For 32 row displays same as status line
-const uint8_t temp_hum_y = SSD1306_HEIGHT == 32 ? 24 : 56;
+const uint8_t temp_hum_y = config.ssd1306Rows == 32 ? 24 : 56;
 const uint8_t temp_hum_height = 8;
 
-const uint8_t line1_y = SSD1306_HEIGHT == 32 ? 0 : 8;
-const uint8_t line2_y = SSD1306_HEIGHT == 32 ? 8 : 24;
-const uint8_t line3_y = SSD1306_HEIGHT == 32 ? 16 : 40;
-const uint8_t line_height = SSD1306_HEIGHT == 32 ? 8 : 16;
+const uint8_t line1_y = config.ssd1306Rows == 32 ? 0 : 8;
+const uint8_t line2_y = config.ssd1306Rows == 32 ? 8 : 24;
+const uint8_t line3_y = config.ssd1306Rows == 32 ? 16 : 40;
+const uint8_t line_height = config.ssd1306Rows == 32 ? 8 : 16;
 
 void LCD::updateMessage(char const* msg) {
   if (priorityMessageActive) return;
@@ -79,7 +80,7 @@ void LCD::clearPriorityMessage() {
 }
 
 void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (priorityMessageActive && SSD1306_HEIGHT == 32) return;
+  if (priorityMessageActive && config.ssd1306Rows == 32) return;
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
 
   // see if only CO2 sensor is present
@@ -87,7 +88,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
     // 8-24 vs 12-40
     this->display->writeFillRect(4, line1_y, 120, line_height * 3, BLACK);
     this->display->setTextSize(1);
-    if (SSD1306_HEIGHT == 32) {
+    if (config.ssd1306Rows == 32) {
       this->display->setFont(FONT_32);
       this->display->setCursor(4, 22);
     } else {
@@ -100,7 +101,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
     } else {
       this->display->printf("%4u", model->getCo2());
     }
-    if (SSD1306_HEIGHT == 32) {
+    if (config.ssd1306Rows == 32) {
       this->display->setFont(FONT_9);
       this->display->setCursor(this->display->getCursorX(), this->display->getCursorY() - 3);
       this->display->setTextSize(1);
@@ -111,9 +112,9 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   else {
     if (mask & M_CO2) {
       this->display->writeFillRect(0, line1_y, 128, line_height, BLACK);
-      this->display->setFont(SSD1306_HEIGHT == 32 ? NULL : FONT_9);
+      this->display->setFont(config.ssd1306Rows == 32 ? NULL : FONT_9);
       this->display->setTextSize(1);
-      this->display->setCursor(0, line1_y + (SSD1306_HEIGHT == 32 ? 0 : (line_height - 4)));
+      this->display->setCursor(0, line1_y + (config.ssd1306Rows == 32 ? 0 : (line_height - 4)));
       if (model->getCo2() == 0) {
         this->display->print("CO2: ----");
       } else {
@@ -125,9 +126,9 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
     }
     if (mask & M_IAQ) {
       this->display->writeFillRect(0, line2_y, 128, line_height, BLACK);
-      this->display->setFont(SSD1306_HEIGHT == 32 ? NULL : FONT_9);
+      this->display->setFont(config.ssd1306Rows == 32 ? NULL : FONT_9);
       this->display->setTextSize(1);
-      this->display->setCursor(0, line2_y + (SSD1306_HEIGHT == 32 ? 0 : (line_height - 4)));
+      this->display->setCursor(0, line2_y + (config.ssd1306Rows == 32 ? 0 : (line_height - 4)));
       if (model->getIAQ() == 0) {
         this->display->print("IAQ: ----");
       } else {
@@ -136,9 +137,9 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
     }
     if (mask & M_PM2_5) {
       this->display->writeFillRect(0, line3_y, 128, line_height, BLACK);
-      this->display->setFont(SSD1306_HEIGHT == 32 ? NULL : FONT_9);
+      this->display->setFont(config.ssd1306Rows == 32 ? NULL : FONT_9);
       this->display->setTextSize(1);
-      this->display->setCursor(0, line3_y + (SSD1306_HEIGHT == 32 ? 0 : (line_height - 4)));
+      this->display->setCursor(0, line3_y + (config.ssd1306Rows == 32 ? 0 : (line_height - 4)));
       if (model->getPM10() == 0) {
         this->display->print("PM2.5: ----");
       } else {

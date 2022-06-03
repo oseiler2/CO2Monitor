@@ -1,6 +1,8 @@
 #ifndef _CONFIG_MANAGER_H
 #define _CONFIG_MANAGER_H
 
+#define CONFIG_SIZE 1024
+
 #define MQTT_USERNAME_LEN 20
 #define MQTT_PASSWORD_LEN 20
 #define MQTT_HOSTNAME_LEN 30
@@ -25,13 +27,35 @@ struct Config {
   uint16_t yellowThreshold;
   uint16_t redThreshold;
   uint16_t darkRedThreshold;
-  uint8_t ledPwm;
+  uint8_t brightness;
+  uint8_t ssd1306Rows;
+  uint8_t greenLed;
+  uint8_t yellowLed;
+  uint8_t redLed;
+  uint8_t neopixelData;
+  uint8_t neopixelNumber;
+  uint8_t featherMatrixData;
+  uint8_t featherMatrixClock;
+  uint8_t hub75R1;
+  uint8_t hub75G1;
+  uint8_t hub75B1;
+  uint8_t hub75R2;
+  uint8_t hub75G2;
+  uint8_t hub75B2;
+  uint8_t hub75ChA;
+  uint8_t hub75ChB;
+  uint8_t hub75ChC;
+  uint8_t hub75ChD;
+  uint8_t hub75Clk;
+  uint8_t hub75Lat;
+  uint8_t hub75Oe;
 };
 
 void setupConfigManager();
 void getDefaultConfiguration(Config& config);
 boolean loadConfiguration(Config& config);
 boolean saveConfiguration(const Config& config);
+void printFile();
 
 extern Config config;
 

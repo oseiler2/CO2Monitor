@@ -44,7 +44,7 @@ namespace WifiManager {
   ESPAsync_WMParameter* yellowThresholdParam;
   ESPAsync_WMParameter* redThresholdParam;
   ESPAsync_WMParameter* darkRedThresholdParam;
-  ESPAsync_WMParameter* ledPwmParam;
+  ESPAsync_WMParameter* brightnessParam;
 
   void setupWifiManager(ESPAsync_WiFiManager* wifiManager) {
     safeConfigFlag = false;
@@ -66,7 +66,7 @@ namespace WifiManager {
     char yellowThreshold[5];
     char redThreshold[5];
     char darkRedThreshold[5];
-    char ledPwm[4];
+    char brightness[4];
 
     sprintf(deviceId, "%u", config.deviceId);
     sprintf(mqttTopic, "%s", config.mqttTopic);
@@ -78,7 +78,7 @@ namespace WifiManager {
     sprintf(yellowThreshold, "%u", config.yellowThreshold);
     sprintf(redThreshold, "%u", config.redThreshold);
     sprintf(darkRedThreshold, "%u", config.darkRedThreshold);
-    sprintf(ledPwm, "%u", config.ledPwm);
+    sprintf(brightness, "%u", config.brightness);
 
     ESP_LOGD(TAG, "deviceId: %s", deviceId);
     ESP_LOGD(TAG, "mqttTopic: %s", mqttTopic);
@@ -90,7 +90,7 @@ namespace WifiManager {
     ESP_LOGD(TAG, "yellowThreshold: %s", yellowThreshold);
     ESP_LOGD(TAG, "redThreshold: %s", redThreshold);
     ESP_LOGD(TAG, "darkRedThreshold: %s", darkRedThreshold);
-    ESP_LOGD(TAG, "ledPwm: %s", ledPwm);
+    ESP_LOGD(TAG, "brightness: %s", brightness);
 
     deviceIdParam = new ESPAsync_WMParameter("deviceId", "Device ID", deviceId, 5, "config.deviceId");
     mqttTopicParam = new ESPAsync_WMParameter("mqttTopic", "MQTT topic ", mqttTopic, MQTT_TOPIC_ID_LEN, config.mqttTopic);
@@ -102,7 +102,7 @@ namespace WifiManager {
     yellowThresholdParam = new ESPAsync_WMParameter("yellowThreshold", "Yellow threshold ", yellowThreshold, 5, "config.yellowThreshold");
     redThresholdParam = new ESPAsync_WMParameter("redThreshold", "Red threshold ", redThreshold, 5, "config.redThreshold");
     darkRedThresholdParam = new ESPAsync_WMParameter("darkRedThreshold", "Dark red threshold ", darkRedThreshold, 5, "config.darkRedThreshold");
-    ledPwmParam = new ESPAsync_WMParameter("ledPwm", "LED brightness pwm ", ledPwm, 4, "config.ledPwm");
+    brightnessParam = new ESPAsync_WMParameter("brightness", "LED brightness pwm ", brightness, 4, "config.brightness");
 
     wifiManager->addParameter(deviceIdParam);
     wifiManager->addParameter(mqttTopicParam);
@@ -114,7 +114,7 @@ namespace WifiManager {
     wifiManager->addParameter(yellowThresholdParam);
     wifiManager->addParameter(redThresholdParam);
     wifiManager->addParameter(darkRedThresholdParam);
-    wifiManager->addParameter(ledPwmParam);
+    wifiManager->addParameter(brightnessParam);
     wifiManager->setSaveConfigCallback(saveConfigCallback);
 
     ESP_LOGD(TAG, "SSID: %s", getSSID().c_str());
@@ -132,7 +132,7 @@ namespace WifiManager {
       ESP_LOGD(TAG, "yellowThreshold: %s", yellowThresholdParam->getValue());
       ESP_LOGD(TAG, "redThreshold: %s", redThresholdParam->getValue());
       ESP_LOGD(TAG, "darkRedThreshold: %s", darkRedThresholdParam->getValue());
-      ESP_LOGD(TAG, "ledPwm: %s", ledPwmParam->getValue());
+      ESP_LOGD(TAG, "brightness: %s", brightnessParam->getValue());
       config.deviceId = (uint16_t)atoi(deviceIdParam->getValue());
       strncpy(config.mqttTopic, mqttTopicParam->getValue(), MQTT_TOPIC_ID_LEN + 1);
       strncpy(config.mqttUsername, mqttUsernameParam->getValue(), MQTT_USERNAME_LEN + 1);
@@ -143,7 +143,7 @@ namespace WifiManager {
       config.yellowThreshold = (uint16_t)atoi(yellowThresholdParam->getValue());
       config.redThreshold = (uint16_t)atoi(redThresholdParam->getValue());
       config.darkRedThreshold = (uint16_t)atoi(darkRedThresholdParam->getValue());
-      config.ledPwm = (uint8_t)atoi(ledPwmParam->getValue());
+      config.brightness = (uint8_t)atoi(brightnessParam->getValue());
       saveConfiguration(config);
       delay(1000);
       esp_restart();
@@ -158,7 +158,7 @@ namespace WifiManager {
     delete yellowThresholdParam;
     delete redThresholdParam;
     delete darkRedThresholdParam;
-    delete ledPwmParam;
+    delete brightnessParam;
   }
 
   void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {

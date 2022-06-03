@@ -45,11 +45,11 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
   ledcWrite(pwmChannelYellow, 0);
   ledcWrite(pwmChannelGreen, 0);
 
-  ledcWrite(pwmChannelRed, config.ledPwm);
+  ledcWrite(pwmChannelRed, config.brightness);
   delay(500);
-  ledcWrite(pwmChannelYellow, config.ledPwm);
+  ledcWrite(pwmChannelYellow, config.brightness);
   delay(500);
-  ledcWrite(pwmChannelGreen, config.ledPwm);
+  ledcWrite(pwmChannelGreen, config.brightness);
   delay(500);
   ledcWrite(pwmChannelRed, 0);
   ledcWrite(pwmChannelYellow, 0);
@@ -66,17 +66,17 @@ void TrafficLight::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLi
   if (newStatus == GREEN) {
     ledcWrite(pwmChannelRed, 0);
     ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, config.ledPwm);
+    ledcWrite(pwmChannelGreen, config.brightness);
   } else if (newStatus == YELLOW) {
     ledcWrite(pwmChannelRed, 0);
-    ledcWrite(pwmChannelYellow, config.ledPwm);
+    ledcWrite(pwmChannelYellow, config.brightness);
     ledcWrite(pwmChannelGreen, 0);
   } else if (newStatus == RED) {
-    ledcWrite(pwmChannelRed, config.ledPwm);
+    ledcWrite(pwmChannelRed, config.brightness);
     ledcWrite(pwmChannelYellow, 0);
     ledcWrite(pwmChannelGreen, 0);
   } else if (newStatus == DARK_RED) {
-    ledcWrite(pwmChannelRed, config.ledPwm);
+    ledcWrite(pwmChannelRed, config.brightness);
     ledcWrite(pwmChannelYellow, 0);
     ledcWrite(pwmChannelGreen, 0);
   }
@@ -85,7 +85,7 @@ void TrafficLight::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLi
 void TrafficLight::timer() {
   if (model->getStatus() == DARK_RED) {
     if (ledcRead(pwmChannelRed) == 0)
-      ledcWrite(pwmChannelRed, config.ledPwm);
+      ledcWrite(pwmChannelRed, config.brightness);
     else
       ledcWrite(pwmChannelRed, 0);
   }

@@ -129,19 +129,38 @@ Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its 
   "yellowThreshold": 700,
   "redThreshold": 900,
   "darkRedThreshold": 1200,
-  "ledPwm": 255,
+  "brightness": 255,
   "mac": "xxyyzz",
   "ip": "1.2.3.4",
   "scd40": true,
   "scd30": true,
   "bme680": true,
   "lcd": true,
-  "leds": true,
   "sps30": true,
   "sps30AutoCleanInt": 604800,
   "sps30Status": 0,
-  "neopxl": 3,
-  "tempOffset": "7.0"
+  "tempOffset": "7.0",
+  "ssd1306Rows": 64,
+  "greenLed": 27,
+  "yellowLed": 26,
+  "redLed": 25,
+  "neopixelData": 16,
+  "neopixelNumber": 3,
+  "featherMatrixData": 27,
+  "featherMatrixClock": 13,
+  "hub75R1": 15,
+  "hub75G1": 2,
+  "hub75B1": 4,
+  "hub75R2": 16,
+  "hub75G2": 12,
+  "hub75B2": 17,
+  "hub75ChA": 5,
+  "hub75ChB": 18,
+  "hub75ChC": 19,
+  "hub75ChD": 14,
+  "hub75Clk": 27,
+  "hub75Lat": 26,
+  "hub75Oe": 25
 }
 ```
 
@@ -153,7 +172,28 @@ A message to `co2monitor/<id>/down/setConfig` will set the node's configuration 
   "yellowThreshold": 700,
   "redThreshold": 900,
   "darkRedThreshold": 1200,
-  "ledPwm": 255
+  "brightness": 255,
+  "ssd1306Rows": 64,
+  "greenLed": 27,
+  "yellowLed": 26,
+  "redLed": 25,
+  "neopixelData": 16,
+  "neopixelNumber": 3,
+  "featherMatrixData": 27,
+  "featherMatrixClock": 13,
+  "hub75R1": 15,
+  "hub75G1": 2,
+  "hub75B1": 4,
+  "hub75R2": 16,
+  "hub75G2": 12,
+  "hub75B2": 17,
+  "hub75ChA": 5,
+  "hub75ChB": 18,
+  "hub75ChC": 19,
+  "hub75ChD": 14,
+  "hub75Clk": 27,
+  "hub75Lat": 26,
+  "hub75Oe": 25
 }
 ```
 
@@ -291,72 +331,29 @@ The board has room for 3 x 5mm LEDs for traffic light style indication. Each is 
 - [Yellow, 9.3cd, 30°, 20 mA, 2.1 V](https://nz.element14.com/broadcom-limited/hlmp-el3g-vx0dd/led-amber-9-3cd-590nm-th/dp/2900814) (use 60Ω resistor)
 - [Red, 9.3cd, 30°, 20 mA, 2.1 V](https://nz.element14.com/broadcom-limited/hlmp-eg3a-wx0dd/led-5mm-alingap-red-30deg/dp/1706677) (use 60Ω resistor)
 
-In `config.h` uncomment `HAS_LEDS` and check the `GREEN_LED_PIN`, `YELLOW_LED_PIN` and `NEOPRED_LED_PINIXEL_NUM` settings
-
-```
-#define HAS_LEDS
-#define GREEN_LED_PIN 27
-#define YELLOW_LED_PIN 26
-#define RED_LED_PIN 25
-```
+Set the `greenLed`, `yellowLed` and `redLed` configuration properties to valid pin numbers (`27`, `26`, `25`).
 
 ## Neopixel
 
-In `config.h` uncomment `HAS_NEOPIXEL` and check the `NEOPIXEL_PIN` and `NEOPIXEL_NUM` settings
-
-```
-#define HAS_NEOPIXEL
-#define NEOPIXEL_PIN          3   // pin
-#define NEOPIXEL_NUM          16  // number ofNeopixels
-```
+Set the `neopixelData` and `neopixelNumber` configuration properties to the neopixel pin number (`16`) and the number of neopixels (`3`).
 
 ## Feather wings
 
 ### [6 x 12 DotStar](https://www.adafruit.com/product/3449)
 
-In `config.h` uncomment `#define HAS_FEATHER_MATRIX` and check the `FEATHER_MATRIX_DATAPIN` and `FEATHER_MATRIX_CLOCKPIN` settings
-
-```
-#define HAS_FEATHER_MATRIX
-#define FEATHER_MATRIX_DATAPIN    27
-#define FEATHER_MATRIX_CLOCKPIN   13
-```
+Set the `featherMatrixData` and `featherMatrixClock` configuration properties to the feathermatrix data (`27`) and clk (`13`) pin numbers.
 
 ### [128x32 OLED](https://www.adafruit.com/product/2900)
 
-In `config.h` change
-
-```
-#define SSD1306_HEIGHT  32
-```
+Set the `ssd1306Rows` configuration to `32`
 
 ### [128x64 OLED](https://www.aliexpress.com/wholesale?SearchText=128X64+SSD1306)
 
-In `config.h` set
-
-```
-#define SSD1306_HEIGHT  64
-```
+Set the `ssd1306Rows` configuration to `64` (default setting)
 
 ### [64x32 RBG Matrix panel](https://www.adafruit.com/?q=64x32+RGB+LED+Matrix&sort=BestMatch)
 
-in `config.h` set pin mappings as needed, e.g.
-
-```
-#define HUB75_R1 19
-#define HUB75_G1 18
-#define HUB75_B1 5
-#define HUB75_R2 17
-#define HUB75_G2 16
-#define HUB75_B2 4
-#define HUB75_CH_A 13
-#define HUB75_CH_B 12
-#define HUB75_CH_C 14
-#define HUB75_CH_D 27
-#define HUB75_CLK 26
-#define HUB75_LAT 25
-#define HUB75_OE 33
-```
+Set the `hub75*` configuration properties to the correct pin numbers.
 
 ## RFM96 (first generation)
 

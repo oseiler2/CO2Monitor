@@ -12,7 +12,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel) {
   cyclicTimer->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
 
   this->strip->begin();
-  this->strip->setBrightness(config.ledPwm);
+  this->strip->setBrightness(config.brightness);
   this->strip->show(); // Initialize all pixels to 'off'
   fill(this->strip->Color(255, 0, 0)); // Red
   delay(500);
@@ -36,7 +36,7 @@ void Neopixel::fill(uint32_t c) {
 }
 
 void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  this->strip->setBrightness(config.ledPwm);
+  this->strip->setBrightness(config.brightness);
   if (oldStatus == newStatus) return;
   if (newStatus == GREEN) {
     fill(this->strip->Color(0, 255, 0)); // Green

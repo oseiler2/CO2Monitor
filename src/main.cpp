@@ -11,18 +11,10 @@
 #include <housekeeping.h>
 #include <Wire.h>
 #include <lcd.h>
-#ifdef HAS_LEDS
 #include <trafficLight.h>
-#endif
-#ifdef HAS_NEOPIXEL
 #include <neopixel.h>
-#endif
-#ifdef HAS_FEATHER_MATRIX
 #include <featherMatrix.h>
-#endif
-#ifdef HAS_HUB75
 #include <hub75.h>
-#endif
 #include <bme680.h>
 #include <i2c.h>
 #include <wifiManager.h>
@@ -33,18 +25,10 @@ static const char TAG[] = __FILE__;
 
 Model* model;
 LCD* lcd;
-#ifdef HAS_LEDS 
 TrafficLight* trafficLight;
-#endif
-#ifdef HAS_NEOPIXEL
 Neopixel* neopixel;
-#endif
-#ifdef HAS_FEATHER_MATRIX
 FeatherMatrix* featherMatrix;
-#endif
-#ifdef HAS_HUB75
 HUB75* hub75;
-#endif
 SCD30* scd30;
 SCD40* scd40;
 SPS_30* sps30;
@@ -54,10 +38,14 @@ TaskHandle_t scd40Task;
 TaskHandle_t sps30Task;
 TaskHandle_t bme680Task;
 
+bool hasLEDs = false;
+bool hasNeoPixel = false;
+bool hasFeatherMatrix = false;
+bool hasHub75 = false;
+
 void stopHub75DMA() {
-#ifdef HAS_HUB75
-  if (hub75) hub75->stopDMA();
-#endif
+
+  if (hasHub75 && hub75) hub75->stopDMA();
 }
 
 void updateMessage(char const* msg) {
@@ -80,18 +68,10 @@ void clearPriorityMessage() {
 
 void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (lcd) lcd->update(mask, oldStatus, newStatus);
-#ifdef HAS_LEDS
-  if (trafficLight) trafficLight->update(mask, oldStatus, newStatus);
-#endif
-#ifdef HAS_NEOPIXEL
-  if (neopixel) neopixel->update(mask, oldStatus, newStatus);
-#endif
-#ifdef HAS_FEATHER_MATRIX
-  if (featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
-#endif
-#ifdef HAS_HUB75
-  if (hub75) hub75->update(mask, oldStatus, newStatus);
-#endif
+  if (hasLEDs && trafficLight) trafficLight->update(mask, oldStatus, newStatus);
+  if (hasNeoPixel && neopixel) neopixel->update(mask, oldStatus, newStatus);
+  if (hasFeatherMatrix && featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
+  if (hasHub75 && hub75) hub75->update(mask, oldStatus, newStatus);
   if (mask != M_NONE) mqtt::publishSensors(mask);
 }
 
@@ -165,10 +145,18 @@ void setup() {
     ESP.getFlashChipSpeed());
 
   setupConfigManager();
+  printFile();
   if (!loadConfiguration(config)) {
     getDefaultConfiguration(config);
     saveConfiguration(config);
+    printFile();
   }
+  hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
+  hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
+  hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
+  hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
+    && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
+
 
   Wire.begin((int)SDA, (int)SCL, (uint32_t)I2C_CLK);
 
@@ -183,21 +171,10 @@ void setup() {
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage);
   if (I2C::lcdPresent()) lcd = new LCD(&Wire, model);
 
-#ifdef HAS_LEDS
-  trafficLight = new TrafficLight(model, RED_LED_PIN, YELLOW_LED_PIN, GREEN_LED_PIN);
-#endif
-
-#ifdef HAS_NEOPIXEL
-  neopixel = new Neopixel(model, NEOPIXEL_PIN, NEOPIXEL_NUM);
-#endif
-
-#ifdef HAS_FEATHER_MATRIX
-  featherMatrix = new FeatherMatrix(model, FEATHER_MATRIX_DATAPIN, FEATHER_MATRIX_CLOCKPIN);
-#endif
-
-#ifdef HAS_HUB75
-  hub75 = new HUB75(model);
-#endif
+  if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed);
+  if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber);
+  if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock);
+  if (hasHub75) hub75 = new HUB75(model);
 
   mqtt::setupMqtt(
     model,
@@ -211,7 +188,7 @@ void setup() {
 
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
-    4096,               // stack size of task
+    8192,               // stack size of task
     (void*)1,           // parameter of the task
     2,                  // priority of the task
     &mqtt::mqttTask,          // task handle
@@ -267,7 +244,7 @@ void setup() {
 #ifdef SHOW_DEBUG_MSGS
   if (I2C::lcdPresent()) {
     lcd->updateMessage("Setup done.");
-  }
+}
 #endif
 }
 
