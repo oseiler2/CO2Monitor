@@ -7,6 +7,7 @@
 #define MQTT_TOPIC_ID_LEN 30
 #define SSID_LEN 20
 #define PASSWORD_LEN 20
+#define OTA_URL_LEN 256
 
 // Our configuration structure.
 //
@@ -20,6 +21,7 @@ struct Config {
   char mqttUsername[MQTT_USERNAME_LEN + 1];
   char mqttPassword[MQTT_PASSWORD_LEN + 1];
   char mqttHost[MQTT_HOSTNAME_LEN + 1];
+  char otaUrl[OTA_URL_LEN + 1];
   uint16_t mqttServerPort;
   uint16_t altitude;
   uint16_t yellowThreshold;
