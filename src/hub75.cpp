@@ -13,14 +13,15 @@ static const char TAG[] = __FILE__;
 
 HUB75::HUB75(Model* _model) {
   this->model = _model;
-
-#if defined(HUB75_R1) && defined(HUB75_G1) && defined(HUB75_B1) && defined(HUB75_R2) && defined(HUB75_G2) && defined(HUB75_B2) && defined(HUB75_CH_A) && defined(HUB75_CH_B) && defined(HUB75_CH_C) && defined(HUB75_CH_D) && defined(HUB75_CLK) && defined(HUB75_LAT) && defined(HUB75_OE)
-  HUB75_I2S_CFG::i2s_pins hub75Pins = { HUB75_R1, HUB75_G1, HUB75_B1, HUB75_R2, HUB75_G2, HUB75_B2, HUB75_CH_A, HUB75_CH_B, HUB75_CH_C, HUB75_CH_D, -1, HUB75_LAT, HUB75_OE, HUB75_CLK };
-  HUB75_I2S_CFG mxconfig(64, 32, 1, hub75Pins, HUB75_I2S_CFG::FM6126A);
-  this->matrix = new MatrixPanel_I2S_DMA(mxconfig);
-#endif
+  if (config.hub75R1 != 0 && config.hub75G1 != 0 && config.hub75B1 != 0 && config.hub75R2 != 0 && config.hub75G2 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0
+    && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0 && config.hub75Clk != 0 && config.hub75Lat != 0 && config.hub75Oe) {
+    HUB75_I2S_CFG::i2s_pins hub75Pins = { config.hub75R1, config.hub75G1, config.hub75B1, config.hub75R2, config.hub75G2, config.hub75B2, config.hub75ChA,
+    config.hub75ChB, config.hub75ChC, config.hub75ChD, -1, config.hub75Lat, config.hub75Oe, config.hub75Clk };
+    HUB75_I2S_CFG mxconfig(64, 32, 1, hub75Pins, HUB75_I2S_CFG::FM6126A);
+    this->matrix = new MatrixPanel_I2S_DMA(mxconfig);
+  }
   matrix->begin();
-  matrix->setBrightness8(config.ledPwm);
+  matrix->setBrightness8(config.brightness);
 
   cyclicTimer = new Ticker();
   // https://arduino.stackexchange.com/questions/81123/using-lambdas-as-callback-functions
@@ -42,7 +43,7 @@ void HUB75::stopDMA() {
 }
 
 void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  matrix->setBrightness8(config.ledPwm);
+  matrix->setBrightness8(config.brightness);
   //  ESP_LOGD(TAG, "HUB75 update: %u => %i", model->getCo2(), newStatus);
   if (oldStatus != newStatus) {
     // only redraw smiley on status change
