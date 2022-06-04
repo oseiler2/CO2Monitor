@@ -83,6 +83,14 @@ Once wifi credentials have been configured pressing the `Boot` button for more t
 
 <img src="img/configuration.png">
 
+## Configuration
+
+The monitor is configured via the `config.json` file on the ESP32 file system. There are 3 ways the configuration can be changed:
+
+- via the web interface
+- by directly editing [config.json](data/config.json) and uploading it via `Upload Filesystem Image`
+- via MQTT (once connected)
+
 ## MQTT
 
 Sensor readings can be published via MQTT for centralised storage and visualition. Each node is configured with its own id and will then publish under `co2monitor/<id>/up/sensors`. The top level topic `co2monitor` is configurable. Downlink messages to nodes can be sent to each individual node using the id in the topic `co2monitor/<id>/down/<command>`, or to all nodes when omitting the id part `co2monitor/down/<command>`
