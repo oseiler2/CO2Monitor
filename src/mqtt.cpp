@@ -90,14 +90,14 @@ namespace mqtt {
 
   void publishConfigurationInternal() {
     char buf[384];
-    char msg[512];
-    StaticJsonDocument<512> json;
+    char msg[CONFIG_SIZE];
+    StaticJsonDocument<CONFIG_SIZE> json;
     json["appVersion"] = APP_VERSION;
     json["altitude"] = config.altitude;
     json["yellowThreshold"] = config.yellowThreshold;
     json["redThreshold"] = config.redThreshold;
     json["darkRedThreshold"] = config.darkRedThreshold;
-    json["ledPwm"] = config.ledPwm;
+    json["brightness"] = config.brightness;
     sprintf(buf, "%s", WifiManager::getMac().c_str());
     json["mac"] = buf;
     sprintf(buf, "%s", WiFi.localIP().toString().c_str());
@@ -115,12 +115,27 @@ namespace mqtt {
       json["sps30AutoCleanInt"] = getSPS30AutoCleanIntervalCallback();
       json["sps30Status"] = getSPS30StatusCallback();
     }
-#ifdef HAS_NEOPIXEL
-    json["neopxl"] = NEOPIXEL_NUM;
-#endif
-#ifdef HAS_LEDS
-    json["leds"] = true;
-#endif
+    json["ssd1306Rows"] = config.ssd1306Rows;
+    json["greenLed"] = config.greenLed;
+    json["yellowLed"] = config.yellowLed;
+    json["redLed"] = config.redLed;
+    json["neopixelData"] = config.neopixelData;
+    json["neopixelNumber"] = config.neopixelNumber;
+    json["featherMatrixData"] = config.featherMatrixData;
+    json["featherMatrixClock"] = config.featherMatrixClock;
+    json["hub75R1"] = config.hub75R1;
+    json["hub75G1"] = config.hub75G1;
+    json["hub75B1"] = config.hub75B1;
+    json["hub75R2"] = config.hub75R2;
+    json["hub75G2"] = config.hub75G2;
+    json["hub75B2"] = config.hub75B2;
+    json["hub75ChA"] = config.hub75ChA;
+    json["hub75ChB"] = config.hub75ChB;
+    json["hub75ChC"] = config.hub75ChC;
+    json["hub75ChD"] = config.hub75ChD;
+    json["hub75Clk"] = config.hub75Clk;
+    json["hub75Lat"] = config.hub75Lat;
+    json["hub75Oe"] = config.hub75Oe;
     sprintf(buf, "%.1f", getTemperatureOffsetCallback());
     json["tempOffset"] = buf;
     json["otaUrl"] = config.otaUrl;
@@ -174,19 +189,44 @@ namespace mqtt {
     } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
       publishConfiguration();
     } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
-      StaticJsonDocument<256> doc;
+      StaticJsonDocument<CONFIG_SIZE> doc;
       DeserializationError error = deserializeJson(doc, msg);
       if (error) {
         ESP_LOGW(TAG, "Failed to parse message: %s", error.f_str());
         return;
       }
+      bool rebootRequired = false;
       if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
       if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
       if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
       if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
-      if (doc["ledPwm"].as<uint8_t>()) config.ledPwm = doc["ledPwm"];
       if (doc["otaUrl"]) strlcpy(config.otaUrl, doc["otaUrl"], sizeof(config.otaUrl));
-      saveConfiguration(config);
+      if (doc["brightness"].as<uint8_t>()) config.brightness = doc["brightness"];
+      if (doc["ssd1306Rows"].as<uint8_t>()) { config.ssd1306Rows = doc["ssd1306Rows"];rebootRequired = true; }
+      if (doc["greenLed"].as<uint8_t>()) { config.greenLed = doc["greenLed"];rebootRequired = true; }
+      if (doc["yellowLed"].as<uint8_t>()) { config.yellowLed = doc["yellowLed"];rebootRequired = true; }
+      if (doc["redLed"].as<uint8_t>()) { config.redLed = doc["redLed"];rebootRequired = true; }
+      if (doc["neopixelData"].as<uint8_t>()) { config.neopixelData = doc["neopixelData"];rebootRequired = true; }
+      if (doc["neopixelNumber"].as<uint8_t>()) { config.neopixelNumber = doc["neopixelNumber"];rebootRequired = true; }
+      if (doc["featherMatrixData"].as<uint8_t>()) { config.featherMatrixData = doc["featherMatrixData"];rebootRequired = true; }
+      if (doc["featherMatrixClock"].as<uint8_t>()) { config.featherMatrixClock = doc["featherMatrixClock"];rebootRequired = true; }
+      if (doc["hub75R1"].as<uint8_t>()) { config.hub75R1 = doc["hub75R1"];rebootRequired = true; }
+      if (doc["hub75G1"].as<uint8_t>()) { config.hub75G1 = doc["hub75G1"];rebootRequired = true; }
+      if (doc["hub75B1"].as<uint8_t>()) { config.hub75B1 = doc["hub75B1"];rebootRequired = true; }
+      if (doc["hub75R2"].as<uint8_t>()) { config.hub75R2 = doc["hub75R2"];rebootRequired = true; }
+      if (doc["hub75G2"].as<uint8_t>()) { config.hub75G2 = doc["hub75G2"];rebootRequired = true; }
+      if (doc["hub75B2"].as<uint8_t>()) { config.hub75B2 = doc["hub75B2"];rebootRequired = true; }
+      if (doc["hub75ChA"].as<uint8_t>()) { config.hub75ChA = doc["hub75ChA"];rebootRequired = true; }
+      if (doc["hub75ChB"].as<uint8_t>()) { config.hub75ChB = doc["hub75ChB"];rebootRequired = true; }
+      if (doc["hub75ChC"].as<uint8_t>()) { config.hub75ChC = doc["hub75ChC"];rebootRequired = true; }
+      if (doc["hub75ChD"].as<uint8_t>()) { config.hub75ChD = doc["hub75ChD"];rebootRequired = true; }
+      if (doc["hub75Clk"].as<uint8_t>()) { config.hub75Clk = doc["hub75Clk"];rebootRequired = true; }
+      if (doc["hub75Lat"].as<uint8_t>()) { config.hub75Lat = doc["hub75Lat"];rebootRequired = true; }
+      if (doc["hub75Oe"].as<uint8_t>()) { config.hub75Oe = doc["hub75Oe"];rebootRequired = true; }
+      if (saveConfiguration(config) && rebootRequired) {
+        delay(1000);
+        esp_restart();
+      }
     } else if (strncmp(buf, "resetWifi", strlen(buf)) == 0) {
       WifiManager::resetSettings();
     } else if (strncmp(buf, "ota", strlen(buf)) == 0) {
@@ -249,7 +289,7 @@ namespace mqtt {
 
     mqtt_client.setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client.setCallback(callback);
-    mqtt_client.setBufferSize(512);
+    if (!mqtt_client.setBufferSize(CONFIG_SIZE)) ESP_LOGE(TAG, "mqtt_client.setBufferSize failed!");
   }
 
   void mqttLoop(void* pvParameters) {

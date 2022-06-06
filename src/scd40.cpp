@@ -15,7 +15,9 @@ boolean SCD40::checkError(uint16_t error, char const* msg) {
     errorToString(error, errorMessage, 256);
     ESP_LOGW(TAG, "Error trying to execute %s: %s", msg, errorMessage);
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("error SCD40 cmd");
+#endif
     while (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY)));
     return false;
   }
@@ -94,6 +96,10 @@ SCD40::~SCD40() {
 
 
 boolean SCD40::readScd40() {
+#ifdef SHOW_DEBUG_MSGS
+  this->updateMessageCallback("readScd40");
+#endif
+
   // check if data is ready
   uint16_t dataReady;
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
@@ -101,7 +107,9 @@ boolean SCD40::readScd40() {
   I2C::giveMutex();
   if (!success) return false;
   if ((dataReady & 0x07ff) == 0) {
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("SCD40 not ready");
+#endif
     ESP_LOGD(TAG, "SCD40 measurement not ready! (%x)", dataReady);
     return false;
   }
@@ -114,11 +122,15 @@ boolean SCD40::readScd40() {
   I2C::giveMutex();
   if (!success) return false;
   ESP_LOGD(TAG, "Temp: %.1fC, rH: %.1f%%, CO2:  %uppm", temperature, humidity, co2);
+#ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("");
+#endif
   model->updateModel(co2, temperature, humidity);
   if (co2 == 0) {
     ESP_LOGW(TAG, "Invalid sample detected, skipping.");
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("Invalid sample");
+#endif
   } else {
     return true;
   }

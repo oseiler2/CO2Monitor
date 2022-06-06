@@ -27,10 +27,30 @@ Config config;
   "yellowThreshold": 800,
   "redThreshold": 1000,
   "darkRedThreshold": 2000,
-  "ledPwm": 100
+  "brightness": 255,
+  "ssd1306Rows": 64,
+  "greenLed": 27,
+  "yellowLed": 26,
+  "redLed": 25,
+  "neopixelData": 16,
+  "neopixelNumber": 3,
+  "featherMatrixData": 27,
+  "featherMatrixClock": 13,
+  "hub75R1": 15,
+  "hub75G1": 2,
+  "hub75B1": 4,
+  "hub75R2": 16,
+  "hub75G2": 12,
+  "hub75B2": 17,
+  "hub75ChA": 5,
+  "hub75ChB": 18,
+  "hub75ChC": 19,
+  "hub75ChD": 14,
+  "hub75Clk": 27,
+  "hub75Lat": 26,
+  "hub75Oe": 25
 }
 */
-#define CONFIG_SIZE 768
 
 void setupConfigManager() {
   if (!LittleFS.begin(true)) {
@@ -44,23 +64,76 @@ void setupConfigManager() {
 
 #define DEFAULT_MQTT_TOPIC "co2monitor"
 #define DEFAULT_MQTT_HOST "127.0.0.1"
+#define DEFAULT_MQTT_PORT 1883
 #define DEFAULT_MQTT_USERNAME "co2monitor"
 #define DEFAULT_MQTT_PASSWORD "co2monitor"
 #define DEFAULT_OTA_URL ""
+#define DEFAULT_DEVICE_ID              0
+#define DEFAULT_ALTITUDE               5
+#define DEFAULT_YELLOW_THRESHOLD     700
+#define DEFAULT_RED_THRESHOLD        900
+#define DEFAULT_DARK_RED_THRESHOLD  1200
+#define DEFAULT_BRIGHTNESS           255
+#define DEFAULT_SSD1306_ROWS          64
+//27
+#define DEFAULT_GREEN_LED             0
+#define DEFAULT_YELLOW_LED            26
+#define DEFAULT_RED_LED               25
+// 16
+#define DEFAULT_NEOPIXEL_DATA          0
+#define DEFAULT_NEOPIXEL_NUMBER        3
+// 27
+#define DEFAULT_FEATHER_MATRIX_DATA    0
+#define DEFAULT_FEATHER_MATRIX_CLK    13
+// 15
+#define DEFAULT_HUB75_R1               0
+#define DEFAULT_HUB75_G1               2
+#define DEFAULT_HUB75_B1               4
+#define DEFAULT_HUB75_R2              16
+#define DEFAULT_HUB75_G2              12
+#define DEFAULT_HUB75_B2              17
+#define DEFAULT_HUB75_CH_A             5
+#define DEFAULT_HUB75_CH_B            18
+#define DEFAULT_HUB75_CH_C            19
+#define DEFAULT_HUB75_CH_D            14
+#define DEFAULT_HUB75_CLK             27
+#define DEFAULT_HUB75_LAT             26
+#define DEFAULT_HUB75_OE              25
 
 void getDefaultConfiguration(Config& config) {
-  config.deviceId = 0;
+  config.deviceId = DEFAULT_DEVICE_ID;
   strlcpy(config.mqttTopic, DEFAULT_MQTT_TOPIC, sizeof(DEFAULT_MQTT_TOPIC));
   strlcpy(config.mqttUsername, DEFAULT_MQTT_USERNAME, sizeof(DEFAULT_MQTT_USERNAME));
   strlcpy(config.mqttPassword, DEFAULT_MQTT_PASSWORD, sizeof(DEFAULT_MQTT_PASSWORD));
   strlcpy(config.mqttHost, DEFAULT_MQTT_HOST, sizeof(DEFAULT_MQTT_HOST));
   strlcpy(config.otaUrl, DEFAULT_OTA_URL, sizeof(DEFAULT_OTA_URL));
-  config.mqttServerPort = 1883;
-  config.altitude = 5;
-  config.yellowThreshold = 700;
-  config.redThreshold = 900;
-  config.darkRedThreshold = 1200;
-  config.ledPwm = 255;
+  config.mqttServerPort = DEFAULT_MQTT_PORT;
+  config.altitude = DEFAULT_ALTITUDE;
+  config.yellowThreshold = DEFAULT_YELLOW_THRESHOLD;
+  config.redThreshold = DEFAULT_RED_THRESHOLD;
+  config.darkRedThreshold = DEFAULT_DARK_RED_THRESHOLD;
+  config.brightness = DEFAULT_BRIGHTNESS;
+  config.ssd1306Rows = DEFAULT_SSD1306_ROWS;
+  config.greenLed = DEFAULT_GREEN_LED;
+  config.yellowLed = DEFAULT_YELLOW_LED;
+  config.redLed = DEFAULT_RED_LED;
+  config.neopixelData = DEFAULT_NEOPIXEL_DATA;
+  config.neopixelNumber = DEFAULT_NEOPIXEL_NUMBER;
+  config.featherMatrixData = DEFAULT_FEATHER_MATRIX_DATA;
+  config.featherMatrixClock = DEFAULT_FEATHER_MATRIX_CLK;
+  config.hub75R1 = DEFAULT_HUB75_R1;
+  config.hub75G1 = DEFAULT_HUB75_G1;
+  config.hub75B1 = DEFAULT_HUB75_B1;
+  config.hub75R2 = DEFAULT_HUB75_R2;
+  config.hub75G2 = DEFAULT_HUB75_G2;
+  config.hub75B2 = DEFAULT_HUB75_B2;
+  config.hub75ChA = DEFAULT_HUB75_CH_A;
+  config.hub75ChB = DEFAULT_HUB75_CH_B;
+  config.hub75ChC = DEFAULT_HUB75_CH_C;
+  config.hub75ChD = DEFAULT_HUB75_CH_D;
+  config.hub75Clk = DEFAULT_HUB75_CLK;
+  config.hub75Lat = DEFAULT_HUB75_LAT;
+  config.hub75Oe = DEFAULT_HUB75_OE;
 }
 
 void logConfiguration(const Config& config) {
@@ -75,7 +148,28 @@ void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "yellowThreshold: %u", config.yellowThreshold);
   ESP_LOGD(TAG, "redThreshold: %u", config.redThreshold);
   ESP_LOGD(TAG, "darkRedThreshold: %u", config.darkRedThreshold);
-  ESP_LOGD(TAG, "ledPwm: %u", config.ledPwm);
+  ESP_LOGD(TAG, "brightness: %u", config.brightness);
+  ESP_LOGD(TAG, "ssd1306Rows: %u", config.ssd1306Rows);
+  ESP_LOGD(TAG, "greenLed: %u", config.greenLed);
+  ESP_LOGD(TAG, "yellowLed: %u", config.yellowLed);
+  ESP_LOGD(TAG, "redLed: %u", config.redLed);
+  ESP_LOGD(TAG, "neopixelData: %u", config.neopixelData);
+  ESP_LOGD(TAG, "neopixelNumber: %u", config.neopixelNumber);
+  ESP_LOGD(TAG, "featherMatrixData: %u", config.featherMatrixData);
+  ESP_LOGD(TAG, "featherMatrixClock: %u", config.featherMatrixClock);
+  ESP_LOGD(TAG, "hub75R1: %u", config.hub75R1);
+  ESP_LOGD(TAG, "hub75G1: %u", config.hub75G1);
+  ESP_LOGD(TAG, "hub75B1: %u", config.hub75B1);
+  ESP_LOGD(TAG, "hub75R2: %u", config.hub75R2);
+  ESP_LOGD(TAG, "hub75G2: %u", config.hub75G2);
+  ESP_LOGD(TAG, "hub75B2: %u", config.hub75B2);
+  ESP_LOGD(TAG, "hub75ChA: %u", config.hub75ChA);
+  ESP_LOGD(TAG, "hub75ChB: %u", config.hub75ChB);
+  ESP_LOGD(TAG, "hub75ChC: %u", config.hub75ChC);
+  ESP_LOGD(TAG, "hub75ChD: %u", config.hub75ChD);
+  ESP_LOGD(TAG, "hub75Clk: %u", config.hub75Clk);
+  ESP_LOGD(TAG, "hub75Lat: %u", config.hub75Lat);
+  ESP_LOGD(TAG, "hub75Oe: %u", config.hub75Oe);
 }
 
 boolean loadConfiguration(Config& config) {
@@ -97,7 +191,7 @@ boolean loadConfiguration(Config& config) {
   }
 
   // Copy values from the JsonDocument to the Config
-  config.deviceId = doc["deviceId"] | 0;
+  config.deviceId = doc["deviceId"] | DEFAULT_DEVICE_ID;
   strlcpy(config.mqttTopic,
     doc["mqttTopic"] | DEFAULT_MQTT_TOPIC,
     sizeof(config.mqttTopic));
@@ -113,12 +207,33 @@ boolean loadConfiguration(Config& config) {
   strlcpy(config.otaUrl,
     doc["otaUrl"] | DEFAULT_OTA_URL,
     sizeof(config.otaUrl));
-  config.mqttServerPort = doc["mqttServerPort"] | 1883;
-  config.altitude = doc["altitude"] | 5;
-  config.yellowThreshold = doc["yellowThreshold"] | 700;
-  config.redThreshold = doc["redThreshold"] | 900;
-  config.darkRedThreshold = doc["darkRedThreshold"] | 1200;
-  config.ledPwm = doc["ledPwm"] | 255;
+  config.mqttServerPort = doc["mqttServerPort"] | DEFAULT_MQTT_PORT;
+  config.altitude = doc["altitude"] | DEFAULT_ALTITUDE;
+  config.yellowThreshold = doc["yellowThreshold"] | DEFAULT_YELLOW_THRESHOLD;
+  config.redThreshold = doc["redThreshold"] | DEFAULT_RED_THRESHOLD;
+  config.darkRedThreshold = doc["darkRedThreshold"] | DEFAULT_DARK_RED_THRESHOLD;
+  config.brightness = doc["brightness"] | DEFAULT_BRIGHTNESS;
+  config.ssd1306Rows = doc["ssd1306Rows"] | DEFAULT_SSD1306_ROWS;
+  config.greenLed = doc["greenLed"] | DEFAULT_GREEN_LED;
+  config.yellowLed = doc["yellowLed"] | DEFAULT_YELLOW_LED;
+  config.redLed = doc["redLed"] | DEFAULT_RED_LED;
+  config.neopixelData = doc["neopixelData"] | DEFAULT_NEOPIXEL_DATA;
+  config.neopixelNumber = doc["neopixelNumber"] | DEFAULT_NEOPIXEL_NUMBER;
+  config.featherMatrixData = doc["featherMatrixData"] | DEFAULT_FEATHER_MATRIX_DATA;
+  config.featherMatrixClock = doc["featherMatrixClock"] | DEFAULT_FEATHER_MATRIX_CLK;
+  config.hub75R1 = doc["hub75R1"] | DEFAULT_HUB75_R1;
+  config.hub75G1 = doc["hub75G1"] | DEFAULT_HUB75_G1;
+  config.hub75B1 = doc["hub75B1"] | DEFAULT_HUB75_B1;
+  config.hub75R2 = doc["hub75R2"] | DEFAULT_HUB75_R2;
+  config.hub75G2 = doc["hub75G2"] | DEFAULT_HUB75_G2;
+  config.hub75B2 = doc["hub75B2"] | DEFAULT_HUB75_B2;
+  config.hub75ChA = doc["hub75ChA"] | DEFAULT_HUB75_CH_A;
+  config.hub75ChB = doc["hub75ChB"] | DEFAULT_HUB75_CH_B;
+  config.hub75ChC = doc["hub75ChC"] | DEFAULT_HUB75_CH_C;
+  config.hub75ChD = doc["hub75ChD"] | DEFAULT_HUB75_CH_D;
+  config.hub75Clk = doc["hub75Clk"] | DEFAULT_HUB75_CLK;
+  config.hub75Lat = doc["hub75Lat"] | DEFAULT_HUB75_LAT;
+  config.hub75Oe = doc["hub75Oe"] | DEFAULT_HUB75_OE;
 
   file.close();
   ESP_LOGD(TAG, "###################### loadConfiguration");
@@ -155,7 +270,28 @@ boolean saveConfiguration(const Config& config) {
   doc["yellowThreshold"] = config.yellowThreshold;
   doc["redThreshold"] = config.redThreshold;
   doc["darkRedThreshold"] = config.darkRedThreshold;
-  doc["ledPwm"] = config.ledPwm;
+  doc["brightness"] = config.brightness;
+  doc["ssd1306Rows"] = config.ssd1306Rows;
+  doc["greenLed"] = config.greenLed;
+  doc["yellowLed"] = config.yellowLed;
+  doc["redLed"] = config.redLed;
+  doc["neopixelData"] = config.neopixelData;
+  doc["neopixelNumber"] = config.neopixelNumber;
+  doc["featherMatrixData"] = config.featherMatrixData;
+  doc["featherMatrixClock"] = config.featherMatrixClock;
+  doc["hub75R1"] = config.hub75R1;
+  doc["hub75G1"] = config.hub75G1;
+  doc["hub75B1"] = config.hub75B1;
+  doc["hub75R2"] = config.hub75R2;
+  doc["hub75G2"] = config.hub75G2;
+  doc["hub75B2"] = config.hub75B2;
+  doc["hub75ChA"] = config.hub75ChA;
+  doc["hub75ChB"] = config.hub75ChB;
+  doc["hub75ChC"] = config.hub75ChC;
+  doc["hub75ChD"] = config.hub75ChD;
+  doc["hub75Clk"] = config.hub75Clk;
+  doc["hub75Lat"] = config.hub75Lat;
+  doc["hub75Oe"] = config.hub75Oe;
 
   // Serialize JSON to file
   if (serializeJson(doc, file) == 0) {
@@ -188,4 +324,3 @@ void printFile() {
   // Close the file
   file.close();
 }
-

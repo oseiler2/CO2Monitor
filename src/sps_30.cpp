@@ -15,7 +15,9 @@ boolean SPS_30::checkError(uint16_t error, char const* msg) {
   if (error != SPS30_ERR_OK) {
     ESP_LOGW(TAG, "Error trying to execute %s: %x", msg, error);
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("error SPS30 cmd");
+#endif
     while (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY)));
     return false;
   }
@@ -35,13 +37,17 @@ SPS_30::SPS_30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
   if (sps30->begin(wire) == false) {
     ESP_LOGD(TAG, "Could not initialise SPS30!");
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("SPS30 fail");
+#endif
     return;
   }
   if (!sps30->probe()) {
     ESP_LOGD(TAG, "Could not probe SPS30!");
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("SPS30 fail");
+#endif
     return;
   }
   SPS30_version version;
@@ -67,14 +73,18 @@ SPS_30::~SPS_30() {
 
 boolean SPS_30::readSps30() {
   ESP_LOGD(TAG, "readSps30");
+#ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readSps30");
+#endif
   struct sps_values values;
 
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   if (!sps30->start()) {
     ESP_LOGD(TAG, "Could not start SPS30!");
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("SPS30 start fail");
+#endif
     return false;
   }
 
@@ -90,12 +100,16 @@ boolean SPS_30::readSps30() {
   if (!sps30->stop()) {
     ESP_LOGD(TAG, "Could not stop SPS30!");
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("SPS30 stop fail");
+#endif
     return false;
   }
 
   I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("");
+#endif
   ESP_LOGD(TAG, "result: %x", result);
   if (result == SPS30_ERR_OK) {
     ESP_LOGD(TAG, "SPS30 MassPM1:%.1f, MassPM2:%.1f, MassPM4:%.1f, MassPM10:%.1f, NumPM0:%.1f, NumPM1:%.1f, NumPM2:%.1f, NumPM4:%.1f, NumPM10:%.1f, PartSize:%.1f",
@@ -136,13 +150,17 @@ boolean SPS_30::setAutoCleanInterval(uint32_t intervalInSeconds) {
 
 boolean SPS_30::clean() {
   ESP_LOGD(TAG, "clean");
+#ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("clean sps30");
+#endif
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
 
   if (!sps30->start()) {
     ESP_LOGD(TAG, "Could not start SPS30!");
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("SPS30 start fail");
+#endif
     return false;
   }
   I2C::giveMutex();
@@ -152,11 +170,15 @@ boolean SPS_30::clean() {
   if (!sps30->stop()) {
     ESP_LOGD(TAG, "Could not stop SPS30!");
     I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("SPS30 stop fail");
+#endif
     return false;
   }
   I2C::giveMutex();
+#ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("");
+#endif
   return result;
 }
 

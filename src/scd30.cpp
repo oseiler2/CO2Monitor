@@ -93,17 +93,23 @@ SCD30::~SCD30() {
 }
 
 boolean SCD30::readScd30() {
+#ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readScd30");
+#endif
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
   boolean read = scd30->dataReady() && scd30->read();
   I2C::giveMutex();
   if (read) {
     ESP_LOGD(TAG, "Temp: %.1fC, rH: %.1f%%, CO2:  %.0fppm", scd30->temperature, scd30->relative_humidity, scd30->CO2);
+#ifdef SHOW_DEBUG_MSGS
     updateMessageCallback("");
+#endif
     model->updateModel(scd30->CO2, scd30->temperature, scd30->relative_humidity);
     return true;
   } else {
+#ifdef SHOW_DEBUG_MSGS
     updateMessageCallback("sensor read error");
+#endif
     ESP_LOGW(TAG, "Error reading sensor data");
   }
   return false;
