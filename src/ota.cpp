@@ -29,7 +29,9 @@ namespace OTA {
 
   void checkForUpdateInternal() {
     WiFiClientSecure clientForOta;
-    secureEsp32FOTA secureEsp32FOTA(OTA_APP, APP_VERSION);
+    // TODO(mattbnz): This gets fixed in the upgrade-fota branch, temporary
+    // hack to previous APP_VERSION value for now.
+    secureEsp32FOTA secureEsp32FOTA(OTA_APP, 1);
 
     secureEsp32FOTA._host = OTA_HOST;
     secureEsp32FOTA._descriptionOfFirmwareURL = OTA_URL;
