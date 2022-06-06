@@ -1,11 +1,9 @@
 #include <ota.h>
+#include <ota_cert.h>
 #include <esp32fota.h>
 #include <Arduino.h>
-#include <LittleFS.h>
 #include <config.h>
 #include <Ticker.h>
-
-#include "configManager.h"
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -14,7 +12,6 @@ namespace OTA {
 
   Ticker cyclicTimer;
   preUpdateCallback_t preUpdateCallback;
-  String _forceUpdateURL;
 
   void setupOta(preUpdateCallback_t _preUpdateCallback) {
     preUpdateCallback = _preUpdateCallback;
@@ -24,40 +21,30 @@ namespace OTA {
 }
 
   const uint32_t X_CMD_CHECK_FOR_UPDATE = bit(1);
-  const uint32_t X_CMD_FORCE_UPDATE = bit(2);
   TaskHandle_t otaTask;
 
   void checkForUpdate() {
     xTaskNotify(otaTask, X_CMD_CHECK_FOR_UPDATE, eSetBits);
   }
 
-  void forceUpdate(String url) {
-    _forceUpdateURL = url;
-    xTaskNotify(otaTask, X_CMD_FORCE_UPDATE, eSetBits);
-  }
-
   void checkForUpdateInternal() {
-    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
-    esp32FOTA.checkURL = String(config.otaUrl);
+    WiFiClientSecure clientForOta;
+    secureEsp32FOTA secureEsp32FOTA(OTA_APP, APP_VERSION);
 
-    bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
+    secureEsp32FOTA._host = OTA_HOST;
+    secureEsp32FOTA._descriptionOfFirmwareURL = OTA_URL;
+    secureEsp32FOTA._certificate = const_cast<char*>(ota_cert);
+    secureEsp32FOTA.clientForOta = clientForOta;
+
+    bool shouldExecuteFirmwareUpdate = secureEsp32FOTA.execHTTPSCheck();
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
       if (preUpdateCallback) preUpdateCallback();
-      esp32FOTA.execOTA();
+      secureEsp32FOTA.executeOTA();
     } else {
       ESP_LOGD(TAG, "No firmware update available");
     }
     ESP_LOGD(TAG, "OTA done");
-  }
-
-  void forceUpdateInternal() {
-    ESP_LOGD(TAG, "Beginning forced OTA");
-    if (preUpdateCallback) preUpdateCallback();
-    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
-    esp32FOTA.forceUpdate(_forceUpdateURL, false);
-    _forceUpdateURL = "";
-    ESP_LOGD(TAG, "Forced OTA done");
   }
 
   void otaLoop(void* pvParameters) {
@@ -73,9 +60,6 @@ namespace OTA {
         if (taskNotification & X_CMD_CHECK_FOR_UPDATE) {
           taskNotification &= ~X_CMD_CHECK_FOR_UPDATE;
           checkForUpdateInternal();
-        } else if (taskNotification & X_CMD_FORCE_UPDATE) {
-          taskNotification &= ~X_CMD_FORCE_UPDATE;
-          forceUpdateInternal();
         }
       }
     }

@@ -22,7 +22,6 @@ Config config;
   "mqttPassword": "123456789112345678921",
   "mqttHost": "1234567891123456789212345678931",
   "mqttServerPort": 65535,
-  "otaUrl": "https://host.and.fully.qualified.domain/CO2Monitor/firmware.json",
   "altitude": 12345,
   "yellowThreshold": 800,
   "redThreshold": 1000,
@@ -67,7 +66,6 @@ void setupConfigManager() {
 #define DEFAULT_MQTT_PORT 1883
 #define DEFAULT_MQTT_USERNAME "co2monitor"
 #define DEFAULT_MQTT_PASSWORD "co2monitor"
-#define DEFAULT_OTA_URL ""
 #define DEFAULT_DEVICE_ID              0
 #define DEFAULT_ALTITUDE               5
 #define DEFAULT_YELLOW_THRESHOLD     700
@@ -106,7 +104,6 @@ void getDefaultConfiguration(Config& config) {
   strlcpy(config.mqttUsername, DEFAULT_MQTT_USERNAME, sizeof(DEFAULT_MQTT_USERNAME));
   strlcpy(config.mqttPassword, DEFAULT_MQTT_PASSWORD, sizeof(DEFAULT_MQTT_PASSWORD));
   strlcpy(config.mqttHost, DEFAULT_MQTT_HOST, sizeof(DEFAULT_MQTT_HOST));
-  strlcpy(config.otaUrl, DEFAULT_OTA_URL, sizeof(DEFAULT_OTA_URL));
   config.mqttServerPort = DEFAULT_MQTT_PORT;
   config.altitude = DEFAULT_ALTITUDE;
   config.yellowThreshold = DEFAULT_YELLOW_THRESHOLD;
@@ -143,7 +140,6 @@ void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "mqttPassword: %s", config.mqttPassword);
   ESP_LOGD(TAG, "mqttHost: %s", config.mqttHost);
   ESP_LOGD(TAG, "mqttPort: %u", config.mqttServerPort);
-  ESP_LOGD(TAG, "otaUrl: %s", config.otaUrl);
   ESP_LOGD(TAG, "altitude: %u", config.altitude);
   ESP_LOGD(TAG, "yellowThreshold: %u", config.yellowThreshold);
   ESP_LOGD(TAG, "redThreshold: %u", config.redThreshold);
@@ -204,9 +200,6 @@ boolean loadConfiguration(Config& config) {
   strlcpy(config.mqttHost,
     doc["mqttHost"] | DEFAULT_MQTT_HOST,
     sizeof(config.mqttHost));
-  strlcpy(config.otaUrl,
-    doc["otaUrl"] | DEFAULT_OTA_URL,
-    sizeof(config.otaUrl));
   config.mqttServerPort = doc["mqttServerPort"] | DEFAULT_MQTT_PORT;
   config.altitude = doc["altitude"] | DEFAULT_ALTITUDE;
   config.yellowThreshold = doc["yellowThreshold"] | DEFAULT_YELLOW_THRESHOLD;
@@ -265,7 +258,6 @@ boolean saveConfiguration(const Config& config) {
   doc["mqttPassword"] = config.mqttPassword;
   doc["mqttHost"] = config.mqttHost;
   doc["mqttServerPort"] = config.mqttServerPort;
-  doc["otaUrl"] = config.otaUrl;
   doc["altitude"] = config.altitude;
   doc["yellowThreshold"] = config.yellowThreshold;
   doc["redThreshold"] = config.redThreshold;

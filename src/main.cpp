@@ -117,8 +117,7 @@ void setup() {
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
   Serial.begin(115200);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
-  ESP_LOGI(TAG, "CO2 Monitor (%s) v%s. Built from %s @ %s",
-    MODEL, APP_VERSION, GIT_REV, BUILD_TIMESTAMP);
+  ESP_LOGI(TAG, "Starting...");
 
   // try to connect with known settings
   WiFi.begin();
@@ -157,6 +156,7 @@ void setup() {
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
+
 
   Wire.begin((int)SDA, (int)SCL, (uint32_t)I2C_CLK);
 

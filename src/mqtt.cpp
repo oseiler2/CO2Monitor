@@ -138,7 +138,6 @@ namespace mqtt {
     json["hub75Oe"] = config.hub75Oe;
     sprintf(buf, "%.1f", getTemperatureOffsetCallback());
     json["tempOffset"] = buf;
-    json["otaUrl"] = config.otaUrl;
     if (serializeJson(json, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
@@ -200,7 +199,6 @@ namespace mqtt {
       if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
       if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
       if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
-      if (doc["otaUrl"]) strlcpy(config.otaUrl, doc["otaUrl"], sizeof(config.otaUrl));
       if (doc["brightness"].as<uint8_t>()) config.brightness = doc["brightness"];
       if (doc["ssd1306Rows"].as<uint8_t>()) { config.ssd1306Rows = doc["ssd1306Rows"];rebootRequired = true; }
       if (doc["greenLed"].as<uint8_t>()) { config.greenLed = doc["greenLed"];rebootRequired = true; }
@@ -231,8 +229,6 @@ namespace mqtt {
       WifiManager::resetSettings();
     } else if (strncmp(buf, "ota", strlen(buf)) == 0) {
       OTA::checkForUpdate();
-    } else if (strncmp(buf, "forceota", strlen(buf)) == 0) {
-      OTA::forceUpdate(msg);
     } else if (strncmp(buf, "reboot", strlen(buf)) == 0) {
       esp_restart();
     }
@@ -251,10 +247,7 @@ namespace mqtt {
         sprintf(buf, "%s/down/#", config.mqttTopic);
         mqtt_client.subscribe(buf);
         sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
-        mqtt_client.publish(buf,
-          "{\"online\":true, \"version\":" VERSION
-          ", \"build_timestamp\": \"" BUILD_TIMESTAMP "\""
-          ", \"git_rev\":\"" GIT_REV "\"}");
+        mqtt_client.publish(buf, "{\"online\":true}");
         vTaskDelay(pdMS_TO_TICKS(1000));
       } else {
         ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client.state());
