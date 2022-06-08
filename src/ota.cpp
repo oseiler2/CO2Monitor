@@ -18,7 +18,7 @@ namespace OTA {
 #ifdef OTA_POLL
     cyclicTimer.attach(1060 * 60 * 24, checkForUpdate);
 #endif
-}
+  }
 
   const uint32_t X_CMD_CHECK_FOR_UPDATE = bit(1);
   TaskHandle_t otaTask;
@@ -29,7 +29,7 @@ namespace OTA {
 
   void checkForUpdateInternal() {
     WiFiClientSecure clientForOta;
-    secureEsp32FOTA secureEsp32FOTA(OTA_APP, APP_VERSION);
+    secureEsp32FOTA secureEsp32FOTA(OTA_APP, 1);
 
     secureEsp32FOTA._host = OTA_HOST;
     secureEsp32FOTA._descriptionOfFirmwareURL = OTA_URL;
