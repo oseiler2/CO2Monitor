@@ -77,7 +77,7 @@ These CO2 Monitors have been tested in collaboration with researchers from the p
 
 Supports [ESPAsync WiFiManager](https://github.com/khoih-prog/ESPAsync_WiFiManager) to set up wireless credentials and further configuration.
 
-If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`. A password can be configured in `ap_pw.h`.
+If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`. A password can be configured in the file `extra.ini` which needs to be created by copying [extra.template.ini](extra.template.ini) and applying the desired changes.
 
 Once wifi credentials have been configured pressing the `Boot` button for more than 1 second on the ESP32 puts the device in configuration mode:
 

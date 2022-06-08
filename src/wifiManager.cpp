@@ -5,9 +5,12 @@
 #include <ESPAsync_WiFiManager.h>
 #include <ESPAsync_WiFiManager-Impl.h>
 #include <base64.h>
-#include <ap_pw.h>
 #include <configManager.h>
 #include <lcd.h>
+
+#ifndef AP_PW
+#define AP_PW ""
+#endif
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -351,6 +354,7 @@ namespace WifiManager {
   }
 
   void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {
+    setPriorityMessageCallback(AP_PW);
     // try to connect with known settings
     WiFi.begin();
     uint8_t i = 0;
