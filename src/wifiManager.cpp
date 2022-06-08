@@ -354,7 +354,7 @@ namespace WifiManager {
   }
 
   void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {
-    setPriorityMessageCallback(AP_PW);
+
     // try to connect with known settings
     WiFi.begin();
     uint8_t i = 0;
