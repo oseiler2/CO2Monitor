@@ -1,6 +1,6 @@
 {
   "type": "co2monitor",
-  "version": 1,
+  "version": "1.0.0",
   "host": "host",
   "port": 443,
   "bin": "/co2monitor/firmware.bin"
