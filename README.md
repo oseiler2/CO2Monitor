@@ -227,6 +227,10 @@ A message to `co2monitor/<id>/down/cleanSPS30` will run a fan clean on the SPS30
 
 A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
 
+### MQTT TLS support
+
+To connect to an MQTT server using TLS (recommended) you need to enable TLS in the configuration by setting `mqttUseTls` to `true`. You also need to supply a root CA certificate in PEM format on the file system as `/mqtt_root_ca.pem` and/or a server certificate in PEM format on the file system as `/mqtt_server_cert.pem`. These files can be uploaded using the `Upload Filesystem Image` project task in PlatformIO. Alternatively you can set `mqttInsecure` to `true` to disable certificate validation altogether.
+
 ## Supported sensors
 
 - [SCD3x CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensors-scd30/)
