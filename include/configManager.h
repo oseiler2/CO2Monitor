@@ -22,6 +22,8 @@ struct Config {
   char mqttUsername[MQTT_USERNAME_LEN + 1];
   char mqttPassword[MQTT_PASSWORD_LEN + 1];
   char mqttHost[MQTT_HOSTNAME_LEN + 1];
+  bool mqttUseTls;
+  bool mqttInsecure;
   uint16_t mqttServerPort;
   uint16_t altitude;
   uint16_t yellowThreshold;
