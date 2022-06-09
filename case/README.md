@@ -7,12 +7,14 @@ The case consists of a 3d printed body and a laser cut transparent acrylic front
 There are 3 versions of the main case available, with either 10mm or 15mm clearance over the PCB.
 The 15mm version is recommended for a little more room inside.
 
-| file                | description             | standoff length | screw length |
-| ------------------- | ----------------------- | --------------- | ------------ |
-| Case v0.3_10mm.STL  | flat case               | 10mm            | 20mm         |
-| Case v0.3_15mm.STL  | normal case             | 15mm            | 25mm         |
-| Case v0.3_10mmSPS30 | includes room for SPS30 | 10mm            | 25mm         |
-| SCD40 breakout      | SCD40/BME680 breakout   | 15mm            | 25mm         |
+| file                      | description             | power cutout | standoff length | screw length |
+| ------------------------- | ----------------------- | ------------ | --------------- | ------------ |
+| Case v0.4_10mm_cable.STL  | flat case               | cable        | 10mm            | 20mm         |
+| Case v0.4_15mm_cable.STL  | normal case             | cable        | 15mm            | 25mm         |
+| Case v0.4_15mm_USB.STL    | normal case             | USB-B        | 15mm            | 25mm         |
+| Case v0.4_10mmSPS30_cable | includes room for SPS30 | cable        | 10mm            | 25mm         |
+| Case v0.4_15mmSPS30_USB   | includes room for SPS30 | USB-C        | 15mm            | 30mm         |
+| SCD40 breakout            | SCD40/BME680 breakout   |              | 15mm            | 25mm         |
 
 The body should be printed in the following orientation
 
