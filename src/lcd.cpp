@@ -80,7 +80,6 @@ void LCD::clearPriorityMessage() {
 }
 
 void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (priorityMessageActive && config.ssd1306Rows == 32) return;
   if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
 
   // see if only CO2 sensor is present
