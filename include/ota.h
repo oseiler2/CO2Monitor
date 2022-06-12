@@ -12,6 +12,7 @@ namespace OTA {
   void forceUpdate(String url);
   extern TaskHandle_t otaTask;
   void otaLoop(void* pvParameters);
+  void forceUpdate(char* url);
 }
 
 #endif

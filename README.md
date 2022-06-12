@@ -77,7 +77,7 @@ These CO2 Monitors have been tested in collaboration with researchers from the p
 
 Supports [ESPAsync WiFiManager](https://github.com/khoih-prog/ESPAsync_WiFiManager) to set up wireless credentials and further configuration.
 
-If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`. A password can be configured in `ap_pw.h`.
+If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`. A password can be configured in the file `extra.ini` which needs to be created by copying [extra.template.ini](extra.template.ini) and applying the desired changes.
 
 Once wifi credentials have been configured pressing the `Boot` button for more than 1 second on the ESP32 puts the device in configuration mode:
 
@@ -226,6 +226,10 @@ A message to `co2monitor/<id>/down/setSPS30AutoCleanInterval` will set the SPS30
 A message to `co2monitor/<id>/down/cleanSPS30` will run a fan clean on the SPS30.
 
 A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
+
+### MQTT TLS support
+
+To connect to an MQTT server using TLS (recommended) you need to enable TLS in the configuration by setting `mqttUseTls` to `true`. You also need to supply a root CA certificate in PEM format on the file system as `/mqtt_root_ca.pem` and/or a server certificate in PEM format on the file system as `/mqtt_server_cert.pem`. These files can be uploaded using the `Upload Filesystem Image` project task in PlatformIO. Alternatively you can set `mqttInsecure` to `true` to disable certificate validation altogether.
 
 ## Supported sensors
 

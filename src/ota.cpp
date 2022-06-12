@@ -1,11 +1,9 @@
+#include <Arduino.h>
+#include <config.h>
 #include <ota.h>
 #include <esp32fota.h>
-#include <Arduino.h>
-#include <LittleFS.h>
-#include <config.h>
 #include <Ticker.h>
-
-#include "configManager.h"
+#include <LittleFS.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -14,14 +12,14 @@ namespace OTA {
 
   Ticker cyclicTimer;
   preUpdateCallback_t preUpdateCallback;
-  String _forceUpdateURL;
+  String forceUpdateURL;
 
   void setupOta(preUpdateCallback_t _preUpdateCallback) {
     preUpdateCallback = _preUpdateCallback;
 #ifdef OTA_POLL
     cyclicTimer.attach(1060 * 60 * 24, checkForUpdate);
 #endif
-}
+  }
 
   const uint32_t X_CMD_CHECK_FOR_UPDATE = bit(1);
   const uint32_t X_CMD_FORCE_UPDATE = bit(2);
@@ -31,15 +29,9 @@ namespace OTA {
     xTaskNotify(otaTask, X_CMD_CHECK_FOR_UPDATE, eSetBits);
   }
 
-  void forceUpdate(String url) {
-    _forceUpdateURL = url;
-    xTaskNotify(otaTask, X_CMD_FORCE_UPDATE, eSetBits);
-  }
-
   void checkForUpdateInternal() {
     esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
-    esp32FOTA.checkURL = String(config.otaUrl);
-
+    esp32FOTA.checkURL = String(OTA_URL);
     bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
@@ -51,13 +43,18 @@ namespace OTA {
     ESP_LOGD(TAG, "OTA done");
   }
 
+  void forceUpdate(char* url) {
+    forceUpdateURL = String(url);
+    xTaskNotify(otaTask, X_CMD_FORCE_UPDATE, eSetBits);
+  }
+
   void forceUpdateInternal() {
     ESP_LOGD(TAG, "Beginning forced OTA");
     if (preUpdateCallback) preUpdateCallback();
     esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
-    esp32FOTA.forceUpdate(_forceUpdateURL, false);
-    _forceUpdateURL = "";
-    ESP_LOGD(TAG, "Forced OTA done");
+    esp32FOTA.forceUpdate(forceUpdateURL, false);
+    forceUpdateURL = "";
+    ESP_LOGD(TAG, "Forced OTA done");    forceUpdateURL = "";
   }
 
   void otaLoop(void* pvParameters) {

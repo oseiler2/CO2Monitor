@@ -1,7 +1,9 @@
 #ifndef _WIFI_H
 #define _WIFI_H
 
+#include "globals.h"
 #include <config.h>
+#include <messageSupport.h>
 #include <ESPAsyncWebServer.h>
 
 namespace WifiManager {

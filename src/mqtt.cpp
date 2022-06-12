@@ -5,11 +5,14 @@
 #include <PubSubClient.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 #include <i2c.h>
 #include <configManager.h>
 #include <model.h>
 #include <wifiManager.h>
 #include <ota.h>
+
+#include <LittleFS.h>
 
 #include <ArduinoJson.h>
 
@@ -29,8 +32,8 @@ namespace mqtt {
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
 
-  WiFiClient wifiClient;
-  PubSubClient mqtt_client(wifiClient);
+  WiFiClient* wifiClient;
+  PubSubClient* mqtt_client;
   Model* model;
 
   calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
@@ -78,7 +81,7 @@ namespace mqtt {
       return;
     }
     ESP_LOGI(TAG, "Publishing sensor values: %s:%s", topic, msg);
-    if (!mqtt_client.publish(topic, msg)) ESP_LOGE(TAG, "publish failed!");
+    if (!mqtt_client->publish(topic, msg)) ESP_LOGE(TAG, "publish failed!");
   }
 
   void publishConfiguration() {
@@ -138,14 +141,13 @@ namespace mqtt {
     json["hub75Oe"] = config.hub75Oe;
     sprintf(buf, "%.1f", getTemperatureOffsetCallback());
     json["tempOffset"] = buf;
-    json["otaUrl"] = config.otaUrl;
     if (serializeJson(json, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
     }
     sprintf(buf, "%s/%u/up/config", config.mqttTopic, config.deviceId);
     ESP_LOGI(TAG, "Publishing configuration: %s:%s", buf, msg);
-    if (!mqtt_client.publish(buf, msg)) ESP_LOGE(TAG, "publish failed!");
+    if (!mqtt_client->publish(buf, msg)) ESP_LOGE(TAG, "publish failed!");
   }
 
   void callback(char* topic, byte* payload, unsigned int length) {
@@ -196,7 +198,6 @@ namespace mqtt {
         return;
       }
       bool rebootRequired = false;
-      if (doc["otaUrl"]) strlcpy(config.otaUrl, doc["otaUrl"], sizeof(config.otaUrl));
       if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
       if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
       if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
@@ -224,6 +225,8 @@ namespace mqtt {
       if (doc["hub75Lat"].as<uint8_t>()) { config.hub75Lat = doc["hub75Lat"];rebootRequired = true; }
       if (doc["hub75Oe"].as<uint8_t>()) { config.hub75Oe = doc["hub75Oe"];rebootRequired = true; }
       if (saveConfiguration(config) && rebootRequired) {
+        sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+        mqtt_client->publish(buf, "{\"msg\":\"configuration updated, rebooting shortly\"}");
         delay(1000);
         esp_restart();
       }
@@ -242,21 +245,21 @@ namespace mqtt {
     char buf[256];
     sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     while (!WiFi.isConnected()) { vTaskDelay(pdMS_TO_TICKS(100)); }
-    while (!mqtt_client.connected()) {
+    while (!mqtt_client->connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
-      if (mqtt_client.connect(buf, config.mqttUsername, config.mqttPassword)) {
+      vTaskDelay(pdMS_TO_TICKS(10));
+      if (mqtt_client->connect(buf, config.mqttUsername, config.mqttPassword)) {
         ESP_LOGD(TAG, "MQTT connected");
         sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
-        mqtt_client.subscribe(buf);
+        mqtt_client->subscribe(buf);
         sprintf(buf, "%s/down/#", config.mqttTopic);
-        mqtt_client.subscribe(buf);
+        mqtt_client->subscribe(buf);
         sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
-        mqtt_client.publish(buf, "{\"online\":true}");
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        mqtt_client->publish(buf, "{\"online\":true}");
       } else {
-        ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client.state());
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client->state());
       }
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
@@ -284,9 +287,31 @@ namespace mqtt {
     cleanSPS30Callback = _cleanSPS30Callback;
     getSPS30StatusCallback = _getSPS30StatusCallback;
 
-    mqtt_client.setServer(config.mqttHost, config.mqttServerPort);
-    mqtt_client.setCallback(callback);
-    if (!mqtt_client.setBufferSize(CONFIG_SIZE)) ESP_LOGE(TAG, "mqtt_client.setBufferSize failed!");
+    if (config.mqttUseTls) {
+      wifiClient = new WiFiClientSecure();
+      if (config.mqttInsecure) {
+        ((WiFiClientSecure*)wifiClient)->setInsecure();
+      }
+      File root_ca_file = LittleFS.open(MQTT_ROOT_CA_FILENAME, "r");
+      if (root_ca_file) {
+        ESP_LOGD(TAG, "Loading MQTT root ca from FS (%s)", MQTT_ROOT_CA_FILENAME);
+        ((WiFiClientSecure*)wifiClient)->loadCACert(root_ca_file, root_ca_file.size());
+        root_ca_file.close();
+      }
+      File server_cert_file = LittleFS.open(MQTT_SERVER_CERT_FILENAME, "r");
+      if (server_cert_file) {
+        ESP_LOGD(TAG, "Loading MQTT server cert from FS (%s)", MQTT_SERVER_CERT_FILENAME);
+        ((WiFiClientSecure*)wifiClient)->loadCertificate(server_cert_file, server_cert_file.size());
+        server_cert_file.close();
+      }
+    } else {
+      wifiClient = new WiFiClient();
+    }
+
+    mqtt_client = new PubSubClient(*wifiClient);
+    mqtt_client->setServer(config.mqttHost, config.mqttServerPort);
+    mqtt_client->setCallback(callback);
+    if (!mqtt_client->setBufferSize(CONFIG_SIZE)) ESP_LOGE(TAG, "mqtt_client->setBufferSize failed!");
   }
 
   void mqttLoop(void* pvParameters) {
@@ -302,10 +327,10 @@ namespace mqtt {
           publishSensorsInternal(msg.mask);
         }
       }
-      if (!mqtt_client.connected()) {
+      if (!mqtt_client->connected()) {
         reconnect();
       }
-      mqtt_client.loop();
+      mqtt_client->loop();
     }
     vTaskDelete(NULL);
   }

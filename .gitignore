@@ -5,3 +5,7 @@
 .vscode/ipch
 .vscode/extensions.json
 .vscode/settings.json
+extra.ini
+data/mqtt_root_ca.pem
+data/mqtt_server_cert.pem
+data/root_ca.pem
