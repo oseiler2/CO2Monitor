@@ -1,9 +1,9 @@
-#include <ota.h>
-#include <ota_cert.h>
-#include <esp32fota.h>
 #include <Arduino.h>
 #include <config.h>
+#include <ota.h>
+#include <esp32fota.h>
 #include <Ticker.h>
+#include <LittleFS.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -12,15 +12,17 @@ namespace OTA {
 
   Ticker cyclicTimer;
   preUpdateCallback_t preUpdateCallback;
+  String forceUpdateURL;
 
   void setupOta(preUpdateCallback_t _preUpdateCallback) {
     preUpdateCallback = _preUpdateCallback;
 #ifdef OTA_POLL
     cyclicTimer.attach(1060 * 60 * 24, checkForUpdate);
 #endif
-}
+  }
 
   const uint32_t X_CMD_CHECK_FOR_UPDATE = bit(1);
+  const uint32_t X_CMD_FORCE_UPDATE = bit(2);
   TaskHandle_t otaTask;
 
   void checkForUpdate() {
@@ -28,25 +30,31 @@ namespace OTA {
   }
 
   void checkForUpdateInternal() {
-    WiFiClientSecure clientForOta;
-    // TODO(mattbnz): This gets fixed in the upgrade-fota branch, temporary
-    // hack to previous APP_VERSION value for now.
-    secureEsp32FOTA secureEsp32FOTA(OTA_APP, 1);
-
-    secureEsp32FOTA._host = OTA_HOST;
-    secureEsp32FOTA._descriptionOfFirmwareURL = OTA_URL;
-    secureEsp32FOTA._certificate = const_cast<char*>(ota_cert);
-    secureEsp32FOTA.clientForOta = clientForOta;
-
-    bool shouldExecuteFirmwareUpdate = secureEsp32FOTA.execHTTPSCheck();
+    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
+    esp32FOTA.checkURL = String(OTA_URL);
+    bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
       if (preUpdateCallback) preUpdateCallback();
-      secureEsp32FOTA.executeOTA();
+      esp32FOTA.execOTA();
     } else {
       ESP_LOGD(TAG, "No firmware update available");
     }
     ESP_LOGD(TAG, "OTA done");
+  }
+
+  void forceUpdate(char* url) {
+    forceUpdateURL = String(url);
+    xTaskNotify(otaTask, X_CMD_FORCE_UPDATE, eSetBits);
+  }
+
+  void forceUpdateInternal() {
+    ESP_LOGD(TAG, "Beginning forced OTA");
+    if (preUpdateCallback) preUpdateCallback();
+    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
+    esp32FOTA.forceUpdate(forceUpdateURL, false);
+    forceUpdateURL = "";
+    ESP_LOGD(TAG, "Forced OTA done");    forceUpdateURL = "";
   }
 
   void otaLoop(void* pvParameters) {
@@ -62,6 +70,9 @@ namespace OTA {
         if (taskNotification & X_CMD_CHECK_FOR_UPDATE) {
           taskNotification &= ~X_CMD_CHECK_FOR_UPDATE;
           checkForUpdateInternal();
+        } else if (taskNotification & X_CMD_FORCE_UPDATE) {
+          taskNotification &= ~X_CMD_FORCE_UPDATE;
+          forceUpdateInternal();
         }
       }
     }

@@ -44,7 +44,6 @@ bool hasFeatherMatrix = false;
 bool hasHub75 = false;
 
 void stopHub75DMA() {
-
   if (hasHub75 && hub75) hub75->stopDMA();
 }
 
@@ -117,8 +116,7 @@ void setup() {
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
   Serial.begin(115200);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
-  ESP_LOGI(TAG, "CO2 Monitor v%s. Built from %s @ %s",
-    APP_VERSION, GIT_REV, BUILD_TIMESTAMP);
+  ESP_LOGI(TAG, "CO2 Monitor v%s. Built from %s @ %s", APP_VERSION, SRC_REVISION, BUILD_TIMESTAMP);
 
   // try to connect with known settings
   WiFi.begin();
@@ -158,10 +156,8 @@ void setup() {
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
 
-
   Wire.begin((int)SDA, (int)SCL, (uint32_t)I2C_CLK);
 
-  // allow SPS30 to come up
   I2C::initI2C();
 
   model = new Model(modelUpdatedEvt);
@@ -245,12 +241,11 @@ void setup() {
 #ifdef SHOW_DEBUG_MSGS
   if (I2C::lcdPresent()) {
     lcd->updateMessage("Setup done.");
-}
+  }
 #endif
 }
 
 void loop() {
-
   if ((digitalRead(TRIGGER_PIN) == LOW)) {
     while (digitalRead(TRIGGER_PIN) == LOW);
     digitalWrite(LED_PIN, LOW);
