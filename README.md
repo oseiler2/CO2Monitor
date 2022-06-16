@@ -21,7 +21,7 @@ There are now 2 new PCB designs, one for SMD components and another one solely u
 
 ## Through hole
 
-[BOM](pcb/CO2%20Monitor%20V0.3%20through-hole/bom.md)
+[BOM](pcb/CO2%20Monitor%20V0.5%20through-hole/bom.md)
 
 - uses only through hole components and can be hand soldered
 - ESP 32 Devkit (30 pin)
