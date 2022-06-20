@@ -45,38 +45,45 @@ void HUB75::stopDMA() {
 
 void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   matrix->setBrightness8(config.brightness);
-  //  ESP_LOGD(TAG, "HUB75 update: %u => %i", model->getCo2(), newStatus);
+  //  ESP_LOGD(TAG, "HUB75 update: %i => %i, co2: %u, mask:%x", oldStatus, newStatus, model->getCo2(), mask);
   if (oldStatus != newStatus) {
     // only redraw smiley on status change
     matrix->fillRect(0, 0, 32, 32, 0);
-    matrix->drawRGBBitmap(0, 0, smileys[newStatus], 32, 32);
+    if (newStatus > 0 && newStatus <= 4) {
+      matrix->drawRGBBitmap(0, 0, smileys[newStatus - 1], 32, 32);
+    }
   }
-  // clear co2 reading and message
-  matrix->fillRect(33, 0, 32, 32, 0);
-  // show co2 reading
-  if (model->getCo2() > 9999) {
-    matrix->drawBitmap(35, 24, digits[9], 10, 8, matrix->color565(255, 255, 255));
-    matrix->drawBitmap(35, 16, digits[9], 10, 8, matrix->color565(255, 255, 255));
-    matrix->drawBitmap(35, 8, digits[9], 10, 8, matrix->color565(255, 255, 255));
-    matrix->drawBitmap(35, 0, digits[9], 10, 8, matrix->color565(255, 255, 255));
-  } else {
-    if (model->getCo2() > 999)
-      matrix->drawBitmap(35, 24, digits[(uint16_t)(model->getCo2() / 1000) % 10], 10, 8, matrix->color565(255, 255, 255));
-    if (model->getCo2() > 99)
-      matrix->drawBitmap(35, 16, digits[(uint16_t)(model->getCo2() / 100) % 10], 10, 8, matrix->color565(255, 255, 255));
-    if (model->getCo2() > 9)
-      matrix->drawBitmap(35, 8, digits[(uint16_t)(model->getCo2() / 10) % 10], 10, 8, matrix->color565(255, 255, 255));
-    if (model->getCo2() > 0)
-      matrix->drawBitmap(35, 0, digits[model->getCo2() % 10], 10, 8, matrix->color565(255, 255, 255));
+
+  if (mask & M_CO2) {
+    // clear co2 reading and message
+    matrix->fillRect(33, 0, 32, 32, 0);
+    // show co2 reading
+    if (model->getCo2() > 9999) {
+      matrix->drawBitmap(35, 24, digits[9], 10, 8, matrix->color565(255, 255, 255));
+      matrix->drawBitmap(35, 16, digits[9], 10, 8, matrix->color565(255, 255, 255));
+      matrix->drawBitmap(35, 8, digits[9], 10, 8, matrix->color565(255, 255, 255));
+      matrix->drawBitmap(35, 0, digits[9], 10, 8, matrix->color565(255, 255, 255));
+    } else {
+      if (model->getCo2() > 999)
+        matrix->drawBitmap(35, 24, digits[(uint16_t)(model->getCo2() / 1000) % 10], 10, 8, matrix->color565(255, 255, 255));
+      if (model->getCo2() > 99)
+        matrix->drawBitmap(35, 16, digits[(uint16_t)(model->getCo2() / 100) % 10], 10, 8, matrix->color565(255, 255, 255));
+      if (model->getCo2() > 9)
+        matrix->drawBitmap(35, 8, digits[(uint16_t)(model->getCo2() / 10) % 10], 10, 8, matrix->color565(255, 255, 255));
+      if (model->getCo2() > 0)
+        matrix->drawBitmap(35, 0, digits[model->getCo2() % 10], 10, 8, matrix->color565(255, 255, 255));
+    }
   }
   // show message
-  matrix->drawBitmap(48, 0, messages[newStatus], 16, 32, matrix->color565(255, 255, 255));
+  if (newStatus > 0 && newStatus <= 4) {
+    matrix->drawBitmap(48, 0, messages[newStatus - 1], 16, 32, matrix->color565(255, 255, 255));
+  }
 }
 
 void HUB75::timer() {
   if (model->getStatus() == DARK_RED) {
     if (toggle)
-      matrix->drawRGBBitmap(0, 0, smileys[model->getStatus()], 32, 32);
+      matrix->drawRGBBitmap(0, 0, smileys[model->getStatus() - 1], 32, 32);
     else
       matrix->fillRect(0, 0, 32, 32, 0);
     toggle = !toggle;
