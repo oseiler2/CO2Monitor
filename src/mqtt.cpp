@@ -198,32 +198,32 @@ namespace mqtt {
         return;
       }
       bool rebootRequired = false;
-      if (doc["altitude"].as<int>()) config.altitude = doc["altitude"];
-      if (doc["yellowThreshold"].as<int>()) config.yellowThreshold = doc["yellowThreshold"];
-      if (doc["redThreshold"].as<int>()) config.redThreshold = doc["redThreshold"];
-      if (doc["darkRedThreshold"].as<uint16_t>()) config.darkRedThreshold = doc["darkRedThreshold"];
-      if (doc["brightness"].as<uint8_t>()) config.brightness = doc["brightness"];
-      if (doc["ssd1306Rows"].as<uint8_t>()) { config.ssd1306Rows = doc["ssd1306Rows"];rebootRequired = true; }
-      if (doc["greenLed"].as<uint8_t>()) { config.greenLed = doc["greenLed"];rebootRequired = true; }
-      if (doc["yellowLed"].as<uint8_t>()) { config.yellowLed = doc["yellowLed"];rebootRequired = true; }
-      if (doc["redLed"].as<uint8_t>()) { config.redLed = doc["redLed"];rebootRequired = true; }
-      if (doc["neopixelData"].as<uint8_t>()) { config.neopixelData = doc["neopixelData"];rebootRequired = true; }
-      if (doc["neopixelNumber"].as<uint8_t>()) { config.neopixelNumber = doc["neopixelNumber"];rebootRequired = true; }
-      if (doc["featherMatrixData"].as<uint8_t>()) { config.featherMatrixData = doc["featherMatrixData"];rebootRequired = true; }
-      if (doc["featherMatrixClock"].as<uint8_t>()) { config.featherMatrixClock = doc["featherMatrixClock"];rebootRequired = true; }
-      if (doc["hub75R1"].as<uint8_t>()) { config.hub75R1 = doc["hub75R1"];rebootRequired = true; }
-      if (doc["hub75G1"].as<uint8_t>()) { config.hub75G1 = doc["hub75G1"];rebootRequired = true; }
-      if (doc["hub75B1"].as<uint8_t>()) { config.hub75B1 = doc["hub75B1"];rebootRequired = true; }
-      if (doc["hub75R2"].as<uint8_t>()) { config.hub75R2 = doc["hub75R2"];rebootRequired = true; }
-      if (doc["hub75G2"].as<uint8_t>()) { config.hub75G2 = doc["hub75G2"];rebootRequired = true; }
-      if (doc["hub75B2"].as<uint8_t>()) { config.hub75B2 = doc["hub75B2"];rebootRequired = true; }
-      if (doc["hub75ChA"].as<uint8_t>()) { config.hub75ChA = doc["hub75ChA"];rebootRequired = true; }
-      if (doc["hub75ChB"].as<uint8_t>()) { config.hub75ChB = doc["hub75ChB"];rebootRequired = true; }
-      if (doc["hub75ChC"].as<uint8_t>()) { config.hub75ChC = doc["hub75ChC"];rebootRequired = true; }
-      if (doc["hub75ChD"].as<uint8_t>()) { config.hub75ChD = doc["hub75ChD"];rebootRequired = true; }
-      if (doc["hub75Clk"].as<uint8_t>()) { config.hub75Clk = doc["hub75Clk"];rebootRequired = true; }
-      if (doc["hub75Lat"].as<uint8_t>()) { config.hub75Lat = doc["hub75Lat"];rebootRequired = true; }
-      if (doc["hub75Oe"].as<uint8_t>()) { config.hub75Oe = doc["hub75Oe"];rebootRequired = true; }
+      if (doc.containsKey("altitude")) config.altitude = doc["altitude"].as<int>();
+      if (doc.containsKey("yellowThreshold")) config.yellowThreshold = doc["yellowThreshold"].as<int>();
+      if (doc.containsKey("redThreshold")) config.redThreshold = doc["redThreshold"].as<int>();
+      if (doc.containsKey("darkRedThreshold")) config.darkRedThreshold = doc["darkRedThreshold"].as<uint16_t>();
+      if (doc.containsKey("brightness")) config.brightness = doc["brightness"].as<uint8_t>();
+      if (doc.containsKey("ssd1306Rows")) { config.ssd1306Rows = doc["ssd1306Rows"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("greenLed")) { config.greenLed = doc["greenLed"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("yellowLed")) { config.yellowLed = doc["yellowLed"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("redLed")) { config.redLed = doc["redLed"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("neopixelData")) { config.neopixelData = doc["neopixelData"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("neopixelNumber")) { config.neopixelNumber = doc["neopixelNumber"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("featherMatrixData")) { config.featherMatrixData = doc["featherMatrixData"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("featherMatrixClock")) { config.featherMatrixClock = doc["featherMatrixClock"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75R1")) { config.hub75R1 = doc["hub75R1"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75G1")) { config.hub75G1 = doc["hub75G1"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75B1")) { config.hub75B1 = doc["hub75B1"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75R2")) { config.hub75R2 = doc["hub75R2"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75G2")) { config.hub75G2 = doc["hub75G2"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75B2")) { config.hub75B2 = doc["hub75B2"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75ChA")) { config.hub75ChA = doc["hub75ChA"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75ChB")) { config.hub75ChB = doc["hub75ChB"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75ChC")) { config.hub75ChC = doc["hub75ChC"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75ChD")) { config.hub75ChD = doc["hub75ChD"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75Clk")) { config.hub75Clk = doc["hub75Clk"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75Lat")) { config.hub75Lat = doc["hub75Lat"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("hub75Oe")) { config.hub75Oe = doc["hub75Oe"].as<uint8_t>(); rebootRequired = true; }
       if (saveConfiguration(config) && rebootRequired) {
         sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
         mqtt_client->publish(buf, "{\"msg\":\"configuration updated, rebooting shortly\"}");
