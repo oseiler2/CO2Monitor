@@ -1,0 +1,11 @@
+{
+    "name": "node-red-project",
+    "description": "A Node-RED Project",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "node-red-contrib-influxdb": "~0.6.1",
+        "node-red-dashboard": "~3.1.7",
+        "node-red-node-email": "~1.15.1"
+    }
+}

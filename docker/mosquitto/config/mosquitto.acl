@@ -1,0 +1,11 @@
+# Give admin full access to everything
+user admin
+topic readwrite #
+
+user co2monitor
+topic write co2monitor/+/up/#
+topic read co2monitor/+/down/#
+topic read co2monitor/down/#
+
+user nodered
+topic readwrite co2monitor/#

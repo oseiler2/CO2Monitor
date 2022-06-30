@@ -1,0 +1,79 @@
+version: "3"
+services:
+  mqtt:
+    image: eclipse-mosquitto:openssl
+    container_name: mosquitto
+    volumes:
+      - ./mosquitto/:/mosquitto/:rw
+    ports:
+      - "1883:1883"
+    networks:
+      - co2mon
+    env_file:
+      - .env
+      - mosquitto.env
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "5"
+  nodered:
+    image: nodered/node-red
+    container_name: nodered
+    volumes:
+      - ./nodered:/data
+    ports:
+      - "1880:1880"
+    networks:
+      - co2mon
+    env_file:
+      - .env
+      - nodered.env
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "5"
+  influxdb:
+    image: influxdb
+    container_name: influxdb
+    volumes:
+      - ./influxdb:/var/lib/influxdb2
+    ports:
+      - "8086:8086"
+    networks:
+      - co2mon
+    env_file:
+      - .env
+      - influxdb.env
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "5"
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    volumes:
+      - ./grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - co2mon
+    env_file:
+      - .env
+      - grafana.env
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "5"
+networks:
+  co2mon:
+    driver: bridge

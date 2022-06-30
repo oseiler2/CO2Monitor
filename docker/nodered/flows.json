@@ -1,0 +1,1775 @@
+[
+    {
+        "id": "c37fa3218a0ef34e",
+        "type": "tab",
+        "label": "CO2 Monitors",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "638df635c1d6f786",
+        "type": "tab",
+        "label": "CO2 Monitors UI",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b7cf11b5ea504e64",
+        "type": "group",
+        "z": "c37fa3218a0ef34e",
+        "name": "Error handler",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "6ee5961baf4f943c",
+            "5bc4965a95c5bc1e",
+            "e47737108b35848c",
+            "867126965f0a926f"
+        ],
+        "x": 14,
+        "y": 619,
+        "w": 502,
+        "h": 122
+    },
+    {
+        "id": "1ce9a09eb506506e",
+        "type": "group",
+        "z": "c37fa3218a0ef34e",
+        "name": "Send email alerts",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "8e5e3fd5795f8f28",
+            "eda4a33d24a0bcf7",
+            "def83f723a4db395"
+        ],
+        "x": 14,
+        "y": 499,
+        "w": 512,
+        "h": 82
+    },
+    {
+        "id": "7f411bdffd15e79b",
+        "type": "group",
+        "z": "c37fa3218a0ef34e",
+        "name": "Check monitors are online",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "b22ee1f14349dc0c",
+            "a0a424038e28e609",
+            "873e7b615075c51b",
+            "736ed3b5bc9e8f8f",
+            "cd3ce6a14284936f",
+            "561e767abbb98746",
+            "902c14fa02b599e1",
+            "5559a4c34f50c615",
+            "d7fd9540551cce6a",
+            "34d3082db1285a83"
+        ],
+        "x": 14,
+        "y": 339,
+        "w": 1262,
+        "h": 122
+    },
+    {
+        "id": "e73d1874985f71cd",
+        "type": "group",
+        "z": "c37fa3218a0ef34e",
+        "name": "Get configuration",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "2c20dcb594ab35b5",
+            "2fd41b97d426b7ef",
+            "2eaeb4b149409f42"
+        ],
+        "x": 14,
+        "y": 219,
+        "w": 792,
+        "h": 82
+    },
+    {
+        "id": "58efdd9623a754b7",
+        "type": "group",
+        "z": "c37fa3218a0ef34e",
+        "name": "Persist data",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "71363e6ad6666bd5",
+            "7452bccf82fe3096",
+            "f3b1b17482a401d7",
+            "e9cde4e1d26343db",
+            "e10dcc6e978f430d",
+            "fc93601c742de98a",
+            "8b3b7b811cbfd1cb",
+            "537b2951282a292f",
+            "54a4be8b180871c4",
+            "eb1fa983ee9cfce0"
+        ],
+        "x": 14,
+        "y": 19,
+        "w": 1072,
+        "h": 162
+    },
+    {
+        "id": "efaddedb0b908efb",
+        "type": "group",
+        "z": "638df635c1d6f786",
+        "name": "Select monitor (drop down)",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "01ba7ec81512c8a3",
+            "c8a328db576728da",
+            "bd6a7c14ddebd025",
+            "58f48d34505accbb",
+            "a8fcc2b52f984beb",
+            "dd10b8690b9cfa62",
+            "3655e03b1d2cb9a8"
+        ],
+        "x": 34,
+        "y": 19,
+        "w": 1122,
+        "h": 82
+    },
+    {
+        "id": "a53fb4318cd025e0",
+        "type": "group",
+        "z": "638df635c1d6f786",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "31ecf14d5921c2b0",
+            "81d9d0cf58ce2b01",
+            "0bd305437178fb1a",
+            "cf3862daed7f22e3",
+            "b2dd18efa4b3731d",
+            "795bf09e0cd613ed",
+            "cc79e66392a703b7",
+            "229c3f519926b8c7",
+            "78a167689696d6ff",
+            "527ba220e92fcc21",
+            "c8a1a78067b3584e",
+            "e3c27047cfb9048f",
+            "1f7f6dc79a1ea272",
+            "2fc18834f8fda1eb",
+            "3c90ab29909eef4c",
+            "d14650cb97cdecc9",
+            "62f5f63724192fcd",
+            "5584e9065a1379a9",
+            "3532edc3e05a7c80",
+            "2032b61c3b26aa03",
+            "501133ca0a435137",
+            "11b46c7d05857a83",
+            "328038cc5d1bbccc",
+            "3ee811ab90b7dc0b"
+        ],
+        "x": 34,
+        "y": 119,
+        "w": 1052,
+        "h": 662
+    },
+    {
+        "id": "1311c12af3ff7368",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Docker",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "node-red",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "95ab1165cf9cde4f",
+        "type": "influxdb",
+        "hostname": "influxdb",
+        "port": "8086",
+        "protocol": "http",
+        "database": "co2monitors",
+        "name": "influxdb",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://influxdb:8086/",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "ba4e701c2603c7ea",
+        "type": "ui_group",
+        "name": "CO2 Monitors",
+        "tab": "5684dd7e4d30a368",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "5684dd7e4d30a368",
+        "type": "ui_tab",
+        "name": "CO2 Monitors",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "c4b965b9b7684e7d",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "71363e6ad6666bd5",
+        "type": "mqtt in",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "topic": "co2monitor/+/up/#",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "1311c12af3ff7368",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 130,
+        "y": 80,
+        "wires": [
+            [
+                "f3b1b17482a401d7"
+            ]
+        ]
+    },
+    {
+        "id": "7452bccf82fe3096",
+        "type": "debug",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 490,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "f3b1b17482a401d7",
+        "type": "json",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 330,
+        "y": 80,
+        "wires": [
+            [
+                "7452bccf82fe3096",
+                "fc93601c742de98a"
+            ]
+        ]
+    },
+    {
+        "id": "e9cde4e1d26343db",
+        "type": "influxdb out",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "influxdb": "95ab1165cf9cde4f",
+        "name": "",
+        "measurement": "configuration",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "",
+        "retentionPolicyV18Flux": "",
+        "org": "CO2Monitors",
+        "bucket": "co2monitors",
+        "x": 940,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "e10dcc6e978f430d",
+        "type": "influxdb out",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "influxdb": "95ab1165cf9cde4f",
+        "name": "",
+        "measurement": "sensors",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "",
+        "retentionPolicyV18Flux": "",
+        "org": "CO2Monitors",
+        "bucket": "co2monitors",
+        "x": 920,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "fc93601c742de98a",
+        "type": "switch",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "regex",
+                "v": "co2monitor\\/\\d+\\/up\\/config",
+                "vt": "str",
+                "case": false
+            },
+            {
+                "t": "regex",
+                "v": "co2monitor\\/\\d+\\/up\\/sensors",
+                "vt": "str",
+                "case": false
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 490,
+        "y": 80,
+        "wires": [
+            [
+                "54a4be8b180871c4"
+            ],
+            [
+                "537b2951282a292f"
+            ],
+            [
+                "8b3b7b811cbfd1cb"
+            ]
+        ]
+    },
+    {
+        "id": "6ee5961baf4f943c",
+        "type": "catch",
+        "z": "c37fa3218a0ef34e",
+        "g": "b7cf11b5ea504e64",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 100,
+        "y": 700,
+        "wires": [
+            [
+                "e47737108b35848c",
+                "5bc4965a95c5bc1e"
+            ]
+        ]
+    },
+    {
+        "id": "5bc4965a95c5bc1e",
+        "type": "function",
+        "z": "c37fa3218a0ef34e",
+        "g": "b7cf11b5ea504e64",
+        "name": "Set email content",
+        "func": "msg.topic = \"CO2 Monitor error!\";\n\nmsg.payload =\n    \"error: \" + msg.error.message + \"\\n\" +\n    \"source id: \" + msg.error.source.id + \"\\n\" +\n    \"source name: \" + msg.error.source.name + \"\\n\" +\n    JSON.stringify(msg);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 700,
+        "wires": [
+            [
+                "867126965f0a926f"
+            ]
+        ]
+    },
+    {
+        "id": "e47737108b35848c",
+        "type": "debug",
+        "z": "c37fa3218a0ef34e",
+        "g": "b7cf11b5ea504e64",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 290,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "8b3b7b811cbfd1cb",
+        "type": "debug",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 670,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "537b2951282a292f",
+        "type": "function",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "func": "var payload = msg.payload;\nif (payload && payload.temperature) {\n  payload.temperature = parseFloat(payload.temperature);\n  if (isNaN(payload.temperature)) delete payload[\"temperature\"];\n}\nif (payload && payload.humidity) {\n  payload.humidity = parseFloat(payload.humidity);\n  if (isNaN(payload.humidity)) delete payload[\"humidity\"];\n}\nif (payload && payload.co2 == 0) {\n  delete payload[\"co2\"];\n}\n\nvar tags = {\"dev_id\": msg.topic.match(/co2monitor\\/(\\d+)\\/up\\/sensors/)[1]};\n\nmsg.payload = [payload, tags];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 100,
+        "wires": [
+            [
+                "e10dcc6e978f430d",
+                "eb1fa983ee9cfce0"
+            ]
+        ]
+    },
+    {
+        "id": "54a4be8b180871c4",
+        "type": "function",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "func": "var payload = msg.payload;\nif (payload && payload.name) {\n  delete payload[\"name\"];\n}\n\nif (payload && payload.tempOffset) {\n  payload.tempOffset = parseFloat(payload.tempOffset);\n  if (isNaN(payload.tempOffset)) delete payload[\"tempOffset\"];\n}\n\nif (payload && payload.appVersion && Number.isInteger(payload.appVersion)) {\n  payload.appVersion = payload.appVersion.toString();\n}\n\nvar tags = {\"dev_id\": msg.topic.match(/co2monitor\\/(\\d+)\\/up\\/config/)[1]};\n\nmsg.payload = [payload, tags];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 60,
+        "wires": [
+            [
+                "e9cde4e1d26343db",
+                "eb1fa983ee9cfce0"
+            ]
+        ]
+    },
+    {
+        "id": "eb1fa983ee9cfce0",
+        "type": "debug",
+        "z": "c37fa3218a0ef34e",
+        "g": "58efdd9623a754b7",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "b22ee1f14349dc0c",
+        "type": "function",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "Query",
+        "func": "var monitor = msg.payload.value;\n\nvar query = 'from(bucket: \"co2monitors\")  \\\n   |> range(start: -1y)             \\\n   |> filter(fn: (r) =>             \\\n    r._measurement == \"sensors\" and   \\\n    r._field == \"co2\" and          \\\n    r.dev_id == \"' + monitor + '\")          \\\n  |> last()                         \\\n  |> map(fn:  (r) => ({ time:r._time }))';\n\nmsg.query = query;\nmsg.monitor = monitor;\n\nmsg.topic = \"co2monitors/\" + monitor + \"/status\"\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 400,
+        "wires": [
+            [
+                "d7fd9540551cce6a"
+            ]
+        ]
+    },
+    {
+        "id": "a0a424038e28e609",
+        "type": "debug",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1110,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "873e7b615075c51b",
+        "type": "inject",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "Refresh monitors",
+        "props": [],
+        "repeat": "1800",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "5559a4c34f50c615"
+            ]
+        ]
+    },
+    {
+        "id": "736ed3b5bc9e8f8f",
+        "type": "split",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "Split",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "dev_id",
+        "x": 470,
+        "y": 400,
+        "wires": [
+            [
+                "b22ee1f14349dc0c"
+            ]
+        ]
+    },
+    {
+        "id": "cd3ce6a14284936f",
+        "type": "function",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "Check",
+        "func": "var status = 'offline';\n\nif (msg.payload[0]) {\n    var last = (new Date(msg.payload[0].time)).getTime() / 1000;\n    var now = new Date();\n    var current = (now.getTime() + (now.getTimezoneOffset() * 60)) / 1000;        \n    var difference = current - last;\n    msg.last = last;\n    msg.current = current;\n    msg.delta = difference;\n//    node.warn(difference);\n    if (difference < 60 * 10 * 1) status = 'online';\n}\n\nmsg.status = status;\nmsg.topic = msg.topic + \"/\" + status;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 400,
+        "wires": [
+            [
+                "561e767abbb98746"
+            ]
+        ]
+    },
+    {
+        "id": "561e767abbb98746",
+        "type": "rbe",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "RBE",
+        "func": "rbei",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "status",
+        "topi": "monitor",
+        "x": 970,
+        "y": 400,
+        "wires": [
+            [
+                "a0a424038e28e609",
+                "902c14fa02b599e1"
+            ]
+        ]
+    },
+    {
+        "id": "902c14fa02b599e1",
+        "type": "function",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "Email",
+        "func": "var monitor = msg.monitor;\nmsg.payload = \"CO2Monitor: \" + monitor + \" \" + msg.status + \".\";\nmsg.topic = \"CO2Monitor: \" + monitor + \" \" + msg.status + \".\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1110,
+        "y": 420,
+        "wires": [
+            [
+                "34d3082db1285a83"
+            ]
+        ]
+    },
+    {
+        "id": "5559a4c34f50c615",
+        "type": "influxdb in",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "influxdb": "95ab1165cf9cde4f",
+        "name": "Get monitors",
+        "query": "import \"influxdata/influxdb/v1\"\nv1.tagValues(\n    bucket: \"co2monitors\",\n    tag: \"dev_id\",\n    predicate: (r) => true\n)\n|> map(fn:  (r) => ({key:\"dev_id\", value:r._value}))",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "CO2Monitors",
+        "x": 330,
+        "y": 400,
+        "wires": [
+            [
+                "736ed3b5bc9e8f8f"
+            ]
+        ]
+    },
+    {
+        "id": "d7fd9540551cce6a",
+        "type": "influxdb in",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "influxdb": "95ab1165cf9cde4f",
+        "name": "Latest",
+        "query": "",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "CO2Monitors",
+        "x": 710,
+        "y": 400,
+        "wires": [
+            [
+                "cd3ce6a14284936f"
+            ]
+        ]
+    },
+    {
+        "id": "2c20dcb594ab35b5",
+        "type": "mqtt out",
+        "z": "c37fa3218a0ef34e",
+        "g": "e73d1874985f71cd",
+        "name": "CO2 Monitors",
+        "topic": "",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "1311c12af3ff7368",
+        "x": 700,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "2fd41b97d426b7ef",
+        "type": "function",
+        "z": "c37fa3218a0ef34e",
+        "g": "e73d1874985f71cd",
+        "name": "Get Config (all)",
+        "func": "msg.topic = 'co2monitor/down/getConfig'\n\nmsg.payload = {};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 260,
+        "wires": [
+            [
+                "2c20dcb594ab35b5"
+            ]
+        ]
+    },
+    {
+        "id": "2eaeb4b149409f42",
+        "type": "inject",
+        "z": "c37fa3218a0ef34e",
+        "g": "e73d1874985f71cd",
+        "name": "Get monitor configuration daily",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "86400",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 190,
+        "y": 260,
+        "wires": [
+            [
+                "2fd41b97d426b7ef"
+            ]
+        ]
+    },
+    {
+        "id": "8e5e3fd5795f8f28",
+        "type": "delay",
+        "z": "c37fa3218a0ef34e",
+        "g": "1ce9a09eb506506e",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "10",
+        "nbRateUnits": "1",
+        "rateUnits": "hour",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 220,
+        "y": 540,
+        "wires": [
+            [
+                "eda4a33d24a0bcf7"
+            ]
+        ]
+    },
+    {
+        "id": "eda4a33d24a0bcf7",
+        "type": "e-mail",
+        "z": "c37fa3218a0ef34e",
+        "d": true,
+        "g": "1ce9a09eb506506e",
+        "server": "smtp.fastmail.com",
+        "port": "465",
+        "secure": true,
+        "tls": true,
+        "name": "recipient",
+        "dname": "",
+        "x": 440,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "def83f723a4db395",
+        "type": "link in",
+        "z": "c37fa3218a0ef34e",
+        "g": "1ce9a09eb506506e",
+        "name": "Email",
+        "links": [
+            "867126965f0a926f",
+            "34d3082db1285a83"
+        ],
+        "x": 55,
+        "y": 540,
+        "wires": [
+            [
+                "8e5e3fd5795f8f28"
+            ]
+        ]
+    },
+    {
+        "id": "867126965f0a926f",
+        "type": "link out",
+        "z": "c37fa3218a0ef34e",
+        "g": "b7cf11b5ea504e64",
+        "name": "",
+        "mode": "link",
+        "links": [
+            "def83f723a4db395"
+        ],
+        "x": 475,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "34d3082db1285a83",
+        "type": "link out",
+        "z": "c37fa3218a0ef34e",
+        "g": "7f411bdffd15e79b",
+        "name": "",
+        "mode": "link",
+        "links": [
+            "def83f723a4db395"
+        ],
+        "x": 1235,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "01ba7ec81512c8a3",
+        "type": "inject",
+        "z": "638df635c1d6f786",
+        "g": "efaddedb0b908efb",
+        "name": "Refresh monitors",
+        "props": [],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 60,
+        "wires": [
+            [
+                "c8a328db576728da"
+            ]
+        ]
+    },
+    {
+        "id": "c8a328db576728da",
+        "type": "influxdb in",
+        "z": "638df635c1d6f786",
+        "g": "efaddedb0b908efb",
+        "influxdb": "95ab1165cf9cde4f",
+        "name": "Get monitors",
+        "query": "import \"influxdata/influxdb/v1\"\nv1.tagValues(\n    bucket: \"co2monitors\",\n    tag: \"dev_id\",\n    predicate: (r) => true\n)\n|> map(fn:  (r) => ({key:\"dev_id\", value:r._value}))",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "CO2Monitors",
+        "x": 350,
+        "y": 60,
+        "wires": [
+            [
+                "bd6a7c14ddebd025"
+            ]
+        ]
+    },
+    {
+        "id": "bd6a7c14ddebd025",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "efaddedb0b908efb",
+        "name": "",
+        "func": "var monitors = [\"All\"];\n\nfor (var i = 0; i < msg.payload.length; i++) {\n  var value = msg.payload[i].value;\n\n  monitors.push(value);\n}\n\nmsg.payload = {};\n\nmonitors.sort();\nmsg.options = monitors;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 60,
+        "wires": [
+            [
+                "58f48d34505accbb"
+            ]
+        ]
+    },
+    {
+        "id": "31ecf14d5921c2b0",
+        "type": "debug",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "58f48d34505accbb",
+        "type": "ui_dropdown",
+        "z": "638df635c1d6f786",
+        "g": "efaddedb0b908efb",
+        "name": "CO2 Monitor",
+        "label": "",
+        "tooltip": "",
+        "place": "Select monitor",
+        "group": "ba4e701c2603c7ea",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "multiple": false,
+        "options": [],
+        "payload": "",
+        "topic": "",
+        "topicType": "str",
+        "className": "",
+        "x": 650,
+        "y": 60,
+        "wires": [
+            [
+                "a8fcc2b52f984beb"
+            ]
+        ]
+    },
+    {
+        "id": "a8fcc2b52f984beb",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "efaddedb0b908efb",
+        "name": "Set flow.monitor",
+        "func": "var monitorId = msg.payload;\nflow.set('monitor', monitorId);\n\nvar query = 'from(bucket: \"co2monitors\") ' +\n  '|> range(start: -1y)' +\n  '|> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")' +\n  '|> filter(fn: (r) => r[\"_field\"] == \"altitude\"  or r[\"_field\"] == \"darkRedThreshold\" or r[\"_field\"] == \"yellowThreshold\" or r[\"_field\"] == \"redThreshold\" or r[\"_field\"] == \"brightness\" or r[\"_field\"] == \"tempOffset\")' +\n  (monitorId == \"All\" ? '' : '|> filter(fn: (r) => r[\"dev_id\"] == \"' + monitorId + '\")') +\n  '|> last()';\n\nreturn { query };\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 60,
+        "wires": [
+            [
+                "dd10b8690b9cfa62"
+            ]
+        ]
+    },
+    {
+        "id": "81d9d0cf58ce2b01",
+        "type": "ui_numeric",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Yellow threshold",
+        "label": "Yellow threshold",
+        "tooltip": "",
+        "group": "ba4e701c2603c7ea",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": false,
+        "topic": "yellowThreshold",
+        "topicType": "str",
+        "format": "{{msg.payload}}",
+        "min": "500",
+        "max": "1500",
+        "step": "50",
+        "className": "",
+        "x": 400,
+        "y": 160,
+        "wires": [
+            [
+                "527ba220e92fcc21"
+            ]
+        ]
+    },
+    {
+        "id": "0bd305437178fb1a",
+        "type": "ui_numeric",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Red threshold",
+        "label": "Red threshold",
+        "tooltip": "",
+        "group": "ba4e701c2603c7ea",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": false,
+        "topic": "redThreshold",
+        "topicType": "str",
+        "format": "{{msg.payload}}",
+        "min": "600",
+        "max": "2000",
+        "step": "50",
+        "className": "",
+        "x": 400,
+        "y": 200,
+        "wires": [
+            [
+                "527ba220e92fcc21"
+            ]
+        ]
+    },
+    {
+        "id": "cf3862daed7f22e3",
+        "type": "ui_numeric",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Flashing red threshold",
+        "label": "Flashing Red threshold",
+        "tooltip": "",
+        "group": "ba4e701c2603c7ea",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": false,
+        "topic": "darkRedThreshold",
+        "topicType": "str",
+        "format": "{{msg.payload}}",
+        "min": "700",
+        "max": "2500",
+        "step": "50",
+        "className": "",
+        "x": 420,
+        "y": 240,
+        "wires": [
+            [
+                "527ba220e92fcc21"
+            ]
+        ]
+    },
+    {
+        "id": "b2dd18efa4b3731d",
+        "type": "ui_numeric",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Brightness",
+        "label": "Brightness",
+        "tooltip": "",
+        "group": "ba4e701c2603c7ea",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": false,
+        "topic": "brightness",
+        "topicType": "str",
+        "format": "{{msg.payload}}",
+        "min": "0",
+        "max": "255",
+        "step": "5",
+        "className": "",
+        "x": 390,
+        "y": 280,
+        "wires": [
+            [
+                "527ba220e92fcc21"
+            ]
+        ]
+    },
+    {
+        "id": "795bf09e0cd613ed",
+        "type": "ui_numeric",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Altitude",
+        "label": "Altitude",
+        "tooltip": "",
+        "group": "ba4e701c2603c7ea",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": false,
+        "topic": "altitude",
+        "topicType": "str",
+        "format": "{{msg.payload}}",
+        "min": "1",
+        "max": "2000",
+        "step": "10",
+        "className": "",
+        "x": 380,
+        "y": 320,
+        "wires": [
+            [
+                "527ba220e92fcc21"
+            ]
+        ]
+    },
+    {
+        "id": "cc79e66392a703b7",
+        "type": "ui_numeric",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Temperature offset",
+        "label": "Temperature offset",
+        "tooltip": "",
+        "group": "ba4e701c2603c7ea",
+        "order": 8,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": false,
+        "topic": "temperatureOffset",
+        "topicType": "str",
+        "format": "{{msg.payload}}",
+        "min": "0",
+        "max": "10",
+        "step": "1",
+        "className": "",
+        "x": 410,
+        "y": 420,
+        "wires": [
+            [
+                "527ba220e92fcc21"
+            ]
+        ]
+    },
+    {
+        "id": "229c3f519926b8c7",
+        "type": "ui_button",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Set configuration",
+        "group": "ba4e701c2603c7ea",
+        "order": 7,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Set configuration",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "topic": "",
+        "topicType": "str",
+        "x": 410,
+        "y": 360,
+        "wires": [
+            [
+                "c8a1a78067b3584e"
+            ]
+        ]
+    },
+    {
+        "id": "78a167689696d6ff",
+        "type": "ui_button",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Set temperature offset",
+        "group": "ba4e701c2603c7ea",
+        "order": 9,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Set temperature offset",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "topic": "",
+        "topicType": "str",
+        "x": 420,
+        "y": 460,
+        "wires": [
+            [
+                "1f7f6dc79a1ea272"
+            ]
+        ]
+    },
+    {
+        "id": "527ba220e92fcc21",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Store in flow",
+        "func": "flow.set(msg.topic, msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 240,
+        "wires": [
+            [
+                "31ecf14d5921c2b0"
+            ]
+        ]
+    },
+    {
+        "id": "c8a1a78067b3584e",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Set configuration",
+        "func": "var yellowThreshold = flow.get('yellowThreshold');\nvar redThreshold = flow.get('redThreshold');\nvar darkRedThreshold = flow.get('darkRedThreshold');\nvar altitude = flow.get('altitude');\nvar brightness = flow.get('brightness');\n\nvar monitorId = '/' + flow.get('monitor');\nif (monitorId == \"/All\") monitorId = '';\nmsg.topic = 'co2monitor' + monitorId + '/down/setConfig';\n\nmsg.payload =  {\n    yellowThreshold,\n    redThreshold,\n    darkRedThreshold,\n    altitude,\n    brightness\n};                \n                \nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 360,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    },
+    {
+        "id": "e3c27047cfb9048f",
+        "type": "mqtt out",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "CO2 Monitors",
+        "topic": "",
+        "qos": "2",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "1311c12af3ff7368",
+        "x": 980,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "1f7f6dc79a1ea272",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Set temperature offset",
+        "func": "var temperatureOffset = flow.get('temperatureOffset');\n\nvar monitorId = '/' + flow.get('monitor');\nif (monitorId == \"/All\") monitorId = '';\nmsg.topic = 'co2monitor' + monitorId + '/down/setTemperatureOffset';\n\nmsg.payload = temperatureOffset;\n                \nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 460,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    },
+    {
+        "id": "dd10b8690b9cfa62",
+        "type": "influxdb in",
+        "z": "638df635c1d6f786",
+        "g": "efaddedb0b908efb",
+        "influxdb": "95ab1165cf9cde4f",
+        "name": "Get last config",
+        "query": "",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "CO2Monitors",
+        "x": 1000,
+        "y": 60,
+        "wires": [
+            [
+                "3655e03b1d2cb9a8"
+            ]
+        ]
+    },
+    {
+        "id": "3655e03b1d2cb9a8",
+        "type": "link out",
+        "z": "638df635c1d6f786",
+        "g": "efaddedb0b908efb",
+        "name": " ",
+        "mode": "link",
+        "links": [
+            "2fc18834f8fda1eb"
+        ],
+        "x": 1115,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "2fc18834f8fda1eb",
+        "type": "link in",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Load values",
+        "links": [
+            "3655e03b1d2cb9a8"
+        ],
+        "x": 75,
+        "y": 300,
+        "wires": [
+            [
+                "3c90ab29909eef4c"
+            ]
+        ]
+    },
+    {
+        "id": "3c90ab29909eef4c",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "",
+        "func": "var configuration = msg.payload;\n\nvar altitude;\nvar brightness;\nvar yellowThreshold;\nvar redThreshold;\nvar darkRedThreshold;\nvar temperatureOffset;\n\nfor (var i = 0; i < configuration.length; i++) {\n    if (configuration[i]._field == \"altitude\") altitude = configuration[i]._value;\n    else if (configuration[i]._field == \"brightness\") brightness = configuration[i]._value;\n    else if (configuration[i]._field == \"yellowThreshold\") yellowThreshold = configuration[i]._value;\n    else if (configuration[i]._field == \"redThreshold\") redThreshold = configuration[i]._value;\n    else if (configuration[i]._field == \"darkRedThreshold\") darkRedThreshold = configuration[i]._value;\n    else if (configuration[i]._field == \"tempOffset\") temperatureOffset = parseFloat(configuration[i]._value);\n}\n\nflow.set('altitude', altitude);\nflow.set('brightness', brightness);\nflow.set('yellowThreshold', yellowThreshold);\nflow.set('redThreshold', redThreshold);\nflow.set('darkRedThreshold', darkRedThreshold);\nflow.set('temperatureOffset', temperatureOffset);\n\nreturn [{ payload: yellowThreshold},\n        { payload: redThreshold},\n        { payload: darkRedThreshold},\n        { payload: brightness},\n        { payload: altitude},\n        { payload: temperatureOffset}];\n",
+        "outputs": 6,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 180,
+        "y": 300,
+        "wires": [
+            [
+                "81d9d0cf58ce2b01"
+            ],
+            [
+                "0bd305437178fb1a"
+            ],
+            [
+                "cf3862daed7f22e3"
+            ],
+            [
+                "b2dd18efa4b3731d"
+            ],
+            [
+                "795bf09e0cd613ed"
+            ],
+            [
+                "cc79e66392a703b7"
+            ]
+        ]
+    },
+    {
+        "id": "d14650cb97cdecc9",
+        "type": "ui_numeric",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Calibration reference",
+        "label": "Calibration reference",
+        "tooltip": "",
+        "group": "ba4e701c2603c7ea",
+        "order": 11,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": false,
+        "topic": "calibrationReference",
+        "topicType": "str",
+        "format": "{{msg.payload}}",
+        "min": "410",
+        "max": "600",
+        "step": "5",
+        "className": "",
+        "x": 420,
+        "y": 580,
+        "wires": [
+            [
+                "527ba220e92fcc21"
+            ]
+        ]
+    },
+    {
+        "id": "62f5f63724192fcd",
+        "type": "ui_button",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Calibrate",
+        "group": "ba4e701c2603c7ea",
+        "order": 12,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Calibrate",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "topic": "",
+        "topicType": "str",
+        "x": 380,
+        "y": 620,
+        "wires": [
+            [
+                "5584e9065a1379a9"
+            ]
+        ]
+    },
+    {
+        "id": "5584e9065a1379a9",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Calibrate",
+        "func": "var calibrationReference = flow.get('calibrationReference');\n\nvar monitorId = '/' + flow.get('monitor');\nif (monitorId == \"/All\") monitorId = '';\nmsg.topic = 'co2monitor' + monitorId + '/down/calibrate';\n\nmsg.payload = calibrationReference;\n                \nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 620,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    },
+    {
+        "id": "3532edc3e05a7c80",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Clean SPS30",
+        "func": "var monitorId = '/' + flow.get('monitor');\nif (monitorId == \"/All\") monitorId = '';\nmsg.topic = 'co2monitor' + monitorId + '/down/cleanSPS30';\n\nmsg.payload = '';\n                \nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 740,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    },
+    {
+        "id": "2032b61c3b26aa03",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Reboot",
+        "func": "var monitorId = '/' + flow.get('monitor');\nif (monitorId == \"/All\") monitorId = '';\nmsg.topic = 'co2monitor' + monitorId + '/down/reboot';\n\nmsg.payload = '';\n                \nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 680,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    },
+    {
+        "id": "501133ca0a435137",
+        "type": "ui_button",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Reboot",
+        "group": "ba4e701c2603c7ea",
+        "order": 13,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Reboot",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "topic": "",
+        "topicType": "str",
+        "x": 380,
+        "y": 680,
+        "wires": [
+            [
+                "2032b61c3b26aa03"
+            ]
+        ]
+    },
+    {
+        "id": "11b46c7d05857a83",
+        "type": "ui_button",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Force clean SPS30",
+        "group": "ba4e701c2603c7ea",
+        "order": 14,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Force clean SPS30",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "topic": "",
+        "topicType": "str",
+        "x": 410,
+        "y": 740,
+        "wires": [
+            [
+                "3532edc3e05a7c80"
+            ]
+        ]
+    },
+    {
+        "id": "328038cc5d1bbccc",
+        "type": "ui_button",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Get configuration",
+        "group": "ba4e701c2603c7ea",
+        "order": 10,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Get configuration",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "topic": "",
+        "topicType": "str",
+        "x": 410,
+        "y": 520,
+        "wires": [
+            [
+                "3ee811ab90b7dc0b"
+            ]
+        ]
+    },
+    {
+        "id": "3ee811ab90b7dc0b",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "g": "a53fb4318cd025e0",
+        "name": "Get configuration",
+        "func": "var monitorId = '/' + flow.get('monitor');\nif (monitorId == \"/All\") monitorId = '';\nmsg.topic = 'co2monitor' + monitorId + '/down/getConfig';\n\nmsg.payload = '';\n                \nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 520,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    },
+    {
+        "id": "381edf55f26b42c9",
+        "type": "inject",
+        "z": "638df635c1d6f786",
+        "d": true,
+        "name": "Trigger dim leds",
+        "props": [],
+        "repeat": "",
+        "crontab": "00 21 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 410,
+        "y": 840,
+        "wires": [
+            [
+                "8fe7d05565ead5b2"
+            ]
+        ]
+    },
+    {
+        "id": "8fe7d05565ead5b2",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "name": "Dim leds",
+        "func": "msg.topic = 'co2monitor/down/setConfig';\nmsg.payload = '{\"brightness\": 5}';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 840,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    },
+    {
+        "id": "148012ee5b5a5c6e",
+        "type": "inject",
+        "z": "638df635c1d6f786",
+        "d": true,
+        "name": "Trigger leds on",
+        "props": [],
+        "repeat": "",
+        "crontab": "00 07 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 400,
+        "y": 880,
+        "wires": [
+            [
+                "8fc4ddfc45946724"
+            ]
+        ]
+    },
+    {
+        "id": "8fc4ddfc45946724",
+        "type": "function",
+        "z": "638df635c1d6f786",
+        "name": "Turn on leds",
+        "func": "msg.topic = 'co2monitor/down/setConfig';\nmsg.payload = '{\"brightness\": 255}';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 880,
+        "wires": [
+            [
+                "e3c27047cfb9048f"
+            ]
+        ]
+    }
+]

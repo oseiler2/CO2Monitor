@@ -9,3 +9,15 @@ extra.ini
 data/mqtt_root_ca.pem
 data/mqtt_server_cert.pem
 data/root_ca.pem
+docker/nodered/.npm
+docker/nodered/node_modules
+docker/nodered/*.backup
+docker/influxdb/engine
+docker/nodered/package-lock.json
+docker/influxdb/influxd.bolt
+docker/influxdb/influxd.sqlite
+docker/grafana/alerting
+docker/grafana/grafana.db
+docker/nodered/.config.runtime.json
+docker/nodered/.config.users.json
+docker/nodered/flows_cred.json
