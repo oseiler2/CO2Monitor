@@ -78,6 +78,10 @@ void Model::updateModel(uint16_t _pm0_5, uint16_t _pm1, uint16_t _pm2_5, uint16_
   modelUpdatedEvt(M_PM0_5 | M_PM1_0 | M_PM2_5 | M_PM4 | M_PM10, this->status, this->status);
 }
 
+void Model::configurationChanged() {
+  modelUpdatedEvt(M_CONFIG_CHANGED, this->status, this->status);
+}
+
 TrafficLightStatus Model::getStatus() {
   return this->status;
 }

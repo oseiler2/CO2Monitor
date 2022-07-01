@@ -230,6 +230,7 @@ namespace mqtt {
         delay(1000);
         esp_restart();
       }
+      model->configurationChanged();
     } else if (strncmp(buf, "resetWifi", strlen(buf)) == 0) {
       WifiManager::resetSettings();
     } else if (strncmp(buf, "ota", strlen(buf)) == 0) {

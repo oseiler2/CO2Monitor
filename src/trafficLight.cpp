@@ -62,7 +62,7 @@ TrafficLight::~TrafficLight() {
 }
 
 void TrafficLight::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (oldStatus == newStatus) return;
+  if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
   if (newStatus == GREEN) {
     ledcWrite(pwmChannelRed, 0);
     ledcWrite(pwmChannelYellow, 0);
