@@ -7,6 +7,22 @@ Inspired by and many thanks to
 
 There are now 2 new PCB designs, one for SMD components and another one solely using easy to solder through-hole components.
 
+## Through hole
+
+[BOM](pcb/CO2%20Monitor%20V0.5%20through-hole/bom.md)
+
+[Assembly guide](pcb/CO2%20Monitor%20V0.5%20through-hole/step-by-step.md)
+
+- uses only through hole components and can be hand soldered
+- ESP 32 Devkit (30 pin)
+- SCD30 NDIR CO2 sensor
+- optional 128x64 0.96 inch OLED display
+- 3 x 5mm red/yellow/green LEDs
+- optional I2C JST-PH connector for additional connectivity (e.g. SPS30 particulate matter sensor)
+- optional USB-B connector to power the monitor
+
+![](img/TH-SCD30.jpg)
+
 ## SMD
 
 - ESP 32 Devkit (30 pin)
@@ -16,21 +32,9 @@ There are now 2 new PCB designs, one for SMD components and another one solely u
 - alternatively Feather wing footprint for easy expansion modules
 - combined footprints for either 3 Neopixels (WS2812B 5050) or 3 x 5mm red/yellow/green LEDs
 - I2C JST-PH connector for additional connectivity (e.g. SPS30 particulate matter sensor)
+- optional USB-B connector to power the monitor
 
 ![](img/SMD-Neopixel.jpg)
-
-## Through hole
-
-[BOM](pcb/CO2%20Monitor%20V0.5%20through-hole/bom.md)
-
-- uses only through hole components and can be hand soldered
-- ESP 32 Devkit (30 pin)
-- SCD30 NDIR CO2 sensor
-- optional 128x64 0.96 inch OLED display
-- 3 x 5mm red/yellow/green LEDs
-- I2C JST-PH connector for additional connectivity (e.g. SPS30 particulate matter sensor)
-
-![](img/TH-SCD30.jpg)
 
 ## First generation
 
@@ -90,6 +94,10 @@ The monitor is configured via the `config.json` file on the ESP32 file system. T
 - via the web interface
 - by directly editing [config.json](data/config.json) and uploading it via `Upload Filesystem Image`
 - via MQTT (once connected)
+
+## Backend using Mosquitto - Node-Red - InfluxDB - Grafana
+
+[Docker compose file](./docker/docker.md) to set up the database and dashboards.
 
 ## MQTT
 
