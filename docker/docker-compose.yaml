@@ -42,7 +42,8 @@ services:
     image: influxdb
     container_name: influxdb
     volumes:
-      - ./influxdb:/var/lib/influxdb2
+      - ./influxdb/data:/var/lib/influxdb2
+      - ./influxdb/config:/etc/influxdb2
     ports:
       - "8086:8086"
     networks:

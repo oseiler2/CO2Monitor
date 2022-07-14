@@ -27,7 +27,7 @@ Run `docker-compose up`
 
 ### Using the UI
 
-- Open http://127.0.0.1:8086/ and follow the Get started guide. Use `CO2Monitors` as initial organisation name and `co2monitors` as initial bucket name.
+- Open http://127.0.0.1:8086/ and log on using the admin user and password form the [influxdb.env](./influxdb.env) file
 - Navigate to `Load data` -> `API tokens` and generate a `Read/Write API Token` for Node-red
   - Description `nodered`
   - Select scoped read and write access for the `co2monitors` bucket
@@ -39,11 +39,10 @@ Run `docker-compose up`
 
 ### Using the CLI
 
-- For initial setup run `docker exec influxdb influx setup --username admin --password *influx-admin-password* --org CO2Monitors --bucket co2monitors --retention 0 -f`
-- (optional) run `docker exec influxdb bash -c "influx auth list --user admin --hide-headers | cut -f 3"` to retrieve the admin API token
 - Create and note API tokens
   - Node-red `docker exec influxdb bash -c "influx auth create -o CO2Monitors -d nodered --write-bucket $(influx bucket list | grep co2monitors | cut -f 1) --read-bucket $(influx bucket list | grep co2monitors | cut -f 1) | grep nodered | cut -f 4"`
   - Grafana `docker exec influxdb bash -c "influx auth create -o CO2Monitors -d grafana --read-bucket $(influx bucket list | grep co2monitors | cut -f 1) | grep grafana | cut -f 4"`
+- (optional) run `docker exec influxdb bash -c "influx auth list --user admin --hide-headers | cut -f 3"` to retrieve the admin API token
 
 ## Configure Node-Red
 
@@ -70,7 +69,7 @@ Run `docker-compose up`
 ### Finishing
 
 - Once you have a CO2 monitor connected check out the Node-Red Dashboard http://127.0.0.1:1880/ui/. You might need to trigger the `Refresh monitors` flow in the `CO2 Monitors UI` tab first, or wait until it runs every hour.
-- The `Get configuration` flow on the `CO2 monitors` tab runs daily and queries all monitors for their current configuration. This will show on the UI once a monitor is seleted in the drop down and is also visible in the dedicated Grafana dashboard.
+- The `Get configuration` flow on the `CO2 monitors` tab runs daily and queries all monitors for their current configuration. This will show on the UI once a monitor is selected in the drop down and is also visible in the dedicated Grafana dashboard.
 
 ## Configure Grafana
 
