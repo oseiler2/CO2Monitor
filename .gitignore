@@ -14,8 +14,8 @@ docker/nodered/node_modules
 docker/nodered/*.backup
 docker/influxdb/engine
 docker/nodered/package-lock.json
-docker/influxdb/influxd.bolt
-docker/influxdb/influxd.sqlite
+docker/influxdb/data
+docker/influxdb/config
 docker/grafana/alerting
 docker/grafana/grafana.db
 docker/nodered/.config.runtime.json
