@@ -63,7 +63,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -128,7 +128,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sensors\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"co2\")\r\n  |> drop(columns: [\"_field\"])\r\n\r\n  |> aggregateWindow(\r\n        every: 1h,\r\n        fn: (tables=<-, column) => tables\r\n            |> quantile(q: 0.98, method: \"exact_selector\"),\r\n    )\r\n  |> map(fn: (r) => ({ r with _measurement: \"\" }))\r\n  |> map(fn: (r) => ({ r with \r\n    dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"

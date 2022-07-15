@@ -27,7 +27,7 @@ Run `docker-compose up`
 
 ### Using the UI
 
-- Open http://127.0.0.1:8086/ and log on using the admin user and password form the [influxdb.env](./influxdb.env) file
+- Open http://127.0.0.1:8086/ and log on using the admin user and password form the [influxdb.env](influxdb.env) file
 - Navigate to `Load data` -> `API tokens` and generate a `Read/Write API Token` for Node-red
   - Description `nodered`
   - Select scoped read and write access for the `co2monitors` bucket
@@ -73,18 +73,7 @@ Run `docker-compose up`
 
 ## Configure Grafana
 
-- Open http://127.0.0.1:3000/ and log in using the user and password configured in `grafana.env`
-- Open the `Data sources` entry from the bottom left Configuration menu and click on `Add data source`
-- Select `InfluxDB` and enter the following options
-  - Query language: `Flux`
-  - URL: `http://influxdb:8086/`
-  - Organization: `CO2Monitors`
-  - Token: use the grafana token previously created in Influx
-  - Default bucket: `co2monitors`
+- Open http://127.0.0.1:3000/ and log in using the user and password configured in [`grafana.env`](grafana.env)
+- Open the `Data sources` entry from the bottom left Configuration menu and click on `InfluxDB`
+- Enter the grafana token previously created in Influx
 - Confirm with `Save and test`
-- Open `Dashboards` -> `Browse` from the top left menu
-- Import the provided dashboards
-  - [CO2 Monitors.json](./grafana/CO2%20Monitors.json)
-  - [CO2 Monitor detail.json](./grafana/CO2%20Monitor%20detail.json)
-  - [Configuration.json](./grafana/Configuration.json)
-  - [CO2 state timeline.json](./grafana/CO2%20state%20timeline.json)

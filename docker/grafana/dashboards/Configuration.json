@@ -68,7 +68,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -102,9 +102,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -116,7 +114,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"yellowThreshold\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({ r with _field: \"\" }))\r\n  |> map(fn: (r) => ({ r with dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -128,7 +126,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -162,9 +160,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -175,7 +171,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"redThreshold\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({ r with _field: \"\" }))\r\n  |> map(fn: (r) => ({ r with dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -187,7 +183,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -221,9 +217,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -234,7 +228,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"darkRedThreshold\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({ r with _field: \"\" }))\r\n  |> map(fn: (r) => ({ r with dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -246,7 +240,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -282,9 +276,7 @@
         "minVizWidth": 0,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -295,7 +287,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"brightness\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({ r with _field: \"\" }))\r\n  |> map(fn: (r) => ({ r with dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -307,7 +299,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -341,9 +333,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -354,7 +344,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"altitude\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({ r with _field: \"\" }))\r\n  |> map(fn: (r) => ({ r with dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -366,7 +356,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -400,9 +390,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -413,7 +401,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"tempOffset\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({ r with _field: \"\" }))\r\n  |> map(fn: (r) => ({ r with dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -425,7 +413,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -458,9 +446,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "/.*/",
           "values": false
         },
@@ -471,7 +457,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"appVersion\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({\"\":r._value, dev_id:r.dev_id}))\r\n  |> map(fn: (r) => ({ r with dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -483,7 +469,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -516,9 +502,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "/.*/",
           "values": false
         },
@@ -529,7 +513,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sensors\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"co2\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({\"\":r._time, dev_id:r.dev_id}))\r\n    |> map(fn: (r) => ({ r with \r\n    dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -541,7 +525,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -574,9 +558,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "/.*/",
           "values": false
         },
@@ -587,7 +569,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"appVersion\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({\"\":r._time, dev_id:r.dev_id}))\r\n    |> map(fn: (r) => ({ r with \r\n    dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -599,7 +581,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -632,9 +614,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "/.*/",
           "values": false
         },
@@ -645,7 +625,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "query": "from(bucket: \"co2monitors\")\r\n//  |> range(start: -1y)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"configuration\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"appVersion\")\r\n  |> last()\r\n  |> map(fn:  (r) => ({\"\":r._time, dev_id:r.dev_id}))\r\n    |> map(fn: (r) => ({ r with \r\n    dev_id: \r\n      if r.dev_id == \"10\" then \"Room x\" \r\n      else r.dev_id }))",
           "refId": "A"
@@ -667,15 +647,7 @@
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": [
-      "1m",
-      "5m",
-      "15m",
-      "30m",
-      "1h",
-      "2h",
-      "1d"
-    ]
+    "refresh_intervals": ["1m", "5m", "15m", "30m", "1h", "2h", "1d"]
   },
   "timezone": "",
   "title": "Configuration",

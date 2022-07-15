@@ -74,7 +74,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -132,9 +132,7 @@
       "options": {
         "orientation": "vertical",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -147,13 +145,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -166,15 +162,11 @@
           "select": [
             [
               {
-                "params": [
-                  "co2"
-                ],
+                "params": ["co2"],
                 "type": "field"
               },
               {
-                "params": [
-                  5
-                ],
+                "params": [5],
                 "type": "moving_average"
               }
             ]
@@ -188,7 +180,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -246,9 +238,7 @@
       "options": {
         "orientation": "vertical",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -261,13 +251,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -280,15 +268,11 @@
           "select": [
             [
               {
-                "params": [
-                  "co2"
-                ],
+                "params": ["co2"],
                 "type": "field"
               },
               {
-                "params": [
-                  5
-                ],
+                "params": [5],
                 "type": "moving_average"
               }
             ]
@@ -302,7 +286,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -359,9 +343,7 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -374,13 +356,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -393,15 +373,11 @@
           "select": [
             [
               {
-                "params": [
-                  "co2"
-                ],
+                "params": ["co2"],
                 "type": "field"
               },
               {
-                "params": [
-                  5
-                ],
+                "params": [5],
                 "type": "moving_average"
               }
             ]
@@ -415,7 +391,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -470,9 +446,7 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -485,13 +459,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -504,9 +476,7 @@
           "select": [
             [
               {
-                "params": [
-                  "co2"
-                ],
+                "params": ["co2"],
                 "type": "field"
               },
               {
@@ -524,7 +494,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -578,9 +548,7 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -593,13 +561,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -612,9 +578,7 @@
           "select": [
             [
               {
-                "params": [
-                  "co2"
-                ],
+                "params": ["co2"],
                 "type": "field"
               },
               {
@@ -633,7 +597,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -669,9 +633,7 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -684,13 +646,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -703,9 +663,7 @@
           "select": [
             [
               {
-                "params": [
-                  "temperature"
-                ],
+                "params": ["temperature"],
                 "type": "field"
               }
             ]
@@ -719,7 +677,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -755,9 +713,7 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -770,13 +726,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -789,9 +743,7 @@
           "select": [
             [
               {
-                "params": [
-                  "humidity"
-                ],
+                "params": ["humidity"],
                 "type": "field"
               }
             ]
@@ -805,7 +757,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "description": "",
       "fieldConfig": {
@@ -841,9 +793,7 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -856,13 +806,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -875,9 +823,7 @@
           "select": [
             [
               {
-                "params": [
-                  "humidity"
-                ],
+                "params": ["humidity"],
                 "type": "field"
               }
             ]
@@ -891,7 +837,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -964,12 +910,7 @@
       "id": 13,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean",
-            "lastNotNull"
-          ],
+          "calcs": ["min", "max", "mean", "lastNotNull"],
           "displayMode": "table",
           "placement": "right"
         },
@@ -983,13 +924,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -1002,9 +941,7 @@
           "select": [
             [
               {
-                "params": [
-                  "co2"
-                ],
+                "params": ["co2"],
                 "type": "field"
               }
             ]
@@ -1018,7 +955,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -1091,12 +1028,7 @@
       "id": 17,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean",
-            "lastNotNull"
-          ],
+          "calcs": ["min", "max", "mean", "lastNotNull"],
           "displayMode": "table",
           "placement": "right"
         },
@@ -1110,13 +1042,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -1129,9 +1059,7 @@
           "select": [
             [
               {
-                "params": [
-                  "co2"
-                ],
+                "params": ["co2"],
                 "type": "field"
               }
             ]
@@ -1145,7 +1073,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -1224,13 +1152,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -1243,9 +1169,7 @@
           "select": [
             [
               {
-                "params": [
-                  "temperature"
-                ],
+                "params": ["temperature"],
                 "type": "field"
               }
             ]
@@ -1259,7 +1183,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -1335,13 +1259,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -1354,9 +1276,7 @@
           "select": [
             [
               {
-                "params": [
-                  "humidity"
-                ],
+                "params": ["humidity"],
                 "type": "field"
               }
             ]
@@ -1370,7 +1290,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "${DS_INFLUXDB}"
+        "uid": "influxdb"
       },
       "fieldConfig": {
         "defaults": {
@@ -1446,13 +1366,11 @@
           "alias": "$tag_dev_id",
           "datasource": {
             "type": "influxdb",
-            "uid": "${DS_INFLUXDB}"
+            "uid": "influxdb"
           },
           "groupBy": [
             {
-              "params": [
-                "dev_id"
-              ],
+              "params": ["dev_id"],
               "type": "tag"
             }
           ],
@@ -1465,9 +1383,7 @@
           "select": [
             [
               {
-                "params": [
-                  "humidity"
-                ],
+                "params": ["humidity"],
                 "type": "field"
               }
             ]
@@ -1491,14 +1407,7 @@
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": [
-      "5m",
-      "15m",
-      "30m",
-      "1h",
-      "2h",
-      "1d"
-    ]
+    "refresh_intervals": ["5m", "15m", "30m", "1h", "2h", "1d"]
   },
   "timezone": "Pacific/Auckland",
   "title": "CO2 Monitors",
