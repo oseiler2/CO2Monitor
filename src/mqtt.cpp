@@ -299,11 +299,17 @@ namespace mqtt {
         ((WiFiClientSecure*)wifiClient)->loadCACert(root_ca_file, root_ca_file.size());
         root_ca_file.close();
       }
-      File server_cert_file = LittleFS.open(MQTT_SERVER_CERT_FILENAME, "r");
-      if (server_cert_file) {
-        ESP_LOGD(TAG, "Loading MQTT server cert from FS (%s)", MQTT_SERVER_CERT_FILENAME);
-        ((WiFiClientSecure*)wifiClient)->loadCertificate(server_cert_file, server_cert_file.size());
-        server_cert_file.close();
+      File client_key_file = LittleFS.open(MQTT_CLIENT_KEY_FILENAME, "r");
+      if (client_key_file) {
+        ESP_LOGD(TAG, "Loading MQTT client key from FS (%s)", MQTT_CLIENT_KEY_FILENAME);
+        ((WiFiClientSecure*)wifiClient)->loadPrivateKey(client_key_file, client_key_file.size());
+				client_key_file.close();
+      }
+      File client_cert_file = LittleFS.open(MQTT_CLIENT_CERT_FILENAME, "r");
+      if (client_cert_file) {
+        ESP_LOGD(TAG, "Loading MQTT client cert from FS (%s)", MQTT_CLIENT_CERT_FILENAME);
+        ((WiFiClientSecure*)wifiClient)->loadCertificate(client_cert_file, client_cert_file.size());
+        client_cert_file.close();
       }
     } else {
       wifiClient = new WiFiClient();
