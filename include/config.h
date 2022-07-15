@@ -14,6 +14,7 @@
 
 static const char* CONFIG_FILENAME = "/config.json";
 static const char* MQTT_ROOT_CA_FILENAME = "/mqtt_root_ca.pem";
-static const char* MQTT_SERVER_CERT_FILENAME = "/mqtt_server_cert.pem";
+static const char* MQTT_CLIENT_CERT_FILENAME = "/mqtt_client_cert.pem";
+static const char* MQTT_CLIENT_KEY_FILENAME = "/mqtt_client_key.pem";
 
 #endif
