@@ -18,11 +18,13 @@ public:
   boolean calibrateScd40ToReference(uint16_t co2Reference);
   boolean setTemperatureOffset(float temperatureOffset);
   float getTemperatureOffset();
+  boolean setAmbientPressure(uint16_t ambientPressureInHpa);
 
 private:
   Model* model;
   SensirionI2CScd4x* scd40;
   updateMessageCallback_t updateMessageCallback;
+  uint16_t lastAmbientPressure = 0x0000;
 
   TaskHandle_t task;
 

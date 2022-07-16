@@ -209,6 +209,19 @@ boolean SCD40::setTemperatureOffset(float temperatureOffset) {
   return success;
 }
 
+boolean SCD40::setAmbientPressure(uint16_t ambientPressureInHpa) {
+  if (ambientPressureInHpa == lastAmbientPressure) return true;
+  lastAmbientPressure = ambientPressureInHpa;
+  ESP_LOGD(TAG, "setAmbientPressure: %u", ambientPressureInHpa);
+  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  boolean success = checkError(scd40->setAmbientPressure(ambientPressureInHpa), "setAmbientPressure");
+  if (!success) {
+    ESP_LOGD(TAG, "failed to setAmbientPressure");
+  }
+  I2C::giveMutex();
+  return success;
+}
+
 TaskHandle_t SCD40::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
   xTaskCreatePinnedToCore(
     this->scd40Loop,  // task function

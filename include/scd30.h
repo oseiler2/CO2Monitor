@@ -18,11 +18,14 @@ public:
   boolean calibrateScd30ToReference(uint16_t co2Reference);
   boolean setTemperatureOffset(float temperatureOffset);
   float getTemperatureOffset();
+  boolean setAmbientPressure(uint16_t ambientPressureInHpa);
 
 private:
   Model* model;
   Adafruit_SCD30* scd30;
   updateMessageCallback_t updateMessageCallback;
+  boolean initialised = false;
+  uint16_t lastAmbientPressure = 0x0000;
 
   TaskHandle_t task;
 

@@ -83,6 +83,7 @@ SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   pinMode(SCD30_RDY_PIN, INPUT);
 
   I2C::giveMutex();
+  initialised = true;
   ESP_LOGD(TAG, "SCD30 initialised");
 }
 
@@ -144,6 +145,20 @@ boolean SCD30::setTemperatureOffset(float temperatureOffset) {
     ESP_LOGW(TAG, "Failed to set temperature offset");
   I2C::giveMutex();
   return (retry < MAX_RETRY);
+}
+
+boolean SCD30::setAmbientPressure(uint16_t ambientPressureInHpa) {
+  if (!initialised) return false;
+  if (ambientPressureInHpa == lastAmbientPressure) return true;
+  lastAmbientPressure = ambientPressureInHpa;
+  ESP_LOGD(TAG, "setAmbientPressure: %u", ambientPressureInHpa);
+  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  boolean success = scd30->startContinuousMeasurement(ambientPressureInHpa);
+  if (!success) {
+    ESP_LOGD(TAG, "failed to setAmbientPressure");
+  }
+  I2C::giveMutex();
+  return success;
 }
 
 TaskHandle_t SCD30::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
