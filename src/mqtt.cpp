@@ -97,9 +97,12 @@ namespace mqtt {
     StaticJsonDocument<CONFIG_SIZE> json;
     json["appVersion"] = APP_VERSION;
     json["altitude"] = config.altitude;
-    json["yellowThreshold"] = config.yellowThreshold;
-    json["redThreshold"] = config.redThreshold;
-    json["darkRedThreshold"] = config.darkRedThreshold;
+    json["co2YellowThreshold"] = config.co2YellowThreshold;
+    json["co2RedThreshold"] = config.co2RedThreshold;
+    json["co2DarkRedThreshold"] = config.co2DarkRedThreshold;
+    json["iaqYellowThreshold"] = config.iaqYellowThreshold;
+    json["iaqRedThreshold"] = config.iaqRedThreshold;
+    json["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
     json["brightness"] = config.brightness;
     sprintf(buf, "%s", WifiManager::getMac().c_str());
     json["mac"] = buf;
@@ -199,9 +202,12 @@ namespace mqtt {
       }
       bool rebootRequired = false;
       if (doc.containsKey("altitude")) config.altitude = doc["altitude"].as<int>();
-      if (doc.containsKey("yellowThreshold")) config.yellowThreshold = doc["yellowThreshold"].as<int>();
-      if (doc.containsKey("redThreshold")) config.redThreshold = doc["redThreshold"].as<int>();
-      if (doc.containsKey("darkRedThreshold")) config.darkRedThreshold = doc["darkRedThreshold"].as<uint16_t>();
+      if (doc.containsKey("co2YellowThreshold")) config.co2YellowThreshold = doc["co2YellowThreshold"].as<uint16_t>();
+      if (doc.containsKey("co2RedThreshold")) config.co2RedThreshold = doc["co2RedThreshold"].as<uint16_t>();
+      if (doc.containsKey("co2DarkRedThreshold")) config.co2DarkRedThreshold = doc["co2DarkRedThreshold"].as<uint16_t>();
+      if (doc.containsKey("iaqYellowThreshold")) config.iaqYellowThreshold = doc["iaqYellowThreshold"].as<uint16_t>();
+      if (doc.containsKey("iaqRedThreshold")) config.iaqRedThreshold = doc["iaqRedThreshold"].as<uint16_t>();
+      if (doc.containsKey("iaqDarkRedThreshold")) config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"].as<uint16_t>();
       if (doc.containsKey("brightness")) config.brightness = doc["brightness"].as<uint8_t>();
       if (doc.containsKey("ssd1306Rows")) { config.ssd1306Rows = doc["ssd1306Rows"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("greenLed")) { config.greenLed = doc["greenLed"].as<uint8_t>(); rebootRequired = true; }
@@ -303,7 +309,7 @@ namespace mqtt {
       if (client_key_file) {
         ESP_LOGD(TAG, "Loading MQTT client key from FS (%s)", MQTT_CLIENT_KEY_FILENAME);
         ((WiFiClientSecure*)wifiClient)->loadPrivateKey(client_key_file, client_key_file.size());
-				client_key_file.close();
+        client_key_file.close();
       }
       File client_cert_file = LittleFS.open(MQTT_CLIENT_CERT_FILENAME, "r");
       if (client_cert_file) {

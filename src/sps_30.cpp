@@ -72,7 +72,7 @@ SPS_30::~SPS_30() {
 }
 
 boolean SPS_30::readSps30() {
-  ESP_LOGD(TAG, "readSps30");
+  //  ESP_LOGD(TAG, "readSps30");
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readSps30");
 #endif
@@ -116,7 +116,7 @@ boolean SPS_30::readSps30() {
       values.MassPM1, values.MassPM2, values.MassPM4, values.MassPM10, values.NumPM0, values.NumPM1, values.NumPM2, values.NumPM4, values.NumPM10, values.PartSize);
     model->updateModel((uint16_t)(values.NumPM0 + 0.5f), (uint16_t)(values.NumPM1 + 0.5f), (uint16_t)(values.NumPM2 + 0.5f), (uint16_t)(values.NumPM4 + 0.5f), (uint16_t)(values.NumPM10 + 0.5f));
   }
-  ESP_LOGD(TAG, "Sps30 done");
+  //  ESP_LOGD(TAG, "Sps30 done");
   return (result == SPS30_ERR_OK);
 }
 

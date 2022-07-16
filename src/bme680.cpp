@@ -150,18 +150,18 @@ boolean BME680::readBme680() {
   boolean run = bme680->run();
   I2C::giveMutex();
   if (run) { // If new data is available
-    ESP_LOGD(TAG, "=========== ");
-    ESP_LOGD(TAG, "Temperature: %.1f C (raw %.1f C)", bme680->temperature, bme680->rawTemperature);
-    ESP_LOGD(TAG, "Humidity: %.1f %% (raw %.1f %%)", bme680->humidity, bme680->rawHumidity);
-    ESP_LOGD(TAG, "Pressure: %.1f hPa", bme680->pressure / 100);
+    ESP_LOGD(TAG, "IAQ: %.1f, acc: %u/%.1f/%.1f, Temp: %.1fC (raw %.1fC), Hum: %.1f%% (raw %.1f%%), Pressure: %.1fhPa", bme680->iaq, bme680->iaqAccuracy, bme680->runInStatus, bme680->stabStatus, bme680->temperature, bme680->rawTemperature, bme680->humidity, bme680->rawHumidity, bme680->pressure / 100);
+    //    ESP_LOGD(TAG, "Temperature: %.1f C (raw %.1f C)", bme680->temperature, bme680->rawTemperature);
+    //    ESP_LOGD(TAG, "Humidity: %.1f %% (raw %.1f %%)", bme680->humidity, bme680->rawHumidity);
+    //    ESP_LOGD(TAG, "Pressure: %.1f hPa", bme680->pressure / 100);
     //    ESP_LOGD(TAG, "Gas Resistance: %.1f kOhm", bme680->gasResistance / 1000);
     //    ESP_LOGD(TAG, "Comp gas Value: %.1f, accuracy: %u", bme680->compGasValue, bme680->compGasAccuracy);
     //    ESP_LOGD(TAG, "Gas percentage: %.1f, accuracy: %u", bme680->gasPercentage, bme680->gasPercentageAcccuracy);
-    ESP_LOGD(TAG, "IAQ: %.1f, accuracy: %u", bme680->iaq, bme680->iaqAccuracy);
+    //    ESP_LOGD(TAG, "IAQ: %.1f, accuracy: %u", bme680->iaq, bme680->iaqAccuracy);
     //    ESP_LOGD(TAG, "Static IAQ: %.1f, accuracy: %u", bme680->staticIaq, bme680->staticIaqAccuracy);
     //    ESP_LOGD(TAG, "CO2 equiv: %.1f, accuracy: %u", bme680->co2Equivalent, bme680->co2Accuracy);
     //    ESP_LOGD(TAG, "Breath Voc equiv: %.1f, accuracy: %u", bme680->breathVocEquivalent, bme680->breathVocAccuracy);
-    ESP_LOGD(TAG, "Run in status: %.1f, Stab status: %.1f", bme680->runInStatus, bme680->stabStatus);
+    //    ESP_LOGD(TAG, "Run in status: %.1f, Stab status: %.1f", bme680->runInStatus, bme680->stabStatus);
 #ifdef SHOW_DEBUG_MSGS
     updateMessageCallback("");
 #endif

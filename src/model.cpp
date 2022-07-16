@@ -24,23 +24,23 @@ Model::~Model() {}
 void Model::updateStatus() {
   TrafficLightStatus co2Status = UNDEFINED;
   if (this->co2 != 0) {
-    if (this->co2 < config.yellowThreshold) {
+    if (this->co2 < config.co2YellowThreshold) {
       co2Status = GREEN;
-    } else if (this->co2 < config.redThreshold) {
+    } else if (this->co2 < config.co2RedThreshold) {
       co2Status = YELLOW;
-    } else if (this->co2 < config.darkRedThreshold) {
+    } else if (this->co2 < config.co2DarkRedThreshold) {
       co2Status = RED;
-    } else if (this->co2 >= config.darkRedThreshold) {
+    } else {
       co2Status = DARK_RED;
     }
   }
   TrafficLightStatus iaqStatus = UNDEFINED;
   if (iaq != 0) {
-    if (iaq <= 50) {
+    if (iaq <= config.iaqYellowThreshold) {
       iaqStatus = GREEN;
-    } else if (iaq <= 100) {
+    } else if (iaq <= config.iaqRedThreshold) {
       iaqStatus = YELLOW;
-    } else if (iaq <= 200) {
+    } else if (iaq <= config.iaqDarkRedThreshold) {
       iaqStatus = RED;
     } else {
       iaqStatus = DARK_RED;
