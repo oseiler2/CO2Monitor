@@ -9,7 +9,7 @@ Make sure not to expose this directly to the internet without additional and rea
 - [Node-Red](https://nodered.org/docs/user-guide/runtime/securing-node-red)
 - [Mosquitto](https://mosquitto.org/documentation/)
 - [InfluxDB](https://hub.docker.com/_/influxdb)
-- Set a `credentialSecret` in [Node Red's settings.js](./nodered/settings.js)
+- Set a `credentialSecret` in [Node Red's settings.js](./nodered/settings.js#L44)
 
 ## Starting
 
