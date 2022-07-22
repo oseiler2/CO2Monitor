@@ -26,7 +26,7 @@ There are now 2 new PCB designs, one for SMD components and another one solely u
 ## SMD
 
 - ESP 32 Devkit (30 pin)
-- SCD40 or SCD30 CO2 sensor
+- SCD40 or SCD30 NDIR CO2 sensor
 - optional BME680 IAQ/VOC sensor
 - optional 128x64 0.96 inch OLED display
 - alternatively Feather wing footprint for easy expansion modules
@@ -39,7 +39,7 @@ There are now 2 new PCB designs, one for SMD components and another one solely u
 ## First generation
 
 - ESP 32 Devkit (30 pin)
-- SCD40 or SCD30 CO2 sensor
+- SCD40 or SCD30 NDIR CO2 sensor
 - optional BME680 IAQ/VOC sensor
 - Feather wing footprint for easy expansion modules
 - 3 x 5mm red/yellow/green LEDs
@@ -247,8 +247,8 @@ To connect to an MQTT server using TLS (recommended) you need to enable TLS in t
 
 ## Supported sensors
 
-- [SCD3x CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensors-scd30/)
-- [SCD4x CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensor-scd4x/)
+- [SCD3x NDIR CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensors-scd30/)
+- [SCD4x NDIR CO2, temperature and humidity sensor](https://www.sensirion.com/en/environmental-sensors/carbon-dioxide-sensors/carbon-dioxide-sensor-scd4x/)
 - [BME680 IAQ, VOC, temperature and humidity sensor](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/)
 - [SPS30 Small Particulate matter sensor](https://sensirion.com/products/catalog/SPS30/)
 
@@ -267,11 +267,11 @@ The presence of supported I2C based sensors/displays will be automatically detec
 
 ## SCD3x
 
-A SCD3x NDIR sensor can be connected to the designated footprint and will provide CO2, temperature and humidity readings via I2C. It supports a separate ready signal which is connected to the ESP32.
+A SCD3x NDIR CO2 sensor can be connected to the designated footprint and will provide CO2, temperature and humidity readings via I2C. It supports a separate ready signal which is connected to the ESP32.
 
 ## SCD4x
 
-A SCD4x sensor can be soldered directly onto the pcb and provides CO2, temperature and humidity readings via I2C.
+A SCD4x NDIR CO2 sensor can be soldered directly onto the pcb and provides CO2, temperature and humidity readings via I2C.
 
 ## BME680
 
@@ -295,7 +295,7 @@ Other I2C based sensors can be wired using the JST-PH I2C header.
 
 # Calibration
 
-CO2 sensors need to be regularly calibrated to provide reliable measurements. The used sensors support auto-calibration and that is enabled in the firmware. It works by looking over measurements over a period and calibrating the lowest value against 420ppm (configurable in the firmware). This is based on the assumption that the monitor 'sees' clean outside air about once a week. If that cannot be achieved the firmware also allows for a forced calibration against a given value. Please also make sure to set the altitude setting according to the monitor location. For details please check the sensors' datasheets.
+CO2 sensors need to be regularly calibrated to provide reliable measurements. The used sensors support auto-calibration and that is enabled in the firmware. It works by looking over measurements over a period and calibrating the lowest value against 420ppm (configurable in the firmware). This is based on the assumption that the monitor 'sees' clean outside air about once a week. If that cannot be achieved the firmware also allows for a forced calibration against a given value. Please also make sure to set the altitude setting according to the monitor location. For details please check the sensor's datasheets.
 
 # Hardware
 
