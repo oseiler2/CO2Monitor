@@ -43,6 +43,16 @@ bool hasNeoPixel = false;
 bool hasFeatherMatrix = false;
 bool hasHub75 = false;
 
+const uint32_t debounceDelay = 50;
+volatile uint32_t lastBtnDebounceTime = 0;
+volatile uint8_t buttonState = 0;
+uint8_t oldConfirmedButtonState = 0;
+
+void ICACHE_RAM_ATTR buttonHandler() {
+  buttonState = (digitalRead(TRIGGER_PIN) ? 0 : 1);
+  lastBtnDebounceTime = millis();
+}
+
 void stopHub75DMA() {
   if (hasHub75 && hub75) hub75->stopDMA();
 }
@@ -239,6 +249,8 @@ void setup() {
 
   OTA::setupOta(stopHub75DMA);
 
+  attachInterrupt(TRIGGER_PIN, buttonHandler, CHANGE);
+
   ESP_LOGI(TAG, "Setup done.");
 #ifdef SHOW_DEBUG_MSGS
   if (I2C::lcdPresent()) {
@@ -248,11 +260,13 @@ void setup() {
 }
 
 void loop() {
-  if ((digitalRead(TRIGGER_PIN) == LOW)) {
-    while (digitalRead(TRIGGER_PIN) == LOW);
-    digitalWrite(LED_PIN, LOW);
-    stopHub75DMA();
-    WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
+  if (buttonState != oldConfirmedButtonState && (millis() - lastBtnDebounceTime) > debounceDelay) {
+    oldConfirmedButtonState = buttonState;
+    if (oldConfirmedButtonState == 0) {
+      digitalWrite(LED_PIN, LOW);
+      stopHub75DMA();
+      WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
+    }
   }
 
   if (WiFi.status() != WL_CONNECTED) {
@@ -261,5 +275,5 @@ void loop() {
   } else if (WiFi.status() == WL_CONNECTED) {
     digitalWrite(LED_PIN, HIGH);
   }
-  vTaskDelay(pdMS_TO_TICKS(1000));
+  vTaskDelay(pdMS_TO_TICKS(50));
 }
