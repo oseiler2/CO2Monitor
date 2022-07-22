@@ -25,7 +25,10 @@ namespace WifiManager {
     for (uint8_t i = 0;i < 6;i++) {
       rawMac[i] = (uint8_t)(ESP.getEfuseMac() >> (6 - i - 1) * 8 & 0x000000ffUL);
     }
-    return base64::encode(rawMac, 6);
+    String encoded = base64::encode(rawMac, 6);
+    encoded.replace("+", "-");
+    encoded.replace("/", "_");
+    return encoded;
   }
 
   String getSSID() {
