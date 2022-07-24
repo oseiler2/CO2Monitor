@@ -77,6 +77,9 @@ These CO2 Monitors have been tested in collaboration with researchers from the p
 
 # Firmware
 
+[![PlatformIO CI](https://github.com/oseiler2/CO2Monitor/actions/workflows/pre-release.yml/badge.svg)](https://github.com/oseiler2/CO2Monitor/actions/workflows/pre-release.yml)
+[![Release](https://github.com/oseiler2/CO2Monitor/actions/workflows/tagged-release.yml/badge.svg)](https://github.com/oseiler2/CO2Monitor/actions/workflows/tagged-release.yml)
+
 ## Wifi
 
 Supports [ESPAsync WiFiManager](https://github.com/khoih-prog/ESPAsync_WiFiManager) to set up wireless credentials and further configuration.
