@@ -2,7 +2,10 @@ import subprocess
 import time
 
 # get tag/base version
-version = tag = subprocess.check_output("git describe --tags --abbrev=0", shell=True).decode().strip()
+tag = subprocess.check_output("git describe --tags --abbrev=0", shell=True).decode().strip()
+if tag.startswith('v'):
+  tag = tag[1:]
+version = tag
 
 # get current revision hash
 commit = subprocess.check_output("git log --pretty=format:%h -n 1", shell=True).decode().strip()
