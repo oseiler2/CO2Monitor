@@ -33,6 +33,8 @@ jobs:
         pip install --upgrade platformio
     - name: Install platformIO libraries
       run: pio pkg install
+    - name: Set env
+      run: echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: Run PlatformIO
       run: pio run --environment debug
     - name: "Build & test"
