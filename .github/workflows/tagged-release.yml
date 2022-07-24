@@ -46,4 +46,4 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
         files: |
-          firmware.bin
+          .pio/build/release/firmware.bin
