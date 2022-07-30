@@ -23,6 +23,7 @@ namespace mqtt {
     cleanSPS30Callback_t cleanSPS30Callback,
     getSPS30StatusCallback_t getSPS30StatusCallback
   );
+  void shutDownMqtt();
 
   void publishSensors(uint16_t mask);
   void publishConfiguration();

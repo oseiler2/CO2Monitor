@@ -48,7 +48,7 @@ namespace mqtt {
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_SENSORS;
     msg.mask = mask;
-    xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
   void publishSensorsInternal(uint16_t mask) {
@@ -325,6 +325,23 @@ namespace mqtt {
     mqtt_client->setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client->setCallback(callback);
     if (!mqtt_client->setBufferSize(CONFIG_SIZE)) ESP_LOGE(TAG, "mqtt_client->setBufferSize failed!");
+  }
+
+  void shutDownMqtt() {
+    if (mqtt_client && mqtt_client->connected()) {
+      char buf[256];
+      sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+      mqtt_client->publish(buf, "{\"online\":false}");
+      sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+      sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
+      mqtt_client->unsubscribe(buf);
+      sprintf(buf, "%s/down/#", config.mqttTopic);
+      mqtt_client->unsubscribe(buf);
+      mqtt_client->disconnect();
+    }
+    if (mqttTask) {
+      vTaskDelete(mqttTask);
+    }
   }
 
   void mqttLoop(void* pvParameters) {
