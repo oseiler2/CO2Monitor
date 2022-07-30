@@ -49,7 +49,7 @@ const uint8_t line_height = config.ssd1306Rows == 32 ? 8 : 16;
 
 void LCD::updateMessage(char const* msg) {
   if (priorityMessageActive) return;
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
   this->display->setFont(NULL);
   this->display->setCursor(0, status_y);
@@ -60,7 +60,7 @@ void LCD::updateMessage(char const* msg) {
 }
 
 void LCD::setPriorityMessage(char const* msg) {
-  if (!I2C::takeMutex(pdMS_TO_TICKS(2000))) return;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->priorityMessageActive = true;
   this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
   this->display->setFont(NULL);
@@ -72,7 +72,7 @@ void LCD::setPriorityMessage(char const* msg) {
 }
 
 void LCD::clearPriorityMessage() {
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
   this->display->display();
   this->priorityMessageActive = false;
@@ -80,7 +80,7 @@ void LCD::clearPriorityMessage() {
 }
 
 void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
 
   // see if only CO2 sensor is present
   if ((I2C::scd30Present() || I2C::scd40Present()) && !I2C::bme680Present() && !I2C::sps30Present()) {

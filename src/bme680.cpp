@@ -101,7 +101,7 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
   ESP_LOGD(TAG, "Initialising BME680");
 
   EEPROM.begin(BSEC_MAX_STATE_BLOB_SIZE + 1); // 1st address for the length
-  if (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY))) return;
+  if (!I2C::takeMutex(portMAX_DELAY)) return;
 
   bme680->begin(BME680_I2C_ADDR_PRIMARY, *wire);
   bme680->setTemperatureOffset(7.0);
@@ -146,7 +146,7 @@ boolean BME680::readBme680() {
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readBme680");
 #endif
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean run = bme680->run();
   I2C::giveMutex();
   if (run) { // If new data is available
