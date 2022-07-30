@@ -29,7 +29,7 @@ SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   this->updateMessageCallback = _updateMessageCallback;
   this->scd30 = new Adafruit_SCD30();
 
-  if (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY))) return;
+  if (!I2C::takeMutex(portMAX_DELAY)) return;
 
   uint8_t retry = 0;
   while (retry < MAX_RETRY && !scd30->begin(SCD30_I2CADDR_DEFAULT, wire, 0)) retry++;
@@ -97,7 +97,7 @@ boolean SCD30::readScd30() {
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readScd30");
 #endif
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean read = scd30->dataReady() && scd30->read();
   I2C::giveMutex();
   if (read) {
@@ -117,7 +117,7 @@ boolean SCD30::readScd30() {
 }
 
 boolean SCD30::calibrateScd30ToReference(uint16_t co2Reference) {
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   uint8_t retry = 0;
   while (retry++ < MAX_RETRY && !scd30->forceRecalibrationWithReference(co2Reference));
   ESP_LOGD(TAG, "co2Reference: %u, result %s", co2Reference, (retry < MAX_RETRY) ? "true" : "false");
@@ -126,7 +126,7 @@ boolean SCD30::calibrateScd30ToReference(uint16_t co2Reference) {
 }
 
 float SCD30::getTemperatureOffset() {
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   float temperatureOffset = scd30->getTemperatureOffset() / 100.0;
   ESP_LOGD(TAG, "Temperature offset: %.1f C", temperatureOffset);
   I2C::giveMutex();
@@ -138,7 +138,7 @@ boolean SCD30::setTemperatureOffset(float temperatureOffset) {
     ESP_LOGW(TAG, "Negative temperature offset not supported");
     return false;
   }
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   uint8_t retry = 0;
   while (retry < MAX_RETRY && !scd30->setTemperatureOffset(floor(temperatureOffset * 100))) retry++;
   if (retry >= MAX_RETRY)
@@ -152,7 +152,7 @@ boolean SCD30::setAmbientPressure(uint16_t ambientPressureInHpa) {
   if (ambientPressureInHpa == lastAmbientPressure) return true;
   lastAmbientPressure = ambientPressureInHpa;
   ESP_LOGD(TAG, "setAmbientPressure: %u", ambientPressureInHpa);
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean success = scd30->startContinuousMeasurement(ambientPressureInHpa);
   if (!success) {
     ESP_LOGD(TAG, "failed to setAmbientPressure");

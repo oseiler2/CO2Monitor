@@ -18,7 +18,7 @@ boolean SCD40::checkError(uint16_t error, char const* msg) {
 #ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("error SCD40 cmd");
 #endif
-    while (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY)));
+    while (!I2C::takeMutex(portMAX_DELAY));
     return false;
   }
   return true;
@@ -30,7 +30,7 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   this->scd40 = new SensirionI2CScd4x();
   ESP_LOGD(TAG, "Initialising SCD40");
 
-  if (!I2C::takeMutex(pdMS_TO_TICKS(portMAX_DELAY))) return;
+  if (!I2C::takeMutex(portMAX_DELAY)) return;
 
   scd40->begin(*wire);
 
@@ -38,13 +38,6 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
 
   vTaskDelay(pdMS_TO_TICKS(500));
-
-  /*
-    if (checkError(scd40->setTemperatureOffset(7.0f), "setTemperatureOffset")) {
-      ESP_LOGD(TAG, "Temperature offset: %.1f", 7.0);
-      checkError(scd40->persistSettings(), "persistSettings");
-    }
-  */
 
   /*
     uint16_t sensorStatus;
@@ -67,6 +60,7 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
     ESP_LOGD(TAG, "Automatic self-calibration: %u", ascEnabled);
     if (ascEnabled != 1) {
       checkError(scd40->setAutomaticSelfCalibration(0x01), "setAutomaticSelfCalibration");
+      checkError(scd40->persistSettings(), "persistSettings");
     }
   }
 
@@ -94,7 +88,6 @@ SCD40::~SCD40() {
   if (this->scd40) delete scd40;
 }
 
-
 boolean SCD40::readScd40() {
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readScd40");
@@ -102,7 +95,7 @@ boolean SCD40::readScd40() {
 
   // check if data is ready
   uint16_t dataReady;
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean success = checkError(scd40->getDataReadyStatus(dataReady), "getDataReadyStatus");
   I2C::giveMutex();
   if (!success) return false;
@@ -117,7 +110,7 @@ boolean SCD40::readScd40() {
   float temperature, humidity = NaN;
   uint16_t co2 = 0x0000u;
   // Read Measurement
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   success = checkError(scd40->readMeasurement(co2, temperature, humidity), "readMeasurement");
   I2C::giveMutex();
   if (!success) return false;
@@ -138,7 +131,7 @@ boolean SCD40::readScd40() {
 }
 
 boolean SCD40::calibrateScd40ToReference(uint16_t co2Reference) {
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
   if (!success) {
     I2C::giveMutex();
@@ -160,7 +153,7 @@ boolean SCD40::calibrateScd40ToReference(uint16_t co2Reference) {
 }
 
 float SCD40::getTemperatureOffset() {
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
   if (!success) {
     I2C::giveMutex();
@@ -186,7 +179,7 @@ boolean SCD40::setTemperatureOffset(float temperatureOffset) {
     ESP_LOGW(TAG, "Negative temperature offset not supported");
     return false;
   }
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
   if (!success) {
     I2C::giveMutex();
@@ -213,7 +206,7 @@ boolean SCD40::setAmbientPressure(uint16_t ambientPressureInHpa) {
   if (ambientPressureInHpa == lastAmbientPressure) return true;
   lastAmbientPressure = ambientPressureInHpa;
   ESP_LOGD(TAG, "setAmbientPressure: %u", ambientPressureInHpa);
-  if (!I2C::takeMutex(pdMS_TO_TICKS(1000))) return false;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
   boolean success = checkError(scd40->setAmbientPressure(ambientPressureInHpa), "setAmbientPressure");
   if (!success) {
     ESP_LOGD(TAG, "failed to setAmbientPressure");
