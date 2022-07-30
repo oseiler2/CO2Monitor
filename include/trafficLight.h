@@ -1,8 +1,9 @@
-#ifndef _NEOPIXEL_H
-#define _NEOPIXEL_H
+#ifndef _TRAFFIC_LIGHT_H
+#define _TRAFFIC_LIGHT_H
 
 #include <globals.h>
 #include <Arduino.h>
+#include <config.h>
 #include <model.h>
 
 #include <Ticker.h>

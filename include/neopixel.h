@@ -1,5 +1,5 @@
-#ifndef _TRAFFIC_LIGHT_H
-#define _TRAFFIC_LIGHT_H
+#ifndef _NEOPIXEL_H
+#define _NEOPIXEL_H
 
 #include <globals.h>
 #include <Arduino.h>

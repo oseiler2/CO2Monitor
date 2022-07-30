@@ -1,5 +1,4 @@
 #include <trafficLight.h>
-#include <config.h>
 #include <configManager.h>
 
 TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, uint8_t _pinGreen) {
@@ -26,35 +25,26 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
   1 MHz REF_TICK    1 KHz   10 bit
   */
 
-#define pwmFreq           10000
-#define pwmChannelRed     0
-#define pwmChannelYellow  1
-#define pwmChannelGreen   2
-#define pwmResolution     8
+#define PWM_FREQ_LEDS             10000
+#define PWM_RESOLUTION_LEDS       8
 
   pinMode(pinRed, OUTPUT);
   pinMode(pinYellow, OUTPUT);
   pinMode(pinGreen, OUTPUT);
-  ledcSetup(pwmChannelRed, pwmFreq, pwmResolution);
-  ledcSetup(pwmChannelYellow, pwmFreq, pwmResolution);
-  ledcSetup(pwmChannelGreen, pwmFreq, pwmResolution);
-  ledcAttachPin(pinRed, pwmChannelRed);
-  ledcAttachPin(pinYellow, pwmChannelYellow);
-  ledcAttachPin(pinGreen, pwmChannelGreen);
-  ledcWrite(pwmChannelRed, 0);
-  ledcWrite(pwmChannelYellow, 0);
-  ledcWrite(pwmChannelGreen, 0);
+  ledcSetup(PWM_CHANNEL_LEDS, PWM_FREQ_LEDS, PWM_RESOLUTION_LEDS);
+  ledcWrite(PWM_CHANNEL_LEDS, 0);
 
-  ledcWrite(pwmChannelRed, config.brightness);
+  ledcAttachPin(pinRed, PWM_CHANNEL_LEDS);
+  ledcWrite(PWM_CHANNEL_LEDS, config.brightness);
   delay(500);
-  ledcWrite(pwmChannelYellow, config.brightness);
+  ledcDetachPin(pinRed);
+  ledcAttachPin(pinYellow, PWM_CHANNEL_LEDS);
   delay(500);
-  ledcWrite(pwmChannelGreen, config.brightness);
+  ledcDetachPin(pinYellow);
+  ledcAttachPin(pinGreen, PWM_CHANNEL_LEDS);
   delay(500);
-  ledcWrite(pwmChannelRed, 0);
-  ledcWrite(pwmChannelYellow, 0);
-  ledcWrite(pwmChannelGreen, 0);
-  delay(500);
+  ledcDetachPin(pinGreen);
+  ledcWrite(PWM_CHANNEL_LEDS, 0);
 }
 
 TrafficLight::~TrafficLight() {
@@ -64,29 +54,32 @@ TrafficLight::~TrafficLight() {
 void TrafficLight::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
   if (newStatus == GREEN) {
-    ledcWrite(pwmChannelRed, 0);
-    ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, config.brightness);
+    ledcAttachPin(pinGreen, PWM_CHANNEL_LEDS);
+    ledcDetachPin(pinYellow);
+    ledcDetachPin(pinRed);
+    ledcWrite(PWM_CHANNEL_LEDS, config.brightness);
   } else if (newStatus == YELLOW) {
-    ledcWrite(pwmChannelRed, 0);
-    ledcWrite(pwmChannelYellow, config.brightness);
-    ledcWrite(pwmChannelGreen, 0);
+    ledcDetachPin(pinGreen);
+    ledcAttachPin(pinYellow, PWM_CHANNEL_LEDS);
+    ledcDetachPin(pinRed);
+    ledcWrite(PWM_CHANNEL_LEDS, config.brightness);
   } else if (newStatus == RED) {
-    ledcWrite(pwmChannelRed, config.brightness);
-    ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, 0);
+    ledcDetachPin(pinGreen);
+    ledcDetachPin(pinYellow);
+    ledcAttachPin(pinRed, PWM_CHANNEL_LEDS);
+    ledcWrite(PWM_CHANNEL_LEDS, config.brightness);
   } else if (newStatus == DARK_RED) {
-    ledcWrite(pwmChannelRed, config.brightness);
-    ledcWrite(pwmChannelYellow, 0);
-    ledcWrite(pwmChannelGreen, 0);
+    ledcDetachPin(pinGreen);
+    ledcDetachPin(pinYellow);
+    ledcAttachPin(pinRed, PWM_CHANNEL_LEDS);
   }
 }
 
 void TrafficLight::timer() {
   if (model->getStatus() == DARK_RED) {
-    if (ledcRead(pwmChannelRed) == 0)
-      ledcWrite(pwmChannelRed, config.brightness);
+    if (ledcRead(PWM_CHANNEL_LEDS) == 0)
+      ledcWrite(PWM_CHANNEL_LEDS, config.brightness);
     else
-      ledcWrite(pwmChannelRed, 0);
+      ledcWrite(PWM_CHANNEL_LEDS, 0);
   }
 }
