@@ -1,5 +1,5 @@
-#include <i2c.h>
 #include <Arduino.h>
+#include <i2c.h>
 #include <Wire.h>
 
 // Local logging tag
@@ -33,6 +33,7 @@ namespace I2C {
   }
 
   static SemaphoreHandle_t i2cMutex = xSemaphoreCreateMutex();
+
   boolean takeMutex(TickType_t blockTime) {
     //    ESP_LOGD(TAG, "%s attempting to take mutex with blockTime: %u", pcTaskGetTaskName(NULL), blockTime);
     boolean result = (xSemaphoreTake(i2cMutex, blockTime) == pdTRUE);
@@ -85,6 +86,10 @@ namespace I2C {
     if (nDevices == 0)
       ESP_LOGD(TAG, "No I2C devices found");
     giveMutex();
+  }
+
+  void shutDownI2C() {
+    Wire.~TwoWire();
   }
 
 }
