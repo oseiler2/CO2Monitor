@@ -39,9 +39,11 @@ TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, u
   delay(500);
   ledcDetachPin(pinRed);
   ledcAttachPin(pinYellow, PWM_CHANNEL_LEDS);
+  ledcWrite(PWM_CHANNEL_LEDS, config.brightness);
   delay(500);
   ledcDetachPin(pinYellow);
   ledcAttachPin(pinGreen, PWM_CHANNEL_LEDS);
+  ledcWrite(PWM_CHANNEL_LEDS, config.brightness);
   delay(500);
   ledcDetachPin(pinGreen);
   ledcWrite(PWM_CHANNEL_LEDS, 0);
