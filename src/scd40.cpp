@@ -84,8 +84,11 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
 }
 
 SCD40::~SCD40() {
-  if (this->task) vTaskDelete(this->task);
   if (this->scd40) delete scd40;
+}
+
+uint32_t SCD40::getInterval() {
+  return 5;
 }
 
 boolean SCD40::readScd40() {
@@ -213,26 +216,4 @@ boolean SCD40::setAmbientPressure(uint16_t ambientPressureInHpa) {
   }
   I2C::giveMutex();
   return success;
-}
-
-TaskHandle_t SCD40::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
-  xTaskCreatePinnedToCore(
-    this->scd40Loop,  // task function
-    name,             // name of task
-    stackSize,        // stack size of task
-    this,             // parameter of the task
-    priority,         // priority of the task
-    &task,            // task handle
-    core);            // CPU core
-  return this->task;
-}
-
-void SCD40::scd40Loop(void* pvParameters) {
-  SCD40* instance = (SCD40*)pvParameters;
-
-  while (1) {
-    vTaskDelay(pdMS_TO_TICKS(5000));
-    instance->readScd40();
-  }
-  vTaskDelete(NULL);
 }

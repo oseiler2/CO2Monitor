@@ -79,6 +79,7 @@ void Model::updateModel(uint16_t _pm0_5, uint16_t _pm1, uint16_t _pm2_5, uint16_
 }
 
 void Model::configurationChanged() {
+  updateStatus();
   modelUpdatedEvt(M_CONFIG_CHANGED, this->status, this->status);
 }
 

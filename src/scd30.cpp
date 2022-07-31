@@ -13,16 +13,7 @@
 static const char TAG[] = __FILE__;
 
 #define MAX_RETRY 5
-
-const uint32_t X_CMD_DATA_READY = bit(1);
-
-TaskHandle_t handleForInt;
-
-static void IRAM_ATTR measurementReady() {
-  BaseType_t high_task_awoken = pdFALSE;
-  if (handleForInt)
-    xTaskNotifyFromISR(handleForInt, X_CMD_DATA_READY, eSetBits, &high_task_awoken);
-}
+#define SCD30_INTERVAL 15
 
 SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback) {
   this->model = _model;
@@ -37,10 +28,9 @@ SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
     ESP_LOGW(TAG, "Failed to find SCD30 chip");
   }
   Wire.setClock(I2C_CLK);
-  ESP_LOGI(TAG, "Wire.getClock(): %u", Wire.getClock());
 
   retry = 0;
-  while (retry < MAX_RETRY && !scd30->setMeasurementInterval(15)) retry++;
+  while (retry < MAX_RETRY && !scd30->setMeasurementInterval(SCD30_INTERVAL)) retry++;
   if (retry >= MAX_RETRY) {
     ESP_LOGW(TAG, "Failed to set measurement interval");
   }
@@ -80,17 +70,17 @@ SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
     ESP_LOGW(TAG, "Failed to start continuous measurement");
   }
 
-  pinMode(SCD30_RDY_PIN, INPUT);
-
   I2C::giveMutex();
   initialised = true;
   ESP_LOGD(TAG, "SCD30 initialised");
 }
 
 SCD30::~SCD30() {
-  detachInterrupt(SCD30_RDY_PIN);
-  if (this->task) vTaskDelete(this->task);
   if (this->scd30) delete scd30;
+}
+
+uint32_t SCD30::getInterval() {
+  return SCD30_INTERVAL;
 }
 
 boolean SCD30::readScd30() {
@@ -159,43 +149,4 @@ boolean SCD30::setAmbientPressure(uint16_t ambientPressureInHpa) {
   }
   I2C::giveMutex();
   return success;
-}
-
-TaskHandle_t SCD30::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
-  xTaskCreatePinnedToCore(
-    this->scd30Loop,  // task function
-    name,             // name of task
-    stackSize,        // stack size of task
-    this,             // parameter of the task
-    priority,         // priority of the task
-    &task,            // task handle
-    core);            // CPU core
-  handleForInt = this->task;
-  attachInterrupt(SCD30_RDY_PIN, measurementReady, RISING);
-  return this->task;
-}
-
-void SCD30::scd30Loop(void* pvParameters) {
-  SCD30* instance = (SCD30*)pvParameters;
-  uint32_t taskNotification;
-  BaseType_t notified;
-
-  while (1) {
-    notified = xTaskNotifyWait(0x00,  // Don't clear any bits on entry
-      ULONG_MAX,                      // Clear all bits on exit
-      &taskNotification,              // Receives the notification value
-      pdMS_TO_TICKS(1000));
-    if (notified == pdPASS) {
-      if (taskNotification & X_CMD_DATA_READY) {
-        taskNotification &= ~X_CMD_DATA_READY;
-        instance->readScd30();
-      }
-    } else {
-      if (digitalRead(SCD30_RDY_PIN)) {
-        ESP_LOGD(TAG, "Missed Interrupt - updating out of band");
-        instance->readScd30();
-      }
-    }
-  }
-  vTaskDelete(NULL);
 }

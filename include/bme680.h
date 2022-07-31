@@ -15,18 +15,15 @@ public:
   BME680(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback);
   ~BME680();
 
-  TaskHandle_t start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core);
+  boolean readBme680();
+  uint32_t getInterval();
 
 private:
   Bsec* bme680;
   Model* model;
   updateMessageCallback_t updateMessageCallback;
 
-  TaskHandle_t task;
-
-  boolean readBme680();
   static void bme680Loop(void* pvParameters);
-
 
   void checkIaqSensorStatus();
   void loadState(void);
