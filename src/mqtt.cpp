@@ -80,7 +80,7 @@ namespace mqtt {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
     }
-    ESP_LOGI(TAG, "Publishing sensor values: %s:%s", topic, msg);
+    ESP_LOGD(TAG, "Publishing sensor values: %s:%s", topic, msg);
     if (!mqtt_client->publish(topic, msg)) ESP_LOGE(TAG, "publish failed!");
   }
 

@@ -5,6 +5,7 @@
 #include <WiFi.h>
 
 #include <mqtt.h>
+#include <sensors.h>
 #include <scd30.h>
 #include <scd40.h>
 #include <sps_30.h>
@@ -33,10 +34,7 @@ SCD30* scd30;
 SCD40* scd40;
 SPS_30* sps30;
 BME680* bme680;
-TaskHandle_t scd30Task;
-TaskHandle_t scd40Task;
-TaskHandle_t sps30Task;
-TaskHandle_t bme680Task;
+TaskHandle_t sensorsTask;
 
 bool hasLEDs = false;
 bool hasNeoPixel = false;
@@ -200,7 +198,7 @@ void setup() {
     8192,               // stack size of task
     (void*)1,           // parameter of the task
     2,                  // priority of the task
-    &mqtt::mqttTask,          // task handle
+    &mqtt::mqttTask,    // task handle
     0);                 // CPU core
 
   xTaskCreatePinnedToCore(OTA::otaLoop,  // task function
@@ -208,40 +206,15 @@ void setup() {
     8192,               // stack size of task
     (void*)1,           // parameter of the task
     2,                  // priority of the task
-    &OTA::otaTask,          // task handle
+    &OTA::otaTask,      // task handle
     1);                 // CPU core
 
-  if (I2C::scd30Present()) {
-    scd30Task = scd30->start(
-      "scd30Loop",        // name of task
-      4096,               // stack size of task
-      2,                  // priority of the task
-      1);                 // CPU core
-  }
-
-  if (I2C::scd40Present()) {
-    scd40Task = scd40->start(
-      "scd40Loop",        // name of task
-      4096,               // stack size of task
-      2,                  // priority of the task
-      1);                 // CPU core
-  }
-
-  if (I2C::sps30Present()) {
-    sps30Task = sps30->start(
-      "sps30Loop",        // name of task
-      4096,               // stack size of task
-      2,                  // priority of the task
-      1);                 // CPU core
-  }
-
-  if (I2C::bme680Present()) {
-    bme680Task = bme680->start(
-      "bme680Loop",       // name of task
-      4096,               // stack size of task
-      2,                  // priority of the task
-      1);                 // CPU core
-  }
+  Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
+  sensorsTask = Sensors::start(
+    "sensorsLoop",      // name of task
+    4096,               // stack size of task
+    2,                  // priority of the task
+    1);                 // CPU core
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 

@@ -113,24 +113,24 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 
   loadState();
 
-  bsec_virtual_sensor_t sensorList[14] = {
-     BSEC_OUTPUT_IAQ,
-     BSEC_OUTPUT_RAW_TEMPERATURE,
-     BSEC_OUTPUT_RAW_PRESSURE,
-     BSEC_OUTPUT_RAW_HUMIDITY,
-     BSEC_OUTPUT_RAW_GAS,
-     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
-     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
-     BSEC_OUTPUT_STATIC_IAQ,  // <--
-     BSEC_OUTPUT_CO2_EQUIVALENT,
-     BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
-     BSEC_OUTPUT_STABILIZATION_STATUS,
-     BSEC_OUTPUT_RUN_IN_STATUS,
-     BSEC_OUTPUT_COMPENSATED_GAS,
-     BSEC_OUTPUT_GAS_PERCENTAGE,
+  bsec_virtual_sensor_t sensorList[6] = {
+    BSEC_OUTPUT_IAQ,
+    BSEC_OUTPUT_RAW_PRESSURE,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
+    BSEC_OUTPUT_STABILIZATION_STATUS,
+    BSEC_OUTPUT_RUN_IN_STATUS,
+    //  BSEC_OUTPUT_RAW_TEMPERATURE,
+    //  BSEC_OUTPUT_RAW_HUMIDITY,
+    //  BSEC_OUTPUT_RAW_GAS,
+    //  BSEC_OUTPUT_STATIC_IAQ,  // <--
+    //  BSEC_OUTPUT_CO2_EQUIVALENT,
+    //  BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
+    //  BSEC_OUTPUT_COMPENSATED_GAS,
+    //  BSEC_OUTPUT_GAS_PERCENTAGE,
   };
 
-  bme680->updateSubscription(sensorList, 14, SAMPLE_RATE);
+  bme680->updateSubscription(sensorList, 6, SAMPLE_RATE);
   checkIaqSensorStatus();
 
   I2C::giveMutex();
@@ -138,8 +138,11 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 }
 
 BME680::~BME680() {
-  if (this->task) vTaskDelete(this->task);
   if (this->bme680) delete bme680;
+}
+
+uint32_t BME680::getInterval() {
+  return floor(1 / SAMPLE_RATE);
 }
 
 boolean BME680::readBme680() {
@@ -150,7 +153,7 @@ boolean BME680::readBme680() {
   boolean run = bme680->run();
   I2C::giveMutex();
   if (run) { // If new data is available
-    ESP_LOGD(TAG, "IAQ: %.1f, acc: %u/%.1f/%.1f, Temp: %.1fC (raw %.1fC), Hum: %.1f%% (raw %.1f%%), Pressure: %.1fhPa", bme680->iaq, bme680->iaqAccuracy, bme680->runInStatus, bme680->stabStatus, bme680->temperature, bme680->rawTemperature, bme680->humidity, bme680->rawHumidity, bme680->pressure / 100);
+    ESP_LOGD(TAG, "IAQ: %.1f, acc: %u/%.1f/%.1f, Temp: %.1fC, Hum: %.1f%%, Pressure: %.1fhPa", bme680->iaq, bme680->iaqAccuracy, bme680->runInStatus, bme680->stabStatus, bme680->temperature, bme680->humidity, bme680->pressure / 100);
     //    ESP_LOGD(TAG, "Temperature: %.1f C (raw %.1f C)", bme680->temperature, bme680->rawTemperature);
     //    ESP_LOGD(TAG, "Humidity: %.1f %% (raw %.1f %%)", bme680->humidity, bme680->rawHumidity);
     //    ESP_LOGD(TAG, "Pressure: %.1f hPa", bme680->pressure / 100);
@@ -181,26 +184,4 @@ boolean BME680::readBme680() {
     return false;
   }
   return true;
-}
-
-TaskHandle_t BME680::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
-  xTaskCreatePinnedToCore(
-    this->bme680Loop,  // task function
-    name,             // name of task
-    stackSize,        // stack size of task
-    this,             // parameter of the task
-    priority,         // priority of the task
-    &task,            // task handle
-    core);            // CPU core
-  return this->task;
-}
-
-void BME680::bme680Loop(void* pvParameters) {
-  BME680* instance = (BME680*)pvParameters;
-
-  while (1) {
-    vTaskDelay(pdMS_TO_TICKS(1 / SAMPLE_RATE * 1000));
-    instance->readBme680();
-  }
-  vTaskDelete(NULL);
 }

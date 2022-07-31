@@ -67,8 +67,11 @@ SPS_30::SPS_30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 }
 
 SPS_30::~SPS_30() {
-  if (this->task) vTaskDelete(this->task);
   if (this->sps30) delete sps30;
+}
+
+uint32_t SPS_30::getInterval() {
+  return 60;
 }
 
 boolean SPS_30::readSps30() {
@@ -110,7 +113,6 @@ boolean SPS_30::readSps30() {
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("");
 #endif
-  ESP_LOGD(TAG, "result: %x", result);
   if (result == SPS30_ERR_OK) {
     ESP_LOGD(TAG, "SPS30 MassPM1:%.1f, MassPM2:%.1f, MassPM4:%.1f, MassPM10:%.1f, NumPM0:%.1f, NumPM1:%.1f, NumPM2:%.1f, NumPM4:%.1f, NumPM10:%.1f, PartSize:%.1f",
       values.MassPM1, values.MassPM2, values.MassPM4, values.MassPM10, values.NumPM0, values.NumPM1, values.NumPM2, values.NumPM4, values.NumPM10, values.PartSize);
@@ -180,26 +182,4 @@ boolean SPS_30::clean() {
   this->updateMessageCallback("");
 #endif
   return result;
-}
-
-TaskHandle_t SPS_30::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
-  xTaskCreatePinnedToCore(
-    this->sps30Loop,  // task function
-    name,             // name of task
-    stackSize,        // stack size of task
-    this,             // parameter of the task
-    priority,         // priority of the task
-    &task,            // task handle
-    core);            // CPU core
-  return this->task;
-}
-
-void SPS_30::sps30Loop(void* pvParameters) {
-  SPS_30* instance = (SPS_30*)pvParameters;
-
-  while (1) {
-    vTaskDelay(pdMS_TO_TICKS(60000));
-    instance->readSps30();
-  }
-  vTaskDelete(NULL);
 }
