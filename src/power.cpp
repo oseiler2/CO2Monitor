@@ -36,7 +36,9 @@ namespace Power {
   boolean setPowerMode(PowerMode pMode) {
     if (pMode == PM_UNDEFINED) return false;
     if (!Battery::batteryPresent() && pMode == BATTERY) return false;
+    if (pMode == powermode) return true;
     powermode = pMode;
+    if (model) model->powerModeChanged();
     ESP_LOGI(TAG, "Power mode: %s", powermode == PM_UNDEFINED ? "PM_UNDEFINED" : (powermode == USB ? "USB" : "Battery"));
 
     // @TODO: make all necessary calls to enable or disable Wifi, MQTT, task loops, etc, also intervals/modes for sensors
