@@ -254,8 +254,6 @@ boolean loadConfiguration(Config& config) {
   config.hub75Oe = doc["hub75Oe"] | DEFAULT_HUB75_OE;
 
   file.close();
-  ESP_LOGD(TAG, "###################### loadConfiguration");
-  logConfiguration(config);
   return true;
 }
 

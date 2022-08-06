@@ -1,3 +1,5 @@
+#if CONFIG_IDF_TARGET_ESP32
+
 #include <hub75.h>
 #include <config.h>
 #include <configManager.h>
@@ -89,3 +91,5 @@ void HUB75::timer() {
     toggle = !toggle;
   }
 }
+
+#endif

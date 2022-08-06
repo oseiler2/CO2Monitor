@@ -10,6 +10,4 @@ namespace housekeeping {
   void doHousekeeping(void);
 }
 
-extern TaskHandle_t sensorsTask;
-
 #endif

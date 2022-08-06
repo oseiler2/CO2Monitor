@@ -10,10 +10,11 @@
 
 class Neopixel {
 public:
-  Neopixel(Model* model, uint8_t pin, uint8_t numPixel);
+  Neopixel(Model* model, uint8_t pin, uint8_t numPixel, boolean initFromSleep);
   ~Neopixel();
 
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
+  void off();
 
 private:
   void fill(uint32_t c);
@@ -23,6 +24,11 @@ private:
   Model* model;
   Ticker* cyclicTimer;
   boolean toggle;
+
+  uint32_t colourRed;
+  uint32_t colourYellow;
+  uint32_t colourGreen;
+  uint32_t colourOff;
 };
 
 #endif

@@ -12,7 +12,7 @@ namespace I2C {
 #define SPS30_I2C_ADR 0x69
 #define BME680_I2C_ADR 0x76
 
-  void initI2C();
+  void initI2C(boolean fullScan);
   void shutDownI2C();
 
   boolean takeMutex(TickType_t blockTime);

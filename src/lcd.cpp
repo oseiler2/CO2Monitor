@@ -10,23 +10,29 @@
 #include <Fonts/FreeMonoBold24pt7b.h>
 #include <Fonts/FreeMonoBold18pt7b.h>
 #include <Fonts/FreeMono9pt7b.h>
+#include <battery.h>
 
 #define FONT_64 &FreeMonoBold24pt7b
 #define FONT_32 &FreeMonoBold18pt7b
 #define FONT_9 &FreeMono9pt7b
 
-LCD::LCD(TwoWire* _wire, Model* _model) {
+// Local logging tag
+static const char TAG[] = __FILE__;
+
+LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
   priorityMessageActive = false;
   this->model = _model;
-  display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, 50000, I2C_CLK);
+  display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, I2C_CLK, I2C_CLK);
 
   if (!I2C::takeMutex(portMAX_DELAY)) return;
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
-  this->display->begin(SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADR);  // initialize with the I2C addr 0x3C (for the 128x32)
+  this->display->begin(SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADR, false, false);  // initialize with the I2C addr 0x3C (for the 128x32)
 
-  // Clear the buffer.
-  this->display->clearDisplay();
-  this->display->display();
+  if (!reinitFromSleep) {
+    // Clear the buffer.
+    this->display->clearDisplay();
+    this->display->display();
+  }
   this->display->setTextColor(WHITE);
   I2C::giveMutex();
 }
@@ -83,28 +89,30 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
 
   // see if only CO2 sensor is present
-  if ((I2C::scd30Present() || I2C::scd40Present()) && !I2C::bme680Present() && !I2C::sps30Present()) {
-    // 8-24 vs 12-40
-    this->display->writeFillRect(4, line1_y, 120, line_height * 3, BLACK);
-    this->display->setTextSize(1);
-    if (config.ssd1306Rows == 32) {
-      this->display->setFont(FONT_32);
-      this->display->setCursor(4, 22);
-    } else {
-      this->display->setFont(FONT_64);
-      this->display->setCursor(4, 46);
-    }
-
-    if (model->getCo2() == 0) {
-      this->display->print("----");
-    } else {
-      this->display->printf("%4u", model->getCo2());
-    }
-    if (config.ssd1306Rows == 32) {
-      this->display->setFont(FONT_9);
-      this->display->setCursor(this->display->getCursorX(), this->display->getCursorY() - 3);
+  if ((I2C::scd30Present() || I2C::scd40Present()) && (!I2C::bme680Present() || model->getIAQ() == 0) && !I2C::sps30Present()) {
+    if (mask & M_CO2) {
+      // 8-24 vs 12-40
+      this->display->writeFillRect(4, line1_y, 120, line_height * 3, BLACK);
       this->display->setTextSize(1);
-      this->display->print("ppm");
+      if (config.ssd1306Rows == 32) {
+        this->display->setFont(FONT_32);
+        this->display->setCursor(4, 22);
+      } else {
+        this->display->setFont(FONT_64);
+        this->display->setCursor(4, 46);
+      }
+
+      if (model->getCo2() == 0) {
+        this->display->print("----");
+      } else {
+        this->display->printf("%4u", model->getCo2());
+      }
+      if (config.ssd1306Rows == 32) {
+        this->display->setFont(FONT_9);
+        this->display->setCursor(this->display->getCursorX(), this->display->getCursorY() - 3);
+        this->display->setTextSize(1);
+        this->display->print("ppm");
+      }
     }
   }
   // CO2 and other sensors present
@@ -151,7 +159,12 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   this->display->setFont(NULL);
   this->display->setTextSize(1);
   this->display->setCursor(0, temp_hum_y);
-  this->display->printf("temp: %3.1f  hum: %2.0f%%", model->getTemperature(), model->getHumidity());
+  uint16_t mV = model->getVoltageInMv();
+  if (mV > 0) {
+    this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
+  } else {
+    this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
+  }
 
   this->display->display();
   I2C::giveMutex();

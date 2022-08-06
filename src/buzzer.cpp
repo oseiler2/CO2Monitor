@@ -7,7 +7,7 @@ static const char TAG[] = __FILE__;
 #define PWM_RESOULTION_BUZZER     8
 #define BUZZER_DUTY               128
 
-Buzzer::Buzzer(Model* _model, uint8_t _buzzerPin) {
+Buzzer::Buzzer(Model* _model, uint8_t _buzzerPin, boolean reinitFromSleep) {
   this->model = _model;
   this->buzzerPin = _buzzerPin;
   cyclicTimer = new Ticker();
@@ -32,18 +32,28 @@ Buzzer::Buzzer(Model* _model, uint8_t _buzzerPin) {
   pinMode(this->buzzerPin, OUTPUT);
   ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER, PWM_RESOULTION_BUZZER);
   ledcAttachPin(this->buzzerPin, PWM_CHANNEL_BUZZER);
-  ledcWrite(PWM_CHANNEL_BUZZER, BUZZER_DUTY);
-  delay(300);
-  ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER + 500, PWM_RESOULTION_BUZZER);
-  delay(300);
-  ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER + 1000, PWM_RESOULTION_BUZZER);
-  delay(300);
+  if (!reinitFromSleep) {
+    ledcWrite(PWM_CHANNEL_BUZZER, BUZZER_DUTY);
+    delay(300);
+    ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER + 500, PWM_RESOULTION_BUZZER);
+    delay(300);
+    ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER + 1000, PWM_RESOULTION_BUZZER);
+    delay(300);
+  }
   ledcWrite(PWM_CHANNEL_BUZZER, 0);
-  ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER, PWM_RESOULTION_BUZZER);
 }
 
 Buzzer::~Buzzer() {
   if (this->cyclicTimer) delete cyclicTimer;
+}
+
+void Buzzer::alert() {
+  for (uint8_t i = 0; i < 5;i++) {
+    ledcWrite(PWM_CHANNEL_BUZZER, BUZZER_DUTY);
+    delay(50);
+    ledcWrite(PWM_CHANNEL_BUZZER, 0);
+    delay(50);
+  }
 }
 
 void Buzzer::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {

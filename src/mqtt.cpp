@@ -28,9 +28,12 @@ namespace mqtt {
 
   const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
   const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
+  const uint8_t X_CMD_SHUTDOWN = bit(2);
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
+
+  volatile boolean shutdownInProgress = false;
 
   WiFiClient* wifiClient;
   PubSubClient* mqtt_client;
@@ -45,6 +48,7 @@ namespace mqtt {
   getSPS30StatusCallback_t getSPS30StatusCallback;
 
   void publishSensors(uint16_t mask) {
+    if (!WiFi.isConnected() || !mqtt_client->connected() || shutdownInProgress) return;
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_SENSORS;
     msg.mask = mask;
@@ -88,7 +92,7 @@ namespace mqtt {
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_CONFIGURATION;
     msg.mask = 0;
-    xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
   void publishConfigurationInternal() {
@@ -252,7 +256,7 @@ namespace mqtt {
     char buf[256];
     sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     while (!WiFi.isConnected()) { vTaskDelay(pdMS_TO_TICKS(100)); }
-    while (!mqtt_client->connected()) {
+    while (!mqtt_client->connected() && !shutdownInProgress) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
       vTaskDelay(pdMS_TO_TICKS(10));
       if (mqtt_client->connect(buf, config.mqttUsername, config.mqttPassword)) {
@@ -328,6 +332,17 @@ namespace mqtt {
   }
 
   void shutDownMqtt() {
+    ESP_LOGD(TAG, "shutDownMqtt");
+    if (mqttQueue) {
+      MqttMessage msg;
+      msg.cmd = X_CMD_SHUTDOWN;
+      msg.mask = 0;
+      xQueueSendToFront(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+      while (!shutdownInProgress) {
+        vTaskDelay(pdMS_TO_TICKS(50));
+      }
+      mqttQueue = NULL;
+    }
     if (mqtt_client && mqtt_client->connected()) {
       char buf[256];
       sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
@@ -342,6 +357,7 @@ namespace mqtt {
     if (mqttTask) {
       vTaskDelete(mqttTask);
     }
+    ESP_LOGD(TAG, "done");
   }
 
   void mqttLoop(void* pvParameters) {
@@ -349,15 +365,19 @@ namespace mqtt {
     BaseType_t notified;
     MqttMessage msg;
     while (1) {
-      notified = xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
-      if (notified == pdPASS) {
-        if (msg.cmd == X_CMD_PUBLISH_CONFIGURATION) {
-          publishConfigurationInternal();
-        } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
-          publishSensorsInternal(msg.mask);
+      if (mqttQueue && !shutdownInProgress) {
+        notified = xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
+        if (notified == pdPASS && !shutdownInProgress) {
+          if (msg.cmd == X_CMD_PUBLISH_CONFIGURATION) {
+            publishConfigurationInternal();
+          } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
+            publishSensorsInternal(msg.mask);
+          } else if (msg.cmd == X_CMD_SHUTDOWN) {
+            shutdownInProgress = true;
+          }
         }
       }
-      if (!mqtt_client->connected()) {
+      if (!mqtt_client->connected() && !shutdownInProgress) {
         reconnect();
       }
       mqtt_client->loop();

@@ -1,3 +1,5 @@
+#if CONFIG_IDF_TARGET_ESP32
+
 #ifndef _HUB75_H
 #define _HUB75_H
 
@@ -25,5 +27,7 @@ private:
   Ticker* cyclicTimer;
   boolean toggle;
 };
+
+#endif
 
 #endif

@@ -17,6 +17,7 @@ Model::Model(modelUpdatedEvt_t _modelUpdatedEvt) {
   this->pm10 = 0;
   this->modelUpdatedEvt = _modelUpdatedEvt;
   this->status = UNDEFINED;
+  this->voltageInMv = 0;
 }
 
 Model::~Model() {}
@@ -78,9 +79,22 @@ void Model::updateModel(uint16_t _pm0_5, uint16_t _pm1, uint16_t _pm2_5, uint16_
   modelUpdatedEvt(M_PM0_5 | M_PM1_0 | M_PM2_5 | M_PM4 | M_PM10, this->status, this->status);
 }
 
+void Model::updateModel(uint16_t _mV) {
+  this->voltageInMv = _mV;
+  modelUpdatedEvt(M_VOLTAGE, this->status, this->status);
+}
+
+void Model::powerModeChanged() {
+  modelUpdatedEvt(M_POWER_MODE, this->status, this->status);
+}
+
 void Model::configurationChanged() {
   updateStatus();
   modelUpdatedEvt(M_CONFIG_CHANGED, this->status, this->status);
+}
+
+void Model::setStatus(TrafficLightStatus _status) {
+  this->status = _status;
 }
 
 TrafficLightStatus Model::getStatus() {
@@ -125,5 +139,9 @@ uint16_t Model::getPM4() {
 
 uint16_t Model::getPM10() {
   return this->pm10;
+}
+
+uint16_t Model::getVoltageInMv() {
+  return this->voltageInMv;
 }
 

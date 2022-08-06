@@ -10,7 +10,7 @@
 
 class FeatherMatrix {
 public:
-  FeatherMatrix(Model* model, uint8_t dataPin, uint8_t clockPin);
+  FeatherMatrix(Model* model, uint8_t dataPin, uint8_t clockPin, boolean initFromSleep);
   ~FeatherMatrix();
 
   void update(uint16_t, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);

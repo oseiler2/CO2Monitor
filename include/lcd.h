@@ -9,7 +9,7 @@
 
 class LCD {
 public:
-  LCD(TwoWire* pwire, Model* model);
+  LCD(TwoWire* pwire, Model* model, boolean initFromSleep);
   ~LCD();
 
   void updateMessage(char const* msg);

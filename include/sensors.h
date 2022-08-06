@@ -16,6 +16,10 @@ namespace Sensors {
 
   void sensorsLoop(void* pvParameters);
 
+  void runOnce();
+
+  void shutDownSensorsLoop();
+
   extern TaskHandle_t sensorsTask;
 
 }

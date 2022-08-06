@@ -24,7 +24,7 @@ boolean SPS_30::checkError(uint16_t error, char const* msg) {
   return true;
 }
 
-SPS_30::SPS_30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback) {
+SPS_30::SPS_30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean reinitFromSleep) {
   this->model = _model;
   this->updateMessageCallback = _updateMessageCallback;
   this->sps30 = new SPS30();

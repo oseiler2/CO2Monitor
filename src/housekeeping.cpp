@@ -2,6 +2,9 @@
 #include <mqtt.h>
 #include <i2c.h>
 #include <ota.h>
+#include <sensors.h>
+#include <power.h>
+#include <battery.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -17,9 +20,9 @@ namespace housekeeping {
       uxTaskGetStackHighWaterMark(mqtt::mqttTask), eTaskGetState(mqtt::mqttTask));
     ESP_LOGD(TAG, "Otaloop %d bytes left | Taskstate = %d",
       uxTaskGetStackHighWaterMark(OTA::otaTask), eTaskGetState(OTA::otaTask));
-    if (sensorsTask) {
+    if (Sensors::sensorsTask) {
       ESP_LOGD(TAG, "SensorsLoop %d bytes left | Taskstate = %d",
-        uxTaskGetStackHighWaterMark(sensorsTask), eTaskGetState(sensorsTask));
+        uxTaskGetStackHighWaterMark(Sensors::sensorsTask), eTaskGetState(Sensors::sensorsTask));
     }
 
     if (ESP.getMinFreeHeap() <= 2048) {
@@ -31,6 +34,24 @@ namespace housekeeping {
       esp_restart();
     }
 
+    Battery::readVoltage();
+    switch (Power::getPowerMode()) {
+      case USB:
+        if (!Battery::usbPowerPresent() && Battery::getBatteryLevelInPercent(Battery::getBatteryLevelInmV()) < 50) {
+          ESP_LOGI(TAG, "Switching to Battery power!");
+          Power::setPowerMode(BATTERY);
+        }
+        break;
+      case BATTERY:
+        if (Battery::usbPowerPresent()) {
+          ESP_LOGI(TAG, "Switching to USB power!");
+          Power::setPowerMode(USB);
+          // @TODO: might need reboot to properly initialise everything
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   uint32_t getFreeRAM() {

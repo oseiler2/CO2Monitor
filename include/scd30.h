@@ -11,7 +11,7 @@
 
 class SCD30 {
 public:
-  SCD30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback);
+  SCD30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean initFromSleep);
   ~SCD30();
 
   boolean readScd30();

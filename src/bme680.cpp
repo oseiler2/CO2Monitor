@@ -19,13 +19,26 @@ const uint8_t bsec_config_iaq[] = {
 uint8_t bsecState[BSEC_MAX_STATE_BLOB_SIZE] = { 0 };
 uint16_t stateUpdateCounter = 0;
 
-const float SAMPLE_RATE = BSEC_SAMPLE_RATE_LP;
+bsec_virtual_sensor_t sensorList[6] = {
+    BSEC_OUTPUT_IAQ,
+    BSEC_OUTPUT_RAW_PRESSURE,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
+    BSEC_OUTPUT_STABILIZATION_STATUS,
+    BSEC_OUTPUT_RUN_IN_STATUS,
+    //  BSEC_OUTPUT_RAW_TEMPERATURE,
+    //  BSEC_OUTPUT_RAW_HUMIDITY,
+    //  BSEC_OUTPUT_RAW_GAS,
+    //  BSEC_OUTPUT_STATIC_IAQ,  // <--
+    //  BSEC_OUTPUT_CO2_EQUIVALENT,
+    //  BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
+    //  BSEC_OUTPUT_COMPENSATED_GAS,
+    //  BSEC_OUTPUT_GAS_PERCENTAGE,
+};
 
 void BME680::loadState(void) {
   if (EEPROM.read(0) == BSEC_MAX_STATE_BLOB_SIZE) {
-
-    ESP_LOGD(TAG, "Reading state from EEPROM");
-
+    //    ESP_LOGD(TAG, "Reading state from EEPROM");
     for (uint8_t i = 0; i < BSEC_MAX_STATE_BLOB_SIZE; i++) {
       bsecState[i] = EEPROM.read(i + 1);
       //      Serial.println(bsecState[i], HEX);
@@ -94,44 +107,35 @@ void BME680::checkIaqSensorStatus() {
   }
 }
 
-BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback) {
+BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean reinitFromSleep) {
   this->model = _model;
   this->updateMessageCallback = _updateMessageCallback;
   this->bme680 = new Bsec();
+  this->sampleRate = BSEC_SAMPLE_RATE_LP;
   ESP_LOGD(TAG, "Initialising BME680");
 
   EEPROM.begin(BSEC_MAX_STATE_BLOB_SIZE + 1); // 1st address for the length
   if (!I2C::takeMutex(portMAX_DELAY)) return;
 
   bme680->begin(BME680_I2C_ADDR_PRIMARY, *wire);
-  bme680->setTemperatureOffset(7.0);
-
-  checkIaqSensorStatus();
-
-  bme680->setConfig(bsec_config_iaq);
-  checkIaqSensorStatus();
 
   loadState();
 
-  bsec_virtual_sensor_t sensorList[6] = {
-    BSEC_OUTPUT_IAQ,
-    BSEC_OUTPUT_RAW_PRESSURE,
-    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
-    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
-    BSEC_OUTPUT_STABILIZATION_STATUS,
-    BSEC_OUTPUT_RUN_IN_STATUS,
-    //  BSEC_OUTPUT_RAW_TEMPERATURE,
-    //  BSEC_OUTPUT_RAW_HUMIDITY,
-    //  BSEC_OUTPUT_RAW_GAS,
-    //  BSEC_OUTPUT_STATIC_IAQ,  // <--
-    //  BSEC_OUTPUT_CO2_EQUIVALENT,
-    //  BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
-    //  BSEC_OUTPUT_COMPENSATED_GAS,
-    //  BSEC_OUTPUT_GAS_PERCENTAGE,
-  };
+  if (reinitFromSleep) {
+    this->sampleRate = BSEC_SAMPLE_RATE_ULP;
+  } else {
+    this->sampleRate = BSEC_SAMPLE_RATE_LP;
 
-  bme680->updateSubscription(sensorList, 6, SAMPLE_RATE);
-  checkIaqSensorStatus();
+    bme680->setTemperatureOffset(7.0);
+
+    checkIaqSensorStatus();
+
+    bme680->setConfig(bsec_config_iaq);
+    checkIaqSensorStatus();
+
+    bme680->updateSubscription(sensorList, 6, this->sampleRate);
+    checkIaqSensorStatus();
+  }
 
   I2C::giveMutex();
   ESP_LOGD(TAG, "BME680 initialised");
@@ -142,10 +146,11 @@ BME680::~BME680() {
 }
 
 uint32_t BME680::getInterval() {
-  return floor(1 / SAMPLE_RATE);
+  return floor(1 / this->sampleRate);
 }
 
 boolean BME680::readBme680() {
+  ESP_LOGD(TAG, "BME680::readBme680()");
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readBme680");
 #endif
@@ -185,3 +190,41 @@ boolean BME680::readBme680() {
   }
   return true;
 }
+
+boolean BME680::setSampleRate(Bme680SampleRate _sampleRate) {
+  // ESP_LOGD(TAG, "BME680::setSampleRate()");
+  switch (_sampleRate) {
+    case ULP:
+      if (this->sampleRate != BSEC_SAMPLE_RATE_ULP) {
+        this->sampleRate = BSEC_SAMPLE_RATE_ULP;
+        if (bme680) {
+          if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+          bme680->updateSubscription(sensorList, 6, this->sampleRate);
+          I2C::giveMutex();
+          checkIaqSensorStatus();
+        }
+      }
+      break;
+    case LP:
+      if (this->sampleRate != BSEC_SAMPLE_RATE_LP) {
+        this->sampleRate = BSEC_SAMPLE_RATE_LP;
+        if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+        bme680->updateSubscription(sensorList, 6, this->sampleRate);
+        I2C::giveMutex();
+        checkIaqSensorStatus();
+      }
+      break;
+    case CONTINUOUS:
+      if (this->sampleRate != BSEC_SAMPLE_RATE_CONTINUOUS) {
+        this->sampleRate = BSEC_SAMPLE_RATE_CONTINUOUS;
+        if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+        bme680->updateSubscription(sensorList, 6, this->sampleRate);
+        I2C::giveMutex();
+        checkIaqSensorStatus();
+      }
+      break;
+  }
+  // ESP_LOGD(TAG, "done");
+  return true;
+}
+

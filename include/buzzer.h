@@ -10,10 +10,12 @@
 
 class Buzzer {
 public:
-  Buzzer(Model* model, uint8_t buzzerPin);
+  Buzzer(Model* model, uint8_t buzzerPin, boolean initFromSleep);
   ~Buzzer();
 
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
+
+  void alert();
 
 private:
 

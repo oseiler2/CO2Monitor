@@ -23,7 +23,7 @@
 //   DOTSTAR_GBR  Pixels are wired for GBR bitstream (some older DotStars)
 //   DOTSTAR_BGR  Pixels are wired for BGR bitstream (APA102-2020 DotStars)
 
-FeatherMatrix::FeatherMatrix(Model* _model, uint8_t dataPin, uint8_t clockPin) {
+FeatherMatrix::FeatherMatrix(Model* _model, uint8_t dataPin, uint8_t clockPin, boolean reinitFromSleep) {
   this->model = _model;
   this->matrix = new Adafruit_DotStarMatrix(
     12, 6, dataPin, clockPin,

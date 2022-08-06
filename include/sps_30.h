@@ -11,7 +11,7 @@
 
 class SPS_30 {
 public:
-  SPS_30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback);
+  SPS_30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean initFromSleep);
   ~SPS_30();
 
   boolean readSps30();
