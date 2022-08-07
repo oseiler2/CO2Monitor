@@ -84,9 +84,17 @@ These CO2 Monitors have been tested in collaboration with researchers from the p
 
 Supports [ESPAsync WiFiManager](https://github.com/khoih-prog/ESPAsync_WiFiManager) to set up wireless credentials and further configuration.
 
-If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`. A password can be configured in the file `extra.ini` which needs to be created by copying [extra.template.ini](extra.template.ini) and applying the desired changes.
+### Up to v1.2.3
+
+If no wifi credentials have been configured yet it will automatically launch an AP using the SSID `CO2-Monitor-<ESP32mac>`.
 
 Once wifi credentials have been configured briefly pressing the `Boot` button on the ESP32 puts the device in configuration mode:
+
+### From v1.2.4
+
+Pressing the `Boot` button for less than 2 seconds launches an AP using the SSID `CO2-Monitor-<ESP32mac>`. Connecting to this AP allows the Wifi credentials for the monitor to be set.
+
+A password for the AP can be configured in the file `extra.ini` which needs to be created by copying [extra.template.ini](extra.template.ini) and applying the desired changes.
 
 <img src="img/configuration.png">
 
@@ -299,6 +307,10 @@ Other I2C based sensors can be wired using the JST-PH I2C header.
 # Calibration
 
 CO2 sensors need to be regularly calibrated to provide reliable measurements. The used sensors support auto-calibration and that is enabled in the firmware. It works by looking over measurements over a period and calibrating the lowest value against 420ppm (configurable in the firmware). This is based on the assumption that the monitor 'sees' clean outside air about once a week. If that cannot be achieved the firmware also allows for a forced calibration against a given value. Please also make sure to set the altitude setting according to the monitor location. For details please check the sensor's datasheets.
+
+### From v1.2.4
+
+Manual calibration can be triggered by pressing the `Boot` button for more than 5 seconds. Make sure the monitor has been exposed to fresh outside air for a while and be carful not to breathe towards the monitor when doing this.
 
 # Hardware
 

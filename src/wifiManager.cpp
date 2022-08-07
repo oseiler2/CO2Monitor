@@ -402,14 +402,6 @@ namespace WifiManager {
   }
 
   void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {
-
-    // try to connect with known settings
-    WiFi.begin();
-    uint8_t i = 0;
-    while (WiFi.status() != WL_CONNECTED && i++ < 20) {
-      delay(200);
-    }
-
     if (WiFi.status() != WL_CONNECTED) {
       ESP_LOGD(TAG, "Could not connect to Wifi using known settings");
       AsyncWebServer webServer(HTTP_PORT);
