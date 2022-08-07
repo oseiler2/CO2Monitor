@@ -101,6 +101,15 @@ boolean SCD40::startMeasurement() {
   return false;
 }
 
+void SCD40::shutdown() {
+  if (this->scd40) {
+    if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
+    boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
+    success = checkError(scd40->powerDown(), "powerDown");
+    I2C::giveMutex();
+  }
+}
+
 boolean SCD40::setSampleRate(SCD40SampleRate _sampleRate) {
   // ESP_LOGD(TAG, "SCD40::setSampleRate()");
   if (this->sampleRate != _sampleRate) {

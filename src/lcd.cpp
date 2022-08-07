@@ -22,7 +22,7 @@ static const char TAG[] = __FILE__;
 LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
   priorityMessageActive = false;
   this->model = _model;
-  display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, I2C_CLK, I2C_CLK);
+  display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, 800000, I2C_CLK);
 
   if (!I2C::takeMutex(portMAX_DELAY)) return;
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)

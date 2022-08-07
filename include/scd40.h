@@ -28,6 +28,7 @@ public:
   boolean setAmbientPressure(uint16_t ambientPressureInHpa);
 
   boolean setSampleRate(SCD40SampleRate sampleRate);
+  void shutdown();
 
 private:
   Model* model;

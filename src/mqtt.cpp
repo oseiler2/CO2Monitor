@@ -84,6 +84,10 @@ namespace mqtt {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
     }
+    if (strncmp(msg, "null", 4) == 0) {
+      ESP_LOGD(TAG, "Nothing to publish - mask: %x", mask);
+      return;
+    }
     ESP_LOGD(TAG, "Publishing sensor values: %s:%s", topic, msg);
     if (!mqtt_client->publish(topic, msg)) ESP_LOGE(TAG, "publish failed!");
   }

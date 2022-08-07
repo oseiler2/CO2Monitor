@@ -25,6 +25,7 @@ public:
   uint32_t getInterval();
 
   boolean setSampleRate(Bme680SampleRate sampleRate);
+  void shutdown();
 
 private:
   Bsec* bme680;

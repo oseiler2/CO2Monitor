@@ -17,9 +17,6 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
   toggle = false;
   cyclicTimer = new Ticker();
 
-  // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
-  cyclicTimer->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
-
   this->colourRed = this->strip->Color(255, 0, 0);
   this->colourYellow = this->strip->Color(255, 70, 0);
   this->colourGreen = this->strip->Color(0, 255, 0);
@@ -28,6 +25,9 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
   this->strip->begin();
   this->strip->setBrightness(Power::getPowerMode() == BATTERY ? BAT_BRIGHTNESS : config.brightness);
   if (!reinitFromSleep) {
+    // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
+    cyclicTimer->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
+
     this->strip->show(); // Initialize all pixels to 'off'
     fill(colourRed);
     delay(500);

@@ -10,8 +10,12 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
-const uint8_t bsec_config_iaq[] = {
+const uint8_t bsec_config_iaq_LP[] = {
 #include "config/generic_33v_3s_4d/bsec_iaq.txt"
+};
+
+const uint8_t bsec_config_iaq_ULP[] = {
+#include "config/generic_33v_300s_4d/bsec_iaq.txt"
 };
 
 #define STATE_SAVE_PERIOD	UINT32_C(360 * 60 * 1000) // 360 minutes - 4 times a day
@@ -123,6 +127,8 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 
   if (reinitFromSleep) {
     this->sampleRate = BSEC_SAMPLE_RATE_ULP;
+    bme680->setConfig(bsec_config_iaq_ULP);
+    checkIaqSensorStatus();
   } else {
     this->sampleRate = BSEC_SAMPLE_RATE_LP;
 
@@ -130,7 +136,7 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 
     checkIaqSensorStatus();
 
-    bme680->setConfig(bsec_config_iaq);
+    bme680->setConfig(bsec_config_iaq_LP);
     checkIaqSensorStatus();
 
     bme680->updateSubscription(sensorList, 6, this->sampleRate);
@@ -143,6 +149,15 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 
 BME680::~BME680() {
   if (this->bme680) delete bme680;
+}
+
+void BME680::shutdown() {
+  if (this->bme680) {
+    if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
+    bme680->updateSubscription(sensorList, 6, BSEC_SAMPLE_RATE_DISABLED);
+    checkIaqSensorStatus();
+  }
+  I2C::giveMutex();
 }
 
 uint32_t BME680::getInterval() {
@@ -199,6 +214,8 @@ boolean BME680::setSampleRate(Bme680SampleRate _sampleRate) {
         this->sampleRate = BSEC_SAMPLE_RATE_ULP;
         if (bme680) {
           if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+          bme680->setConfig(bsec_config_iaq_ULP);
+          checkIaqSensorStatus();
           bme680->updateSubscription(sensorList, 6, this->sampleRate);
           I2C::giveMutex();
           checkIaqSensorStatus();
@@ -209,6 +226,8 @@ boolean BME680::setSampleRate(Bme680SampleRate _sampleRate) {
       if (this->sampleRate != BSEC_SAMPLE_RATE_LP) {
         this->sampleRate = BSEC_SAMPLE_RATE_LP;
         if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+        bme680->setConfig(bsec_config_iaq_LP);
+        checkIaqSensorStatus();
         bme680->updateSubscription(sensorList, 6, this->sampleRate);
         I2C::giveMutex();
         checkIaqSensorStatus();
