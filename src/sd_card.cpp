@@ -47,8 +47,6 @@ namespace SdCard {
 
   const char mount_point[] = MOUNT_POINT;
 
-  const char fileName[] = MOUNT_POINT"/log.csv";
-
   boolean probe() {
     pinMode(SD_DETECT, INPUT);
     boolean cardDetected = !digitalRead(SD_DETECT);
@@ -79,6 +77,18 @@ namespace SdCard {
   }
 
   boolean writeEvent(int16_t mask, Model* model, TrafficLightStatus status, uint16_t batInMV) {
+    time_t now;
+    struct tm timeinfo;
+    time(&now);
+    localtime_r(&now, &timeinfo);
+
+    char buf[30];
+    strftime(buf, 11, "%Y-%m-%d", &timeinfo);
+
+    char fileName[30];
+
+    sprintf(fileName, "%s/%s.log.csv", MOUNT_POINT, buf);
+    //    ESP_LOGD(TAG, "filename: %s", fileName);
     ESP_LOGD(TAG, "Opening file %s", fileName);
 
     struct stat st;
@@ -98,7 +108,8 @@ namespace SdCard {
       return false;
     }
 
-    fprintf(f, "%u,", Power::getUpTime());
+    strftime(buf, 30, "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
+    fprintf(f, "%s,", buf);
     if (mask & M_CO2)
       fprintf(f, "%u,", model->getCo2());
     else
