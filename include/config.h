@@ -7,6 +7,8 @@
 
 #if CONFIG_IDF_TARGET_ESP32
 
+#define LED_PIN                2
+#define BTN_1                  0
 #define SDA_PIN              SDA
 #define SCL_PIN              SCL
 #define SCD30_RDY_PIN         35
@@ -39,7 +41,7 @@
 #endif
 
 
-#define I2C_CLK 800000UL
+#define I2C_CLK 100000UL
 #define SCD30_I2C_CLK 50000UL   // SCD30 recommendation of 50kHz
 
 static const char* CONFIG_FILENAME = "/config.json";
