@@ -132,8 +132,8 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if (hasBuzzer && buzzer) buzzer->update(mask, oldStatus, newStatus);
   if ((mask & M_PRESSURE) && I2C::scd40Present() && scd40) scd40->setAmbientPressure(model->getPressure());
   if ((mask & M_PRESSURE) && I2C::scd30Present() && scd30) scd30->setAmbientPressure(model->getPressure());
-  if ((mask & ~(M_CONFIG_CHANGED || M_VOLTAGE)) != M_NONE) mqtt::publishSensors(mask);
-  if (hasSdCard && ((mask & ~(M_CONFIG_CHANGED || M_VOLTAGE)) != M_NONE)) SdCard::writeEvent(mask, model, newStatus, model->getVoltageInMv());
+  if ((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE | M_POWER_MODE)) != M_NONE) mqtt::publishSensors(mask);
+  if (hasSdCard && ((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE)) != M_NONE)) SdCard::writeEvent(mask, model, newStatus, model->getVoltageInMv());
 }
 
 void calibrateCo2SensorCallback(uint16_t co2Reference) {
@@ -216,6 +216,20 @@ void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t 
     }
   } else {
     ESP_LOGD(TAG, "eventHandler %s %u", event_base, event_id);
+  }
+}
+
+Ticker clockTimer;
+
+void showTimeLcd() {
+  if (lcd) {
+    time_t now;
+    struct tm timeinfo;
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    char buf[20];
+    strftime(buf, 20, "%d/%m/%Y %H:%M.%S", &timeinfo);
+    lcd->updateMessage(buf);
   }
 }
 
@@ -338,6 +352,8 @@ void setup() {
     housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
     OTA::setupOta(stopHub75DMA);
+
+    clockTimer.attach(1, showTimeLcd);
   }
 
   attachInterrupt(BTN_1, button1Handler, CHANGE);
@@ -359,11 +375,14 @@ void loop() {
   if (Power::getPowerMode() == BATTERY) {
     Timekeeper::printTime();
     Sensors::runOnce();
+    showTimeLcd();
     uint8_t percent = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
     if (percent < 10) {
       ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
       if (hasBuzzer && buzzer) buzzer->alert();
       if (hasNeoPixel && neopixel) neopixel->off();
+      if (scd40) scd40->shutdown();
+      if (bme680) bme680->shutdown();
       Power::powerDown();
     }
     Power::deepSleep(30);
@@ -408,7 +427,6 @@ void loop() {
       Power::setPowerMode(BATTERY);
       if (scd40) scd40->setSampleRate(LP_PERIODIC);
       if (bme680) bme680->setSampleRate(ULP);
-      // @TODO: if neopixel flashing red then update neopixel to stay on red in cased it's currently off
     }
   }
   if (button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
@@ -419,13 +437,5 @@ void loop() {
     }
   }
 
-  if (Power::getPowerMode() == USB) {
-    if (WiFi.status() != WL_CONNECTED) {
-      //      digitalWrite(LED_PIN, LOW);
-      WifiManager::setupWifi(setPriorityMessage, clearPriorityMessage);
-      //  } else if (WiFi.status() == WL_CONNECTED) {
-        //  digitalWrite(LED_PIN, HIGH);
-    }
-  }
   vTaskDelay(pdMS_TO_TICKS(50));
 }
