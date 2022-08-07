@@ -10,7 +10,8 @@
 
 #define SCD30_RDY_PIN         35
 
-#define I2C_CLK 50000UL   // SCD30 recommendation of 50kHz
+#define I2C_CLK 100000UL
+#define SCD30_I2C_CLK 50000UL   // SCD30 recommendation of 50kHz
 
 static const char* CONFIG_FILENAME = "/config.json";
 static const char* MQTT_ROOT_CA_FILENAME = "/mqtt_root_ca.pem";

@@ -3,7 +3,6 @@
 #include <scd30.h>
 #include <Arduino.h>
 
-#include <model.h>
 #include <configManager.h>
 #include <i2c.h>
 #include <esp32-hal-timer.h>
@@ -21,13 +20,13 @@ SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   this->scd30 = new Adafruit_SCD30();
 
   if (!I2C::takeMutex(portMAX_DELAY)) return;
+  Wire.setClock(SCD30_I2C_CLK);
 
   uint8_t retry = 0;
   while (retry < MAX_RETRY && !scd30->begin(SCD30_I2CADDR_DEFAULT, wire, 0)) retry++;
   if (retry >= MAX_RETRY) {
     ESP_LOGW(TAG, "Failed to find SCD30 chip");
   }
-  Wire.setClock(I2C_CLK);
 
   retry = 0;
   while (retry < MAX_RETRY && !scd30->setMeasurementInterval(SCD30_INTERVAL)) retry++;
@@ -69,7 +68,7 @@ SCD30::SCD30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   if (retry >= MAX_RETRY) {
     ESP_LOGW(TAG, "Failed to start continuous measurement");
   }
-
+  Wire.setClock(I2C_CLK);
   I2C::giveMutex();
   initialised = true;
   ESP_LOGD(TAG, "SCD30 initialised");
@@ -88,7 +87,9 @@ boolean SCD30::readScd30() {
   this->updateMessageCallback("readScd30");
 #endif
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+  Wire.setClock(SCD30_I2C_CLK);
   boolean read = scd30->dataReady() && scd30->read();
+  Wire.setClock(I2C_CLK);
   I2C::giveMutex();
   if (read) {
     ESP_LOGD(TAG, "Temp: %.1fC, rH: %.1f%%, CO2:  %.0fppm", scd30->temperature, scd30->relative_humidity, scd30->CO2);
@@ -108,17 +109,21 @@ boolean SCD30::readScd30() {
 
 boolean SCD30::calibrateScd30ToReference(uint16_t co2Reference) {
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+  Wire.setClock(SCD30_I2C_CLK);
   uint8_t retry = 0;
   while (retry++ < MAX_RETRY && !scd30->forceRecalibrationWithReference(co2Reference));
   ESP_LOGD(TAG, "co2Reference: %u, result %s", co2Reference, (retry < MAX_RETRY) ? "true" : "false");
+  Wire.setClock(I2C_CLK);
   I2C::giveMutex();
   return (retry < MAX_RETRY);
 }
 
 float SCD30::getTemperatureOffset() {
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+  Wire.setClock(SCD30_I2C_CLK);
   float temperatureOffset = scd30->getTemperatureOffset() / 100.0;
   ESP_LOGD(TAG, "Temperature offset: %.1f C", temperatureOffset);
+  Wire.setClock(I2C_CLK);
   I2C::giveMutex();
   return temperatureOffset;
 }
@@ -129,10 +134,12 @@ boolean SCD30::setTemperatureOffset(float temperatureOffset) {
     return false;
   }
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+  Wire.setClock(SCD30_I2C_CLK);
   uint8_t retry = 0;
   while (retry < MAX_RETRY && !scd30->setTemperatureOffset(floor(temperatureOffset * 100))) retry++;
   if (retry >= MAX_RETRY)
     ESP_LOGW(TAG, "Failed to set temperature offset");
+  Wire.setClock(I2C_CLK);
   I2C::giveMutex();
   return (retry < MAX_RETRY);
 }
@@ -143,10 +150,12 @@ boolean SCD30::setAmbientPressure(uint16_t ambientPressureInHpa) {
   lastAmbientPressure = ambientPressureInHpa;
   ESP_LOGD(TAG, "setAmbientPressure: %u", ambientPressureInHpa);
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+  Wire.setClock(SCD30_I2C_CLK);
   boolean success = scd30->startContinuousMeasurement(ambientPressureInHpa);
   if (!success) {
     ESP_LOGD(TAG, "failed to setAmbientPressure");
   }
+  Wire.setClock(I2C_CLK);
   I2C::giveMutex();
   return success;
 }

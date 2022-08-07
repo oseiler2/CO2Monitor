@@ -1,6 +1,7 @@
-#include <i2c.h>
 #include <Arduino.h>
+#include <i2c.h>
 #include <Wire.h>
+#include <config.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -33,8 +34,13 @@ namespace I2C {
   }
 
   static SemaphoreHandle_t i2cMutex = xSemaphoreCreateMutex();
+
   boolean takeMutex(TickType_t blockTime) {
-    //    ESP_LOGD(TAG, "%s attempting to take mutex with blockTime: %u", pcTaskGetTaskName(NULL), blockTime);
+    //  ESP_LOGD(TAG, "%s attempting to take mutex with blockTime: %u", pcTaskGetTaskName(NULL), blockTime);
+    if (i2cMutex == NULL) {
+      ESP_LOGD(TAG, "i2cMutex is NULL unsuccessful <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+      return false;
+    }
     boolean result = (xSemaphoreTake(i2cMutex, blockTime) == pdTRUE);
     if (!result) ESP_LOGD(TAG, "%s take mutex was: %s", pcTaskGetTaskName(NULL), result ? "successful" : "unsuccessful <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     return result;
@@ -53,8 +59,9 @@ namespace I2C {
     if (!takeMutex(portMAX_DELAY)) {
       return;
     }
+    Wire.setClock(SCD30_I2C_CLK);
     byte err, addr;
-    int nDevices = 0;
+    uint8_t nDevices = 0;
     for (addr = 1; addr < 127; addr++) {
       Wire.beginTransmission(addr);
       err = Wire.endTransmission();
@@ -84,6 +91,7 @@ namespace I2C {
     }
     if (nDevices == 0)
       ESP_LOGD(TAG, "No I2C devices found");
+    Wire.setClock(I2C_CLK);
     giveMutex();
   }
 
