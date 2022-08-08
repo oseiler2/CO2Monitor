@@ -19,6 +19,8 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
+extern boolean hasBattery;
+
 LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
   priorityMessageActive = false;
   this->model = _model;
@@ -159,13 +161,16 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   this->display->setFont(NULL);
   this->display->setTextSize(1);
   this->display->setCursor(0, temp_hum_y);
-  uint16_t mV = model->getVoltageInMv();
-  if (mV > 0) {
-    this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
+  if (hasBattery) {
+    uint16_t mV = model->getVoltageInMv();
+    if (mV > 0) {
+      this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
+    } else {
+      this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
+    }
   } else {
-    this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
+    this->display->printf("Temp:%3.1fC Hum:%2.0f%%rH", model->getTemperature(), model->getHumidity());
   }
-
   this->display->display();
   I2C::giveMutex();
 }

@@ -9,9 +9,6 @@ static const char TAG[] = __FILE__;
 #define BAT_BRIGHTNESS 10
 
 Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinitFromSleep) {
-#if CONFIG_IDF_TARGET_ESP32S3
-  _pin = NEO_DATA;
-#endif
   this->model = _model;
   strip = new Adafruit_NeoPixel(numPixel, _pin, NEO_GRB + NEO_KHZ800);
   toggle = false;

@@ -9,6 +9,8 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
+extern boolean hasBattery;
+
 namespace housekeeping {
   Ticker cyclicTimer;
 
@@ -33,24 +35,25 @@ namespace housekeeping {
       Serial.flush();
       esp_restart();
     }
-
-    Battery::readVoltage();
-    switch (Power::getPowerMode()) {
-      case USB:
-        if (!Battery::usbPowerPresent() && Battery::getBatteryLevelInPercent(Battery::getBatteryLevelInmV()) < 50) {
-          ESP_LOGI(TAG, "Switching to Battery power!");
-          Power::setPowerMode(BATTERY);
-        }
-        break;
-      case BATTERY:
-        if (Battery::usbPowerPresent()) {
-          ESP_LOGI(TAG, "Switching to USB power!");
-          Power::setPowerMode(USB);
-          // @TODO: might need reboot to properly initialise everything
-        }
-        break;
-      default:
-        break;
+    if (hasBattery) {
+      Battery::readVoltage();
+      switch (Power::getPowerMode()) {
+        case USB:
+          if (!Battery::usbPowerPresent() && Battery::getBatteryLevelInPercent(Battery::getBatteryLevelInmV()) < 50) {
+            ESP_LOGI(TAG, "Switching to Battery power!");
+            Power::setPowerMode(BATTERY);
+          }
+          break;
+        case BATTERY:
+          if (Battery::usbPowerPresent()) {
+            ESP_LOGI(TAG, "Switching to USB power!");
+            Power::setPowerMode(USB);
+            // @TODO: might need reboot to properly initialise everything
+          }
+          break;
+        default:
+          break;
+      }
     }
   }
 

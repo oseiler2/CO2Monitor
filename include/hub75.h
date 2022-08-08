@@ -1,3 +1,4 @@
+#include <sdkconfig.h>
 #if CONFIG_IDF_TARGET_ESP32
 
 #ifndef _HUB75_H

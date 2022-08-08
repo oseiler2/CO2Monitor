@@ -13,9 +13,12 @@
 #include <i2c.h>
 #include <sensors.h>
 #include <battery.h>
+#include <configManager.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
+
+extern boolean hasBattery;
 
 namespace Power {
 
@@ -35,7 +38,7 @@ namespace Power {
 
   boolean setPowerMode(PowerMode pMode) {
     if (pMode == PM_UNDEFINED) return false;
-    if (!Battery::batteryPresent() && pMode == BATTERY) return false;
+    if ((!hasBattery || !Battery::batteryPresent()) && pMode == BATTERY) return false;
     if (pMode == powermode) return true;
     powermode = pMode;
     if (model) model->powerModeChanged();
@@ -74,10 +77,9 @@ namespace Power {
 
   ResetReason afterReset() {
     rtc_gpio_deinit((gpio_num_t)BTN_1);
-
-    disableRtcHold((gpio_num_t)NEO_DATA);
-    disableRtcHold((gpio_num_t)OLED_EN);
-    disableRtcHold((gpio_num_t)BUZZER_PIN);
+    if (config.neopixelData > 0) disableRtcHold((gpio_num_t)config.neopixelData);
+    if (config.oledEn > 0) disableRtcHold((gpio_num_t)config.oledEn);
+    if (config.buzzer > 0) disableRtcHold((gpio_num_t)config.buzzer);
     disableRtcHold((gpio_num_t)LED_PIN);
     //  disableRtcHold((gpio_num_t)VBAT_EN); // 46 - bootstrap
 
@@ -86,12 +88,14 @@ namespace Power {
     enableGpioPullDn(GPIO_NUM_37);    // GPIO SUBSPIQ
     enableGpioPullDn(GPIO_NUM_38);    // GPIO SUBSPIWP
     enableGpioPullDn(GPIO_NUM_39);    // TCK (1.4V ???)
+#if CONFIG_IDF_TARGET_ESP32S3    
     enableGpioPullDn(GPIO_NUM_40);    // TDO
     enableGpioPullDn(GPIO_NUM_41);    // TDI
     enableGpioPullDn(GPIO_NUM_42);    // TMS
     enableGpioPullDn(GPIO_NUM_44);    // U0RxD (1.4V ???)
     enableGpioPullDn(GPIO_NUM_47);    // GPIO SUBSPICLK_P_DIFF
     enableGpioPullDn(GPIO_NUM_48);    // GPIO SUBSPICLK_N_DIFF
+#endif
 
     ResetReason reason = RR_UNDEFINED;
 
@@ -135,15 +139,19 @@ namespace Power {
       case NO_MEAN:
       case POWERON_RESET:           /**<1, Vbat power on reset*/
       case RTCWDT_BROWN_OUT_RESET:  /**<15, Reset when the vdd voltage is not stable*/
-      case RTC_SW_CPU_RESET:        /**<12, Software reset CPU*/
-      case RTC_SW_SYS_RESET:        /**<3, Software reset digital core*/
-      case TG0WDT_SYS_RESET:        /**<7, Timer Group0 Watch dog reset digital core*/
+
       case TG1WDT_SYS_RESET:        /**<8, Timer Group1 Watch dog reset digital core*/
       case RTCWDT_SYS_RESET:        /**<9, RTC Watch dog Reset digital core*/
-      case INTRUSION_RESET:         /**<10, Instrusion tested to reset CPU*/
-      case TG0WDT_CPU_RESET:        /**<11, Time Group0 reset CPU*/
       case RTCWDT_CPU_RESET:        /**<13, RTC Watch dog Reset CPU*/
+      case INTRUSION_RESET:         /**<10, Instrusion tested to reset CPU*/
+      case TG0WDT_SYS_RESET:        /**<7, Timer Group0 Watch dog reset digital core*/
       case RTCWDT_RTC_RESET:        /**<16, RTC Watch dog reset digital core and rtc module*/
+
+
+#if CONFIG_IDF_TARGET_ESP32S3    
+      case RTC_SW_CPU_RESET:        /**<12, Software reset CPU*/
+      case RTC_SW_SYS_RESET:        /**<3, Software reset digital core*/
+      case TG0WDT_CPU_RESET:        /**<11, Time Group0 reset CPU*/
       case TG1WDT_CPU_RESET:        /**<17, Time Group1 reset CPU*/
       case SUPER_WDT_RESET:         /**<18, super watchdog reset digital core and rtc module*/
       case GLITCH_RTC_RESET:        /**<19, glitch reset digital core and rtc module*/
@@ -151,6 +159,14 @@ namespace Power {
       case USB_UART_CHIP_RESET:     /**<21, usb uart reset digital core */
       case USB_JTAG_CHIP_RESET:     /**<22, usb jtag reset digital core */
       case POWER_GLITCH_RESET:      /**<23, power glitch reset digital core and rtc module*/
+#elif CONFIG_IDF_TARGET_ESP32 
+      case SW_RESET:    /**<3, Software reset digital core*/
+      case OWDT_RESET:    /**<4, Legacy watch dog reset digital core*/
+      case SDIO_RESET:    /**<6, Reset by SLC module, reset digital core*/
+      case TGWDT_CPU_RESET:    /**<11, Time Group reset CPU*/
+      case SW_CPU_RESET:    /**<12, Software reset CPU*/
+      case EXT_CPU_RESET:    /**<14, for APP CPU, reseted by PRO CPU*/
+#endif
       default:
         resetRtcVars();
         reason = FULL_RESET;
@@ -198,11 +214,11 @@ namespace Power {
   }
 
   void prepareForDeepSleep() {
-    //    digitalWrite(OLED_EN, LOW);
+    //    digitalWrite(config.oledEn, LOW);
     digitalWrite(LED_PIN, LOW);
-    digitalWrite(NEO_DATA, LOW);
-    digitalWrite(BUZZER_PIN, LOW);
-    digitalWrite(VBAT_EN, LOW);
+    digitalWrite(config.neopixelData, LOW);
+    digitalWrite(config.buzzer, LOW);
+    digitalWrite(config.vBatEn, LOW);
 
     mqtt::shutDownMqtt();
     I2C::shutDownI2C();
@@ -218,9 +234,9 @@ namespace Power {
 
     if (model) trafficLightStatus = model->getStatus();
 
-    enableRtcHold((gpio_num_t)NEO_DATA);
-    enableRtcHold((gpio_num_t)OLED_EN);
-    enableRtcHold((gpio_num_t)BUZZER_PIN);
+    enableRtcHold((gpio_num_t)config.neopixelData);
+    enableRtcHold((gpio_num_t)config.oledEn);
+    enableRtcHold((gpio_num_t)config.buzzer);
     enableRtcHold((gpio_num_t)LED_PIN);
     //    enableRtcHold((gpio_num_t)VBAT_EN); // 46 - bootstrap
   }
@@ -250,7 +266,7 @@ namespace Power {
 
   void powerDown() {
     prepareForDeepSleep();
-    digitalWrite(OLED_EN, LOW);
+    digitalWrite(config.oledEn, LOW);
     // @TODO: turn odd all periphals possible!
     // disable Neopixels, turn off all sensors
     // check if RTC hold is required to pin down outputs
@@ -259,7 +275,9 @@ namespace Power {
     if (esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF) != ESP_OK) ESP_LOGE(TAG, "Error turning off ESP_PD_DOMAIN_RTC_SLOW_MEM");
     if (esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF) != ESP_OK) ESP_LOGE(TAG, "Error turning off ESP_PD_DOMAIN_RTC_FAST_MEM");
     if (esp_sleep_pd_config(ESP_PD_DOMAIN_XTAL, ESP_PD_OPTION_OFF) != ESP_OK) ESP_LOGE(TAG, "Error turning off ESP_PD_DOMAIN_XTAL");
+#if CONFIG_IDF_TARGET_ESP32S3 
     if (esp_sleep_pd_config(ESP_PD_DOMAIN_CPU, ESP_PD_OPTION_OFF) != ESP_OK) ESP_LOGE(TAG, "Error turning off ESP_PD_DOMAIN_CPU");
+#endif
     if (esp_sleep_pd_config(ESP_PD_DOMAIN_RTC8M, ESP_PD_OPTION_OFF) != ESP_OK) ESP_LOGE(TAG, "Error turning off ESP_PD_DOMAIN_RTC8M");
     if (esp_sleep_pd_config(ESP_PD_DOMAIN_VDDSDIO, ESP_PD_OPTION_OFF) != ESP_OK) ESP_LOGE(TAG, "Error turning off ESP_PD_DOMAIN_VDDSDIO");
     ESP_LOGI(TAG, "Switching off - goodbye! Time: %u", millis());

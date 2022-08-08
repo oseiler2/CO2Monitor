@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <config.h>
+#include <configManager.h>
 #include <battery.h>
 
 // Local logging tag
@@ -11,8 +12,6 @@ namespace Battery {
 
   void init(Model* _model) {
     model = _model;
-    pinMode(VBAT_EN, OUTPUT);
-    digitalWrite(VBAT_EN, LOW);
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);
   }
@@ -40,19 +39,19 @@ namespace Battery {
   }
 
   uint16_t getBatteryLevelInmV() {
-    digitalWrite(VBAT_EN, HIGH);
+    digitalWrite(config.vBatEn, HIGH);
     uint16_t maxValue = 0;
     uint32_t minValue = 0xffffffff;
     uint32_t sumValue = 0;
     uint32_t reading;
     for (uint8_t i = 0; i < 8; i++) {
-      reading = analogReadMilliVolts(VBAT_ADC);
+      reading = analogReadMilliVolts(config.vBatAdc);
       sumValue += reading;
       if (reading > maxValue) maxValue = reading;
       if (reading < minValue) minValue = reading;
     }
     uint16_t mV_raw = (sumValue - maxValue - minValue) / 6;
-    digitalWrite(VBAT_EN, LOW);
+    digitalWrite(config.vBatEn, LOW);
     uint16_t mV = mV_raw * 2.17f;
     ESP_LOGI(TAG, "Battery: %u mV (raw: %u mV)", mV, mV_raw);
     return mV;

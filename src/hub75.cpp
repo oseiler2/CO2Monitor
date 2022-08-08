@@ -1,7 +1,7 @@
+#include <config.h>
 #if CONFIG_IDF_TARGET_ESP32
 
 #include <hub75.h>
-#include <config.h>
 #include <configManager.h>
 
 #include <smileys.h>

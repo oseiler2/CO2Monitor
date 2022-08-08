@@ -5,8 +5,10 @@
 #include "sdmmc_cmd.h"
 #include "driver/sdmmc_host.h"
 #include "esp_vfs_fat.h"
+#include <sys/stat.h>
 
 #include <model.h>
+#include <configManager.h>
 
 
 // Local logging tag
@@ -28,28 +30,29 @@ namespace SdCard {
 
   sdmmc_host_t host = SDMMC_HOST_DEFAULT();
 
-  sdmmc_slot_config_t slot_config = {
-      .clk = (gpio_num_t)SD_CLK,
-      .cmd = (gpio_num_t)SD_CMD,
-      .d0 = (gpio_num_t)SD_DAT0,
-      .d1 = (gpio_num_t)SD_DAT1,
-      .d2 = (gpio_num_t)SD_DAT2,
-      .d3 = (gpio_num_t)SD_DAT3,
-      .d4 = GPIO_NUM_NC,
-      .d5 = GPIO_NUM_NC,
-      .d6 = GPIO_NUM_NC,
-      .d7 = GPIO_NUM_NC,
-      .cd = (gpio_num_t)SD_DETECT,
-      .wp = SDMMC_SLOT_NO_WP,
-      .width = 4,
-      .flags = 0,
-  };
+  sdmmc_slot_config_t slot_config;
 
   const char mount_point[] = MOUNT_POINT;
 
   boolean probe() {
-    pinMode(SD_DETECT, INPUT);
-    boolean cardDetected = !digitalRead(SD_DETECT);
+#if CONFIG_IDF_TARGET_ESP32S3
+    slot_config.clk = (gpio_num_t)config.sdClk;
+    slot_config.cmd = (gpio_num_t)config.sdCmd;
+    slot_config.d0 = (gpio_num_t)config.sdDat0;
+    slot_config.d1 = (gpio_num_t)config.sdDat1;
+    slot_config.d2 = (gpio_num_t)config.sdDat2;
+    slot_config.d3 = (gpio_num_t)config.sdDat3;
+    slot_config.d4 = GPIO_NUM_NC;
+    slot_config.d5 = GPIO_NUM_NC;
+    slot_config.d6 = GPIO_NUM_NC;
+    slot_config.d7 = GPIO_NUM_NC;
+#endif
+    slot_config.cd = (gpio_num_t)config.sdDetect;
+    slot_config.wp = SDMMC_SLOT_NO_WP;
+    slot_config.width = 4;
+    slot_config.flags = 0;
+
+    boolean cardDetected = !digitalRead(config.sdDetect);
     //    ESP_LOGD(TAG, "Card detected ? %u", cardDetected);
     return cardDetected;
   }

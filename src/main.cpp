@@ -61,7 +61,13 @@ bool hasNeoPixel = false;
 bool hasFeatherMatrix = false;
 bool hasBuzzer = false;
 bool hasHub75 = false;
+bool hasSdSlot = false;
 bool hasSdCard = false;
+bool hasBtn2 = false;
+bool hasBtn3 = false;
+bool hasBtn4 = false;
+bool hasOledEnable = false;
+bool hasBattery = false;
 
 const uint32_t debounceDelay = 50;
 volatile uint32_t lastBtn1DebounceTime = 0;
@@ -83,17 +89,17 @@ void ICACHE_RAM_ATTR button1Handler() {
 }
 
 void ICACHE_RAM_ATTR button2Handler() {
-  button2State = (digitalRead(BTN_2) ? 0 : 1);
+  button2State = (digitalRead(config.btn2) ? 0 : 1);
   lastBtn2DebounceTime = millis();
 }
 
 void ICACHE_RAM_ATTR button3Handler() {
-  button3State = (digitalRead(BTN_3) ? 0 : 1);
+  button3State = (digitalRead(config.btn3) ? 0 : 1);
   lastBtn3DebounceTime = millis();
 }
 
 void ICACHE_RAM_ATTR button4Handler() {
-  button4State = (digitalRead(BTN_4) ? 0 : 1);
+  button4State = (digitalRead(config.btn4) ? 0 : 1);
   lastBtn4DebounceTime = millis();
 }
 
@@ -198,24 +204,20 @@ void logCoreInfo() {
 
 void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
   if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-    ESP_LOGD(TAG, "eventHandler IP_EVENT IP_EVENT_STA_GOT_IP");
     Timekeeper::initSntp();
   } else if (event_base == WIFI_EVENT) {
     switch (event_id) {
       case WIFI_EVENT_STA_CONNECTED:
-        ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_CONNECTED");
         digitalWrite(LED_PIN, HIGH);
         break;
       case WIFI_EVENT_STA_DISCONNECTED:
-        ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_DISCONNECTED");
         digitalWrite(LED_PIN, LOW);
         break;
       default:
-        ESP_LOGD(TAG, "eventHandler WIFI_EVENT %u", event_id);
         break;
     }
   } else {
-    ESP_LOGD(TAG, "eventHandler %s %u", event_base, event_id);
+    //    ESP_LOGD(TAG, "eventHandler %s %u", event_base, event_id);
   }
 }
 
@@ -242,26 +244,20 @@ void setup() {
   model = new Model(modelUpdatedEvt);
   Battery::init(model);
 
+  setupConfigManager();
+  if (!loadConfiguration(config)) {
+    getDefaultConfiguration(config);
+    saveConfiguration(config);
+  }
+
   ResetReason resetReason = Power::afterReset();
   boolean reinitFromSleep = (resetReason == WAKE_FROM_SLEEPTIMER || resetReason == WAKE_FROM_BUTTON);
   if (Power::getPowerMode() == PM_UNDEFINED) {
     Power::setPowerMode(USB);
   }
 
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
-  pinMode(BTN_1, INPUT_PULLUP);
-  pinMode(BTN_2, INPUT_PULLUP);
-  pinMode(BTN_3, INPUT_PULLUP);
-  pinMode(BTN_4, INPUT_PULLUP);
-  pinMode(OLED_EN, OUTPUT);
-  digitalWrite(OLED_EN, HIGH);
-  pinMode(NEO_DATA, OUTPUT);
-  digitalWrite(NEO_DATA, LOW);
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
-  pinMode(VBAT_EN, OUTPUT);
-  digitalWrite(VBAT_EN, LOW);
+  if (!reinitFromSleep) logConfiguration(config);
+
   if (!reinitFromSleep) logCoreInfo();
 
   Timekeeper::init();
@@ -277,13 +273,6 @@ void setup() {
     WiFi.begin();
   }
 
-  setupConfigManager();
-  if (!loadConfiguration(config)) {
-    getDefaultConfiguration(config);
-    saveConfiguration(config);
-  }
-  if (!reinitFromSleep) logConfiguration(config);
-
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
@@ -291,11 +280,39 @@ void setup() {
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
 #endif
-  hasBuzzer = true;
-  hasSdCard = SdCard::probe();
+  hasBuzzer = config.buzzer != 0;
+  hasSdSlot = (config.sdDetect != 0 && config.sdDat0 != 0 && config.sdDat1 != 0 && config.sdDat2 != 0 && config.sdDat3 != 0 && config.sdClk != 0 && config.sdCmd != 0) && SdCard::probe();
+  hasBtn2 = config.btn2 != 0;
+  hasBtn3 = config.btn3 != 0;
+  hasBtn4 = config.btn4 != 0;
+  hasOledEnable = config.oledEn != 0;
+  hasBattery = config.vBatAdc != 0 && config.vBatEn > 0;
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, HIGH);
+  pinMode(BTN_1, INPUT_PULLUP);
+  if (hasBtn2) pinMode(config.btn2, INPUT_PULLUP);
+  if (hasBtn3) pinMode(config.btn3, INPUT_PULLUP);
+  if (hasBtn4) pinMode(config.btn4, INPUT_PULLUP);
+  if (hasOledEnable) {
+    pinMode(config.oledEn, OUTPUT);
+    digitalWrite(config.oledEn, HIGH);
+  }
+  if (hasNeoPixel) {
+    pinMode(config.neopixelData, OUTPUT);
+    digitalWrite(config.neopixelData, LOW);
+  }
+  if (hasBuzzer) {
+    pinMode(config.buzzer, OUTPUT);
+    digitalWrite(config.buzzer, LOW);
+  }
+  if (hasBattery) {
+    pinMode(config.vBatEn, OUTPUT);
+    digitalWrite(config.vBatEn, LOW);
+  }
+  if (hasSdSlot) pinMode(config.sdDetect, INPUT);
 
   Wire.begin((int)SDA_PIN, (int)SCL_PIN, (uint32_t)I2C_CLK);
-
   I2C::initI2C(!reinitFromSleep);
 
   if (I2C::scd30Present()) scd30 = new SCD30(&Wire, model, updateMessage, reinitFromSleep);
@@ -310,8 +327,9 @@ void setup() {
 #if CONFIG_IDF_TARGET_ESP32
   if (hasHub75) hub75 = new HUB75(model);
 #endif
-  if (hasBuzzer) buzzer = new Buzzer(model, BUZZER_PIN, reinitFromSleep);
+  if (hasBuzzer) buzzer = new Buzzer(model, config.buzzer, reinitFromSleep);
   if (hasSdCard) hasSdCard &= SdCard::setup();
+
   Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
 
   if (Power::getPowerMode() == USB) {
@@ -343,10 +361,10 @@ void setup() {
 
     if (scd30 || scd40 || sps30 || bme680) {
       Sensors::start(
-        "sensorsLoop",      // name of task
-        4096,               // stack size of task
-        2,                  // priority of the task
-        1);                 // CPU core
+        "sensorsLoop",    // name of task
+        4096,             // stack size of task
+        2,                // priority of the task
+        1);               // CPU core
     }
 
     housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
@@ -355,13 +373,12 @@ void setup() {
 
     clockTimer.attach(1, showTimeLcd);
   }
-
   attachInterrupt(BTN_1, button1Handler, CHANGE);
-  attachInterrupt(BTN_2, button2Handler, CHANGE);
-  attachInterrupt(BTN_3, button3Handler, CHANGE);
-  attachInterrupt(BTN_4, button4Handler, CHANGE);
+  if (hasBtn2) attachInterrupt(config.btn2, button2Handler, CHANGE);
+  if (hasBtn3) attachInterrupt(config.btn3, button3Handler, CHANGE);
+  if (hasBtn4) attachInterrupt(config.btn4, button4Handler, CHANGE);
 
-  Battery::readVoltage();
+  if (hasBattery) Battery::readVoltage();
 
   ESP_LOGI(TAG, "Setup done.");
 #ifdef SHOW_DEBUG_MSGS
@@ -376,27 +393,19 @@ void loop() {
     Timekeeper::printTime();
     Sensors::runOnce();
     showTimeLcd();
-    uint8_t percent = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
-    if (percent < 10) {
-      ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
-      if (hasBuzzer && buzzer) buzzer->alert();
-      if (hasNeoPixel && neopixel) neopixel->off();
-      if (scd40) scd40->shutdown();
-      if (bme680) bme680->shutdown();
-      Power::powerDown();
+    if (hasBattery) {
+      uint8_t percent = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
+      if (percent < 10) {
+        ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
+        if (hasBuzzer && buzzer) buzzer->alert();
+        if (hasNeoPixel && neopixel) neopixel->off();
+        if (scd40) scd40->shutdown();
+        if (bme680) bme680->shutdown();
+        Power::powerDown();
+      }
     }
     Power::deepSleep(30);
   }
-  /*
-    if (buttonState != oldConfirmedButtonState && (millis() - lastBtnDebounceTime) > debounceDelay) {
-      oldConfirmedButtonState = buttonState;
-      if (oldConfirmedButtonState == 0) {
-        digitalWrite(LED_PIN, LOW);
-        stopHub75DMA();
-        WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
-      }
-    }
-  */
   if (button1State != oldConfirmedButton1State && (millis() - lastBtn1DebounceTime) > debounceDelay) {
     oldConfirmedButton1State = button1State;
     if (oldConfirmedButton1State == 1) {
@@ -411,7 +420,7 @@ void loop() {
     }
   }
 
-  if (button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
+  if (hasBtn2 && button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
     oldConfirmedButton2State = button2State;
     if (oldConfirmedButton2State == 1) {
       ESP_LOGI(TAG, "Button 2 pressed!");
@@ -419,7 +428,7 @@ void loop() {
       Timekeeper::printTime();
     }
   }
-  if (button3State != oldConfirmedButton3State && (millis() - lastBtn3DebounceTime) > debounceDelay) {
+  if (hasBtn3 && button3State != oldConfirmedButton3State && (millis() - lastBtn3DebounceTime) > debounceDelay) {
     oldConfirmedButton3State = button3State;
     if (oldConfirmedButton3State == 1) {
       ESP_LOGI(TAG, "Button 3 pressed!");
@@ -429,7 +438,7 @@ void loop() {
       if (bme680) bme680->setSampleRate(ULP);
     }
   }
-  if (button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
+  if (hasBtn4 && button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
     oldConfirmedButton4State = button4State;
     if (oldConfirmedButton4State == 1) {
       ESP_LOGI(TAG, "Button 4 pressed!");

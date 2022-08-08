@@ -1,6 +1,8 @@
 #ifndef _CONFIG_MANAGER_H
 #define _CONFIG_MANAGER_H
 
+#include <config.h>
+
 #define CONFIG_SIZE 1280
 
 #define MQTT_USERNAME_LEN 20
@@ -48,6 +50,22 @@ struct Config {
   uint8_t hub75Clk;
   uint8_t hub75Lat;
   uint8_t hub75Oe;
+
+  uint8_t vBatEn = VBAT_EN;
+  uint8_t vBatAdc = VBAT_ADC;
+  uint8_t btn2 = BTN_2;
+  uint8_t btn3 = BTN_3;
+  uint8_t btn4 = BTN_4;
+  uint8_t oledEn = OLED_EN;
+  uint8_t buzzer = BUZZER_PIN;
+  uint8_t sdDetect = SD_DETECT;
+  uint8_t sdDat0 = SD_DAT0;
+  uint8_t sdDat1 = SD_DAT1;
+  uint8_t sdDat2 = SD_DAT2;
+  uint8_t sdDat3 = SD_DAT3;
+  uint8_t sdClk = SD_CLK;
+  uint8_t sdCmd = SD_CMD;
+
 };
 
 void setupConfigManager();
