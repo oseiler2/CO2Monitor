@@ -401,31 +401,6 @@ namespace WifiManager {
     delete hub75OeParam;
   }
 
-  void setupWifi(setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {
-
-    // try to connect with known settings
-    WiFi.begin();
-    uint8_t i = 0;
-    while (WiFi.status() != WL_CONNECTED && i++ < 20) {
-      delay(200);
-    }
-
-    if (WiFi.status() != WL_CONNECTED) {
-      ESP_LOGD(TAG, "Could not connect to Wifi using known settings");
-      AsyncWebServer webServer(HTTP_PORT);
-      DNSServer dnsServer;
-      ESPAsync_WiFiManager* wifiManager;
-      wifiManager = new ESPAsync_WiFiManager(&webServer, &dnsServer, "CO2 Monitor");
-      setupWifiManager(wifiManager);
-      setPriorityMessageCallback(getSSID().c_str());
-      wifiManager->autoConnect(getSSID().c_str(), AP_PW);
-      updateConfiguration(wifiManager);
-      delete wifiManager;
-      clearPriorityMessageCallback();
-    }
-    ESP_LOGD(TAG, "setupWifi end");
-  }
-
   void startConfigPortal(updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback) {
     setPriorityMessageCallback(getSSID().c_str());
     AsyncWebServer webServer(HTTP_PORT);
