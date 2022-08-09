@@ -265,8 +265,8 @@ namespace Power {
   }
 
   void powerDown() {
-    prepareForDeepSleep();
     digitalWrite(config.oledEn, LOW);
+    prepareForDeepSleep();
     // @TODO: turn odd all periphals possible!
     // disable Neopixels, turn off all sensors
     // check if RTC hold is required to pin down outputs
