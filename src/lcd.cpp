@@ -23,6 +23,18 @@ LCD::LCD(TwoWire* _wire, Model* _model) {
   this->model = _model;
   display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, 800000, I2C_CLK);
 
+  // status line
+  status_y = config.ssd1306Rows == 32 ? 24 : 0;
+  status_height = 8;
+  // temperature/humidity line. For 32 row displays same as status line
+  temp_hum_y = config.ssd1306Rows == 32 ? 24 : 56;
+  temp_hum_height = 8;
+
+  line1_y = config.ssd1306Rows == 32 ? 0 : 8;
+  line2_y = config.ssd1306Rows == 32 ? 8 : 24;
+  line3_y = config.ssd1306Rows == 32 ? 16 : 40;
+  line_height = config.ssd1306Rows == 32 ? 8 : 16;
+
   if (!I2C::takeMutex(portMAX_DELAY)) return;
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   this->display->begin(SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADR, false, false);  // initialize with the I2C addr 0x3C (for the 128x32)
@@ -37,18 +49,6 @@ LCD::LCD(TwoWire* _wire, Model* _model) {
 LCD::~LCD() {
   if (this->display) delete display;
 };
-
-// status line
-const uint8_t status_y = config.ssd1306Rows == 32 ? 24 : 0;
-const uint8_t status_height = 8;
-// temperature/humidity line. For 32 row displays same as status line
-const uint8_t temp_hum_y = config.ssd1306Rows == 32 ? 24 : 56;
-const uint8_t temp_hum_height = 8;
-
-const uint8_t line1_y = config.ssd1306Rows == 32 ? 0 : 8;
-const uint8_t line2_y = config.ssd1306Rows == 32 ? 8 : 24;
-const uint8_t line3_y = config.ssd1306Rows == 32 ? 16 : 40;
-const uint8_t line_height = config.ssd1306Rows == 32 ? 8 : 16;
 
 void LCD::updateMessage(char const* msg) {
   if (priorityMessageActive) return;
