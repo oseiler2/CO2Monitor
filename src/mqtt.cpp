@@ -44,11 +44,14 @@ namespace mqtt {
   cleanSPS30Callback_t cleanSPS30Callback;
   getSPS30StatusCallback_t getSPS30StatusCallback;
 
+  uint32_t lastReconnectAttempt = 0;
+
   void publishSensors(uint16_t mask) {
+    if (!WiFi.isConnected() || !mqtt_client->connected()) return;
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_SENSORS;
     msg.mask = mask;
-    xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
   void publishSensorsInternal(uint16_t mask) {
@@ -80,6 +83,10 @@ namespace mqtt {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
     }
+    if (strncmp(msg, "null", 4) == 0) {
+      ESP_LOGD(TAG, "Nothing to publish - mask: %x", mask);
+      return;
+    }
     ESP_LOGD(TAG, "Publishing sensor values: %s:%s", topic, msg);
     if (!mqtt_client->publish(topic, msg)) ESP_LOGE(TAG, "publish failed!");
   }
@@ -88,7 +95,7 @@ namespace mqtt {
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_CONFIGURATION;
     msg.mask = 0;
-    xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
   void publishConfigurationInternal() {
@@ -249,12 +256,13 @@ namespace mqtt {
   }
 
   void reconnect() {
+    if (millis() - lastReconnectAttempt < 60000) return;
     char buf[256];
     sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
-    while (!WiFi.isConnected()) { vTaskDelay(pdMS_TO_TICKS(100)); }
-    while (!mqtt_client->connected()) {
+    if (!WiFi.isConnected()) return;
+    lastReconnectAttempt = millis();
+    if (!mqtt_client->connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
-      vTaskDelay(pdMS_TO_TICKS(10));
       if (mqtt_client->connect(buf, config.mqttUsername, config.mqttPassword)) {
         ESP_LOGD(TAG, "MQTT connected");
         sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
@@ -265,8 +273,8 @@ namespace mqtt {
         mqtt_client->publish(buf, "{\"online\":true}");
       } else {
         ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client->state());
+        vTaskDelay(pdMS_TO_TICKS(1000));
       }
-      vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
@@ -329,6 +337,7 @@ namespace mqtt {
 
   void mqttLoop(void* pvParameters) {
     _ASSERT((uint32_t)pvParameters == 1);
+    lastReconnectAttempt = millis() - 60000;
     BaseType_t notified;
     MqttMessage msg;
     while (1) {
@@ -344,6 +353,7 @@ namespace mqtt {
         reconnect();
       }
       mqtt_client->loop();
+      vTaskDelay(pdMS_TO_TICKS(50));
     }
     vTaskDelete(NULL);
   }
