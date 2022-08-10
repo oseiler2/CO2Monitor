@@ -24,7 +24,7 @@ namespace Timekeeper {
   }
 
   void init() {
-    setenv("TZ", "NZST+12NZDT,M9.5.0/2,M4.5.0/3", 1);
+    setenv("TZ", "NZST-12NZDT,M9.5.0,M4.1.0/3", 1);
     tzset();
   }
 
