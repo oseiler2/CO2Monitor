@@ -5,9 +5,40 @@
 Inspired by and many thanks to
 [make-IoT / CO2-Ampel](https://github.com/make-IoT/CO2-Ampel) and [Umwelt-Campus](https://www.umwelt-campus.de/en/forschung/projekte/iot-werkstatt/translate-to-englisch-ideen-zur-corona-krise)
 
+# Why use a CO2 Monitor?
+
+A large risk of Covid-19 transmission stems from airborne virus particles that can linger in poorly ventilated spaces for hours. This has been recognised by the WHO. To lower the risk of infection, particularly in busier indoor settings, good ventilation and regular air exchange are key.
+
+This is where measuring CO2 levels in rooms can provide a direct and good indication of sufficient ventilation which correlates with reduced viral load and low risk of virus transmission. Good air quality is also important for creating a good learning or work environment.
+
+Poorly ventilated rooms often feel stale and ‘stuffy’, but by the time we can feel that the air quality is already pretty poor; early indications are easily missed. A sensitive and consistent CO2 monitor can accurately measure CO2 levels and display an easy-to-understand and actionable traffic light indication with orange as an indication of worsening air quality and red as a reminder to open a window.
+
+The data collected by the sensors should be logged and made available for further consumption. It can be visualised on a central school/organisation-wide dashboard and used to establish a baseline and understand patterns or identify rooms that are more difficult to ventilate, as well as providing potential alerting or to remotely checking a room before another group uses it.
+
+These CO2 monitors have been tested in collaboration with researchers from the public health department of the University of Otago.
+
+## Resources
+
+- [RNZ interview](https://www.rnz.co.nz/national/programmes/afternoons/audio/2018840570/handyman-dad-builds-units-to-monitor-class-air-quality)
+- [The What, How and Why of CO2 Monitoring](https://makezine.com/2021/05/17/the-what-how-and-why-of-co-monitoring/)
+- [Ventilation in NZ schools during the Omicron wave – results from a preliminary study](https://blogs.otago.ac.nz/pubhealthexpert/ventilation-in-nz-schools-during-the-omicron-wave-results-from-a-preliminary-study/)
+- [Ministry of Education Indoor Air Quality and Thermal Comfort](https://assets.education.govt.nz/public/Documents/Primary-Secondary/Property/Design/Indoor-Air-Quality-and-Thermal-Comfort-V2-v2.0-2022.pdf)
+- [What size particle is important to transmission of COVID-19?](https://www.aerosol.mech.ubc.ca/what-size-particle-is-important-to-transmission/)
+- [Comparison of Low-Cost Particulate Matter Sensors for Indoor Air Monitoring during COVID-19 Lockdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7766947/pdf/sensors-20-07290.pdf)
+
+# Sections
+
+- [PCBs](#pcbs) listing the different PCB designs, [parts list](pcb/CO2%20Monitor%20V0.5%20through-hole/bom.md) and [assembly guide](pcb/CO2%20Monitor%20V0.5%20through-hole/step-by-step.md)
+- [Firmware](#firmware) describing the device's software features and how to use them
+- [Sensors](#sensors) has more information on the available sensors
+- [Calibration](#calibration) has some important information on keeping the readings accurate
+- [Hardware](#hardware) has a little more background on the controller and wiring
+
+# PCBs
+
 There are now 2 new PCB designs, one for SMD components and another one solely using easy to solder through-hole components.
 
-## Through hole
+## Through hole version
 
 [BOM](pcb/CO2%20Monitor%20V0.5%20through-hole/bom.md)
 
@@ -23,7 +54,7 @@ There are now 2 new PCB designs, one for SMD components and another one solely u
 
 ![](img/TH-SCD30.jpg)
 
-## SMD
+## SMD version
 
 - ESP 32 Devkit (30 pin)
 - SCD40 or SCD30 NDIR CO2 sensor
@@ -53,27 +84,6 @@ There are now 2 new PCB designs, one for SMD components and another one solely u
 ## First generation with Neopixel feather wing
 
 ![](img/Neopixel-feather.jpg)
-
-# Use case
-
-A large risk of Covid-19 transmission stems from airborne virus particles that can linger in poorly ventilated spaces for hours. This has been recognised by the WHO. To lower the risk of infection, particularly in busier indoor settings, good ventilation and regular air exchange are key.
-
-This is where measuring CO2 levels in rooms can provide a direct and good indication of sufficient ventilation which correlates with reduced viral load and low risk of virus transmission. Good air quality is also important for creating a good learning or work environment.
-
-Poorly ventilated rooms often feel stale and ‘stuffy’, but by the time we can feel that the air quality is already pretty poor and early indications are easily missed. A more sensitive and consistent CO2 monitor can accurately measure CO2 levels and display an easy-to-understand and actionable traffic light indication with orange as an indication of worsening air quality and red as a reminder to open a window.
-
-The data collected by the sensors should be logged and made available for further consumption. It can be visualised a central school wide dashboard and used to establish a baseline and understand patterns or identify rooms that are more difficult to ventilate, as well as potentially alerting or to remotely check a room before another group uses it.
-
-These CO2 Monitors have been tested in collaboration with researchers from the public health department of university of Otago.
-
-## Resources
-
-- [RNZ interview](https://www.rnz.co.nz/national/programmes/afternoons/audio/2018840570/handyman-dad-builds-units-to-monitor-class-air-quality)
-- [The What, How and Why of CO2 Monitoring](https://makezine.com/2021/05/17/the-what-how-and-why-of-co-monitoring/)
-- [Ventilation in NZ schools during the Omicron wave – results from a preliminary study](https://blogs.otago.ac.nz/pubhealthexpert/ventilation-in-nz-schools-during-the-omicron-wave-results-from-a-preliminary-study/)
-- [Ministry of Education Indoor Air Quality and Thermal Comfort](https://assets.education.govt.nz/public/Documents/Primary-Secondary/Property/Design/Indoor-Air-Quality-and-Thermal-Comfort-V2-v2.0-2022.pdf)
-- [What size particle is important to transmission of COVID-19?](https://www.aerosol.mech.ubc.ca/what-size-particle-is-important-to-transmission/)
-- [Comparison of Low-Cost Particulate Matter Sensors for Indoor Air Monitoring during COVID-19 Lockdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7766947/pdf/sensors-20-07290.pdf)
 
 # Firmware
 
@@ -308,7 +318,7 @@ Other I2C based sensors can be wired using the JST-PH I2C header.
 
 CO2 sensors need to be regularly calibrated to provide reliable measurements. The used sensors support auto-calibration and that is enabled in the firmware. It works by looking over measurements over a period and calibrating the lowest value against 420ppm (configurable in the firmware). This is based on the assumption that the monitor 'sees' clean outside air about once a week. If that cannot be achieved the firmware also allows for a forced calibration against a given value. Please also make sure to set the altitude setting according to the monitor location. For details please check the sensor's datasheets.
 
-### From v1.2.4
+## From v1.2.4
 
 Manual calibration can be triggered by pressing the `Boot` button for more than 5 seconds. Make sure the monitor has been exposed to fresh outside air for a while and be carful not to breathe towards the monitor when doing this.
 
