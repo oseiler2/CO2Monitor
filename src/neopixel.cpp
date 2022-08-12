@@ -6,7 +6,7 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
-#define BAT_BRIGHTNESS 10
+#define BAT_BRIGHTNESS 30
 
 Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinitFromSleep) {
   this->model = _model;
@@ -17,6 +17,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
   this->colourRed = this->strip->Color(255, 0, 0);
   this->colourYellow = this->strip->Color(255, 70, 0);
   this->colourGreen = this->strip->Color(0, 255, 0);
+  this->colourPurple = this->strip->Color(255, 0, 255);
   this->colourOff = this->strip->Color(0, 0, 0);
 
   this->strip->begin();
@@ -26,12 +27,14 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
     cyclicTimer->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
 
     this->strip->show(); // Initialize all pixels to 'off'
+    fill(colourPurple);
+    delay(250);
     fill(colourRed);
-    delay(500);
+    delay(250);
     fill(colourYellow);
-    delay(500);
+    delay(250);
     fill(colourGreen);
-    delay(500);
+    delay(250);
     fill(colourOff);
   }
 }
@@ -57,6 +60,13 @@ void Neopixel::off() {
   this->strip->show();
 }
 
+void Neopixel::prepareToSleep() {
+  cyclicTimer->detach();
+  if (model->getStatus() == DARK_RED) {
+    fill(colourPurple); // Red
+  }
+}
+
 void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (mask && M_POWER_MODE) {
     switch (Power::getPowerMode()) {
@@ -79,7 +89,8 @@ void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightS
   } else if (newStatus == RED) {
     fill(colourRed); // Red
   } else if (newStatus == DARK_RED) {
-    fill(colourRed); // Red
+    if (Power::getPowerMode() == BATTERY || oldStatus != newStatus)
+      fill(colourPurple); // Red
   }
 }
 
@@ -87,7 +98,7 @@ void Neopixel::timer() {
   this->toggle = !(this->toggle);
   if (model->getStatus() == DARK_RED) {
     if (toggle)
-      fill(colourRed); // Red
+      fill(colourPurple); // Red
     else
       fill(colourOff);
   }

@@ -14,6 +14,7 @@ public:
   ~Neopixel();
 
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
+  void prepareToSleep();
   void off();
 
 private:
@@ -28,6 +29,7 @@ private:
   uint32_t colourRed;
   uint32_t colourYellow;
   uint32_t colourGreen;
+  uint32_t colourPurple;
   uint32_t colourOff;
 };
 
