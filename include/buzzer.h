@@ -14,7 +14,7 @@ public:
   ~Buzzer();
 
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
-
+  void beep(uint8_t n);
   void alert();
 
 private:

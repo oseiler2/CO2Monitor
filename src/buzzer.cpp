@@ -1,5 +1,7 @@
 #include <buzzer.h>
 
+#include <power.h>
+
 // Local logging tag
 static const char TAG[] = __FILE__;
 
@@ -48,7 +50,11 @@ Buzzer::~Buzzer() {
 }
 
 void Buzzer::alert() {
-  for (uint8_t i = 0; i < 5;i++) {
+  beep(5);
+}
+
+void Buzzer::beep(uint8_t n) {
+  for (uint8_t i = 0; i < n;i++) {
     ledcWrite(PWM_CHANNEL_BUZZER, BUZZER_DUTY);
     delay(50);
     ledcWrite(PWM_CHANNEL_BUZZER, 0);
@@ -60,12 +66,19 @@ void Buzzer::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSta
   if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
   if (newStatus == GREEN) {
     ledcWrite(PWM_CHANNEL_BUZZER, 0);
+    beep(1);
   } else if (newStatus == YELLOW) {
     ledcWrite(PWM_CHANNEL_BUZZER, 0);
+    beep(2);
   } else if (newStatus == RED) {
     ledcWrite(PWM_CHANNEL_BUZZER, 0);
+    beep(3);
   } else if (newStatus == DARK_RED) {
-    buzzCtr = DARK_RED_BUZZES;
+    if (Power::getPowerMode() == BATTERY) {
+      beep(4);
+    } else {
+      buzzCtr = DARK_RED_BUZZES;
+    }
   }
 }
 
