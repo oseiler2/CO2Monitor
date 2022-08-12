@@ -91,8 +91,7 @@ namespace SdCard {
     char fileName[30];
 
     sprintf(fileName, "%s/%s.log.csv", MOUNT_POINT, buf);
-    //    ESP_LOGD(TAG, "filename: %s", fileName);
-    ESP_LOGD(TAG, "Opening file %s", fileName);
+    //    ESP_LOGD(TAG, "Opening file %s", fileName);
 
     struct stat st;
     if (stat(fileName, &st) == 0) {
