@@ -396,7 +396,7 @@ void loop() {
     showTimeLcd();
     if (hasBattery) {
       uint8_t percent = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
-      if (percent < 10) {
+      if (percent < 15) {
         ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
         if (hasBuzzer && buzzer) buzzer->alert();
         if (hasNeoPixel && neopixel) neopixel->off();
@@ -433,7 +433,7 @@ void loop() {
     oldConfirmedButton3State = button3State;
     if (oldConfirmedButton3State == 1) {
       ESP_LOGI(TAG, "Button 3 pressed!");
-      ESP_LOGI(TAG, "Uptime %u", Power::getUpTime());
+      if (neopixel) neopixel->prepareToSleep();
       Power::setPowerMode(BATTERY);
       if (scd40) scd40->setSampleRate(LP_PERIODIC);
       if (bme680) bme680->setSampleRate(ULP);
@@ -443,7 +443,12 @@ void loop() {
     oldConfirmedButton4State = button4State;
     if (oldConfirmedButton4State == 1) {
       ESP_LOGI(TAG, "Button 4 pressed!");
-      Power::deepSleep(10);
+      ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
+      if (hasBuzzer && buzzer) buzzer->alert();
+      if (hasNeoPixel && neopixel) neopixel->off();
+      if (scd40) scd40->shutdown();
+      if (bme680) bme680->shutdown();
+      Power::powerDown();
     }
   }
 
