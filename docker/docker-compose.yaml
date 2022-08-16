@@ -33,6 +33,7 @@ services:
     restart: unless-stopped
     depends_on:
       - influxdb
+      - mqtt
     logging:
       driver: "json-file"
       options:
@@ -70,6 +71,8 @@ services:
     env_file:
       - .env
       - grafana.env
+    depends_on:
+      - influxdb
     restart: unless-stopped
     logging:
       driver: "json-file"
