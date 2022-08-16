@@ -93,6 +93,7 @@ void calibrateCo2SensorCallback(uint16_t co2Reference) {
   if (lcd) lcd->setPriorityMessage("Starting calibration");
   if (I2C::scd30Present() && scd30) scd30->calibrateScd30ToReference(co2Reference);
   if (I2C::scd40Present() && scd40) scd40->calibrateScd40ToReference(co2Reference);
+  vTaskDelay(pdMS_TO_TICKS(200));
   if (lcd) lcd->clearPriorityMessage();
 }
 
