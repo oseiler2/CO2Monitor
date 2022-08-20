@@ -35,7 +35,7 @@ LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
     this->display->clearDisplay();
     this->display->display();
   }
-  this->display->setTextColor(WHITE);
+  this->display->setTextColor(SSD1306_WHITE);
   I2C::giveMutex();
 }
 
@@ -58,7 +58,7 @@ const uint8_t line_height = config.ssd1306Rows == 32 ? 8 : 16;
 void LCD::updateMessage(char const* msg) {
   if (priorityMessageActive) return;
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
-  this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
+  this->display->writeFillRect(0, status_y, 128, status_height, SSD1306_BLACK);
   this->display->setFont(NULL);
   this->display->setCursor(0, status_y);
   this->display->setTextSize(1);
@@ -70,7 +70,7 @@ void LCD::updateMessage(char const* msg) {
 void LCD::setPriorityMessage(char const* msg) {
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->priorityMessageActive = true;
-  this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
+  this->display->writeFillRect(0, status_y, 128, status_height, SSD1306_BLACK);
   this->display->setFont(NULL);
   this->display->setCursor(0, status_y);
   this->display->setTextSize(1);
@@ -81,7 +81,7 @@ void LCD::setPriorityMessage(char const* msg) {
 
 void LCD::clearPriorityMessage() {
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
-  this->display->writeFillRect(0, status_y, 128, status_height, BLACK);
+  this->display->writeFillRect(0, status_y, 128, status_height, SSD1306_BLACK);
   this->display->display();
   this->priorityMessageActive = false;
   I2C::giveMutex();
@@ -94,7 +94,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   if ((I2C::scd30Present() || I2C::scd40Present()) && (!I2C::bme680Present() || model->getIAQ() == 0) && !I2C::sps30Present()) {
     if (mask & M_CO2) {
       // 8-24 vs 12-40
-      this->display->writeFillRect(4, line1_y, 120, line_height * 3, BLACK);
+      this->display->writeFillRect(4, line1_y, 120, line_height * 3, SSD1306_BLACK);
       this->display->setTextSize(1);
       if (config.ssd1306Rows == 32) {
         this->display->setFont(FONT_32);
@@ -120,7 +120,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   // CO2 and other sensors present
   else {
     if (mask & M_CO2) {
-      this->display->writeFillRect(0, line1_y, 128, line_height, BLACK);
+      this->display->writeFillRect(0, line1_y, 128, line_height, SSD1306_BLACK);
       this->display->setFont(config.ssd1306Rows == 32 ? NULL : FONT_9);
       this->display->setTextSize(1);
       this->display->setCursor(0, line1_y + (config.ssd1306Rows == 32 ? 0 : (line_height - 4)));
@@ -134,7 +134,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
       this->display->print("ppm");
     }
     if (mask & M_IAQ) {
-      this->display->writeFillRect(0, line2_y, 128, line_height, BLACK);
+      this->display->writeFillRect(0, line2_y, 128, line_height, SSD1306_BLACK);
       this->display->setFont(config.ssd1306Rows == 32 ? NULL : FONT_9);
       this->display->setTextSize(1);
       this->display->setCursor(0, line2_y + (config.ssd1306Rows == 32 ? 0 : (line_height - 4)));
@@ -145,7 +145,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
       }
     }
     if (mask & M_PM2_5) {
-      this->display->writeFillRect(0, line3_y, 128, line_height, BLACK);
+      this->display->writeFillRect(0, line3_y, 128, line_height, SSD1306_BLACK);
       this->display->setFont(config.ssd1306Rows == 32 ? NULL : FONT_9);
       this->display->setTextSize(1);
       this->display->setCursor(0, line3_y + (config.ssd1306Rows == 32 ? 0 : (line_height - 4)));
@@ -157,7 +157,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
     }
   }
 
-  this->display->writeFillRect(0, temp_hum_y, 128, temp_hum_height, BLACK);
+  this->display->writeFillRect(0, temp_hum_y, 128, temp_hum_height, SSD1306_BLACK);
   this->display->setFont(NULL);
   this->display->setTextSize(1);
   this->display->setCursor(0, temp_hum_y);
