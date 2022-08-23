@@ -23,6 +23,7 @@ extern boolean hasBattery;
 
 LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
   priorityMessageActive = false;
+  menuActive = false;
   this->model = _model;
   display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, 800000, I2C_CLK);
 
@@ -55,8 +56,12 @@ const uint8_t line2_y = config.ssd1306Rows == 32 ? 8 : 24;
 const uint8_t line3_y = config.ssd1306Rows == 32 ? 16 : 40;
 const uint8_t line_height = config.ssd1306Rows == 32 ? 8 : 16;
 
+const uint8_t menu1_y = 0;
+const uint8_t menu2_y = 20;
+
 void LCD::updateMessage(char const* msg) {
   if (priorityMessageActive) return;
+  if (this->menuActive) return;
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->display->writeFillRect(0, status_y, 128, status_height, SSD1306_BLACK);
   this->display->setFont(NULL);
@@ -68,6 +73,7 @@ void LCD::updateMessage(char const* msg) {
 }
 
 void LCD::setPriorityMessage(char const* msg) {
+  if (this->menuActive) return;
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->priorityMessageActive = true;
   this->display->writeFillRect(0, status_y, 128, status_height, SSD1306_BLACK);
@@ -80,6 +86,7 @@ void LCD::setPriorityMessage(char const* msg) {
 }
 
 void LCD::clearPriorityMessage() {
+  if (this->menuActive) return;
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->display->writeFillRect(0, status_y, 128, status_height, SSD1306_BLACK);
   this->display->display();
@@ -87,7 +94,47 @@ void LCD::clearPriorityMessage() {
   I2C::giveMutex();
 }
 
+void LCD::showMenu(char const* heading, char const* selection) {
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
+  this->display->writeFillRect(0, 0, 120, config.ssd1306Rows, SSD1306_BLACK);
+  this->display->setFont(FONT_9);
+  this->display->setTextSize(1);
+  this->display->setCursor(0, menu1_y + 12);
+  this->display->writeFillRect(0, 0, 115, 16, SSD1306_WHITE);
+  this->display->setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+  this->display->print(heading);
+  this->display->setTextColor(SSD1306_WHITE);
+  this->display->drawFastHLine(0, 17, 110, SSD1306_WHITE);
+  this->display->setCursor(0, menu2_y + 12);
+  this->display->print(selection);
+
+  this->display->setFont(NULL);
+  this->display->setTextSize(1);
+  this->display->writeFillRect(116, 0, 128, config.ssd1306Rows, SSD1306_BLACK);
+  this->display->drawFastVLine(116, 0, 64, SSD1306_WHITE);
+  this->display->setCursor(122, 0);
+  this->display->print("x");
+  this->display->setCursor(116, 18);
+  this->display->print("<-");
+  this->display->setCursor(122, 38);
+  this->display->print("+");
+  this->display->setCursor(122, 56);
+  this->display->print("-");
+  this->display->display();
+  this->menuActive = true;
+  I2C::giveMutex();
+}
+
+void LCD::quitMenu() {
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
+  this->display->writeFillRect(0, 0, 128, config.ssd1306Rows, SSD1306_BLACK);
+  this->display->display();
+  this->menuActive = false;
+  I2C::giveMutex();
+}
+
 void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
+  if (this->menuActive) return;
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
 
   // see if only CO2 sensor is present

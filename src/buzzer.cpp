@@ -1,6 +1,7 @@
 #include <buzzer.h>
 
 #include <power.h>
+#include <configManager.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -34,7 +35,7 @@ Buzzer::Buzzer(Model* _model, uint8_t _buzzerPin, boolean reinitFromSleep) {
   pinMode(this->buzzerPin, OUTPUT);
   ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER, PWM_RESOULTION_BUZZER);
   ledcAttachPin(this->buzzerPin, PWM_CHANNEL_BUZZER);
-  if (!reinitFromSleep) {
+  if (!reinitFromSleep && config.buzzerMode != BUZ_OFF) {
     ledcWrite(PWM_CHANNEL_BUZZER, BUZZER_DUTY);
     delay(300);
     ledcSetup(PWM_CHANNEL_BUZZER, PWM_FREQ_BUZZER + 500, PWM_RESOULTION_BUZZER);
@@ -54,6 +55,7 @@ void Buzzer::alert() {
 }
 
 void Buzzer::beep(uint8_t n) {
+  if (config.buzzerMode == BUZ_OFF) return;
   for (uint8_t i = 0; i < n;i++) {
     ledcWrite(PWM_CHANNEL_BUZZER, BUZZER_DUTY);
     delay(50);
@@ -63,7 +65,7 @@ void Buzzer::beep(uint8_t n) {
 }
 
 void Buzzer::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
+  if (config.buzzerMode != BUZ_ALWAYS && oldStatus == newStatus) return;
   if (newStatus == GREEN) {
     ledcWrite(PWM_CHANNEL_BUZZER, 0);
     beep(1);

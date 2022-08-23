@@ -12,6 +12,12 @@
 #define SSID_LEN 20
 #define PASSWORD_LEN 20
 
+typedef enum {
+  BUZ_OFF = 0,
+  BUZ_LVL_CHANGE,
+  BUZ_ALWAYS
+} BuzzerMode;
+
 struct Config {
   uint16_t deviceId;
   char mqttTopic[MQTT_TOPIC_ID_LEN + 1];
@@ -66,6 +72,7 @@ struct Config {
   uint8_t sdClk = SD_CLK;
   uint8_t sdCmd = SD_CMD;
 
+  BuzzerMode buzzerMode = BUZ_OFF;
 };
 
 void setupConfigManager();

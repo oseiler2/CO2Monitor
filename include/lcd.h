@@ -17,12 +17,16 @@ public:
   void setPriorityMessage(char const* msg);
   void clearPriorityMessage();
 
+  void showMenu(char const* heading, char const* selection);
+  void quitMenu();
+
 private:
   Model* model;
 
   Adafruit_SSD1306* display;
 
   boolean priorityMessageActive;
+  boolean menuActive;
 };
 
 

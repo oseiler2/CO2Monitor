@@ -30,6 +30,7 @@
 #include <sd_card.h>
 #include <battery.h>
 #include <timekeeper.h>
+#include <menu.h>
 
 #if CONFIG_IDF_TARGET_ESP32
 #include <hub75.h>
@@ -143,8 +144,12 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
 }
 
 void calibrateCo2SensorCallback(uint16_t co2Reference) {
+  ESP_LOGI(TAG, "Starting calibration");
+  if (lcd) lcd->setPriorityMessage("Starting calibration");
   if (I2C::scd30Present() && scd30) scd30->calibrateScd30ToReference(co2Reference);
   if (I2C::scd40Present() && scd40) scd40->calibrateScd40ToReference(co2Reference);
+  vTaskDelay(pdMS_TO_TICKS(200));
+  if (lcd) lcd->clearPriorityMessage();
 }
 
 void setTemperatureOffsetCallback(float temperatureOffset) {
@@ -411,46 +416,30 @@ void loop() {
     oldConfirmedButton1State = button1State;
     if (oldConfirmedButton1State == 1) {
       ESP_LOGI(TAG, "Button 1 pressed!");
-    }
-    if (oldConfirmedButton1State == 0) {
-      if (Power::getPowerMode() == USB) {
-        digitalWrite(LED_PIN, LOW);
-        stopHub75DMA();
-        WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
-      }
+      Menu::button1Pressed();
     }
   }
 
   if (hasBtn2 && button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
     oldConfirmedButton2State = button2State;
     if (oldConfirmedButton2State == 1) {
-      ESP_LOGI(TAG, "Button 2 pressed!");
-      ESP_LOGI(TAG, "Uptime %u", Power::getUpTime());
-      Timekeeper::printTime();
+      Menu::button2Pressed();
     }
   }
   if (hasBtn3 && button3State != oldConfirmedButton3State && (millis() - lastBtn3DebounceTime) > debounceDelay) {
     oldConfirmedButton3State = button3State;
     if (oldConfirmedButton3State == 1) {
       ESP_LOGI(TAG, "Button 3 pressed!");
-      if (neopixel) neopixel->prepareToSleep();
-      Power::setPowerMode(BATTERY);
-      if (scd40) scd40->setSampleRate(LP_PERIODIC);
-      if (bme680) bme680->setSampleRate(ULP);
+      Menu::button3Pressed();
     }
   }
   if (hasBtn4 && button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
     oldConfirmedButton4State = button4State;
     if (oldConfirmedButton4State == 1) {
       ESP_LOGI(TAG, "Button 4 pressed!");
-      ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
-      if (hasBuzzer && buzzer) buzzer->alert();
-      if (hasNeoPixel && neopixel) neopixel->off();
-      if (scd40) scd40->shutdown();
-      if (bme680) bme680->shutdown();
-      Power::powerDown();
+      Menu::button4Pressed();
     }
   }
 
-  vTaskDelay(pdMS_TO_TICKS(50));
+  vTaskDelay(pdMS_TO_TICKS(5));
 }
