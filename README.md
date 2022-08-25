@@ -320,7 +320,7 @@ CO2 sensors need to be regularly calibrated to provide reliable measurements. Th
 
 ## From v1.2.4
 
-Manual calibration can be triggered by pressing the `Boot` button for more than 5 seconds. Make sure the monitor has been exposed to fresh outside air for a while and be carful not to breathe towards the monitor when doing this.
+Manual calibration can be triggered by pressing the `Boot` button for more than 5 seconds. Make sure the monitor has been exposed to fresh outside air for a while and be careful not to breathe towards the monitor when doing this.
 
 # Hardware
 
