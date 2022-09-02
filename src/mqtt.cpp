@@ -28,6 +28,7 @@ namespace mqtt {
 
   const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
   const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
+  const uint8_t X_CMD_PUBLISH_STATUSMSG = bit(2);
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
@@ -45,6 +46,8 @@ namespace mqtt {
   getSPS30StatusCallback_t getSPS30StatusCallback;
 
   uint32_t lastReconnectAttempt = 0;
+  uint32_t connectionAttempts = 0;
+  char statusmsg[512];
 
   void publishSensors(uint16_t mask) {
     if (!WiFi.isConnected() || !mqtt_client->connected()) return;
@@ -255,12 +258,42 @@ namespace mqtt {
     }
   }
 
+  void sendStatus(const char *newmsg) {
+    MqttMessage msg;
+    msg.cmd = X_CMD_PUBLISH_STATUSMSG;
+    sprintf(statusmsg, "%s", newmsg);
+    if (strlen(statusmsg) > 0) {
+      if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+    }
+  }
+
+  void publishStatusInternal() {
+    if (!mqtt_client->connected()) {
+      return;
+    }
+    char msg[1024];
+    StaticJsonDocument<1024> json;
+    json["online"] = true;
+    if (strlen(statusmsg) > 0) {
+      json["status"] = statusmsg;
+    }
+    if (serializeJson(json, msg) == 0) {
+      ESP_LOGW(TAG, "Failed to serialise status payload");
+      return;
+    }
+    char buf[256];
+    sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+    mqtt_client->publish(buf, msg);
+    sprintf(statusmsg, "");
+  }
+
   void reconnect() {
     if (millis() - lastReconnectAttempt < 60000) return;
     char buf[256];
     sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     if (!WiFi.isConnected()) return;
     lastReconnectAttempt = millis();
+    connectionAttempts++;
     if (!mqtt_client->connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
       if (mqtt_client->connect(buf, config.mqttUsername, config.mqttPassword)) {
@@ -269,8 +302,8 @@ namespace mqtt {
         mqtt_client->subscribe(buf);
         sprintf(buf, "%s/down/#", config.mqttTopic);
         mqtt_client->subscribe(buf);
-        sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
-        mqtt_client->publish(buf, "{\"online\":true}");
+        sprintf(statusmsg, "connected after %d attempts", connectionAttempts);
+        publishStatusInternal();
       } else {
         ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client->state());
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -347,6 +380,8 @@ namespace mqtt {
           publishConfigurationInternal();
         } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
           publishSensorsInternal(msg.mask);
+        } else if (msg.cmd == X_CMD_PUBLISH_STATUSMSG) {
+          publishStatusInternal();
         }
       }
       if (!mqtt_client->connected()) {
