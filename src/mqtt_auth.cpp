@@ -1,4 +1,6 @@
 #include <mqtt_auth.h>
+#include <mqtt.h>
+#include <configManager.h>
 #include <wifiManager.h>
 #include <LittleFS.h>
 
@@ -66,6 +68,8 @@ namespace mqtt {
 
     // Attempts to initialize an RSA key (and associated CSR) for the device
     bool initKey(void) {
+        ESP_LOGD(TAG, "Generating RSA private key... ");
+
         mbedtls_pk_context key;
         mbedtls_x509write_csr req;
         mbedtls_entropy_context entropy;
@@ -79,28 +83,33 @@ namespace mqtt {
         mbedtls_x509write_csr_init(&req);
         mbedtls_x509write_csr_set_md_alg(&req, MBEDTLS_MD_SHA256);
 
+        ESP_LOGD(TAG, "Initializing PRNG... ");
         if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                 (const unsigned char *)mac.c_str(), mac.length())) != 0) {
             return finishInitKey(&key, &req, &entropy, &ctr_drbg, "seed", ret);
         }
 
+        ESP_LOGD(TAG, "PK setup... ");
         if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type((mbedtls_pk_type_t)MBEDTLS_PK_RSA))) != 0) {
             return finishInitKey(&key, &req, &entropy, &ctr_drbg, "setup", ret);
         }
 
+        ESP_LOGD(TAG, "Actually generating... ");
         if ((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, KEY_SIZE, EXPONENT)) != 0) {
             return finishInitKey(&key, &req, &entropy, &ctr_drbg, "gen key", ret);
         }
 
-        unsigned char output_buf[16000];
-        memset(output_buf, 0, 16000);
-        if( ( ret = mbedtls_pk_write_key_pem( &key, output_buf, 16000 ) ) != 0 ) {
+        unsigned char output_buf[PEM_BUFLEN];
+        memset(output_buf, 0, PEM_BUFLEN);
+        ESP_LOGD(TAG, "Writing key PEM.. ");
+        if( ( ret = mbedtls_pk_write_key_pem( &key, output_buf, PEM_BUFLEN ) ) != 0 ) {
             return finishInitKey(&key, &req, &entropy, &ctr_drbg, "serialize key", ret);
         }
-        if (!writeFile(MQTT_CLIENT_KEY_FILENAME, output_buf)) {
+        if (!writeFile(MQTT_CLIENT_NEW_KEY_FILENAME, output_buf)) {
             return finishInitKey(&key, &req, &entropy, &ctr_drbg, "write key", MBEDTLS_ERR_PK_FILE_IO_ERROR);
         }
 
+        ESP_LOGD(TAG, "Generating CSR... ");
         char cn[50];
         snprintf(&cn[0], 50, "CN=%s,O=CO2Monitor", mac);
         if ((ret = mbedtls_x509write_csr_set_subject_name( &req, cn)) != 0 ) {
@@ -108,14 +117,16 @@ namespace mqtt {
         }
         mbedtls_x509write_csr_set_key(&req, &key);
 
-        memset( output_buf, 0, 16000 );
-        if ((ret = mbedtls_x509write_csr_pem(&req, output_buf, 16000, mbedtls_ctr_drbg_random, &ctr_drbg)) < 0) {
+        ESP_LOGD(TAG, "Writing CSR PEM... ");
+        memset( output_buf, 0, PEM_BUFLEN );
+        if ((ret = mbedtls_x509write_csr_pem(&req, output_buf, PEM_BUFLEN, mbedtls_ctr_drbg_random, &ctr_drbg)) < 0) {
             return finishInitKey(&key, &req, &entropy, &ctr_drbg, "serialize csr", ret);
         }
-        if (!writeFile("/mqtt_client.csr", output_buf)) {
+        if (!writeFile(MQTT_CLIENT_CSR_FILENAME, output_buf)) {
             return finishInitKey(&key, &req, &entropy, &ctr_drbg, "write csr", MBEDTLS_ERR_PK_FILE_IO_ERROR);
         }
 
+        ESP_LOGD(TAG, "Key generated.");
         return finishInitKey(&key, &req, &entropy, &ctr_drbg, "", 0);
     }
 

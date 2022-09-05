@@ -29,6 +29,7 @@ namespace mqtt {
 
   const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
   const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
+  const uint8_t X_CMD_REQUEST_CERT = bit(2);
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
@@ -161,6 +162,48 @@ namespace mqtt {
     if (!mqtt_client->publish(buf, msg)) ESP_LOGE(TAG, "publish failed!");
   }
 
+    // Attempts to register a CSR with the server to requst a certificate
+    void requestCert(void) {
+        MqttMessage msg;
+        msg.cmd = X_CMD_REQUEST_CERT;
+        if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+    }
+
+    void requestCertInternal() {
+        ESP_LOGD(TAG, "Requesting Certificate...");
+        if (!LittleFS.exists(MQTT_CLIENT_CSR_FILENAME)) {
+            if (!initKey()) {
+                ESP_LOGE(TAG, "Failed to create MQTT client key");
+                return;
+            }
+        }
+
+        ESP_LOGD(TAG, "Submitting CSR...");
+        File f;
+        if (!(f = LittleFS.open(MQTT_CLIENT_CSR_FILENAME, FILE_READ))) {
+            ESP_LOGE(TAG, "could not read CSR");
+            return;
+        }
+
+        char csr[PEM_BUFLEN];
+        int len = f.read((uint8_t *)&csr[0], PEM_BUFLEN);
+        if (len <= 0) {
+            ESP_LOGE(TAG, "CSR was empty");
+            return;
+        }
+        csr[len] = '\0';
+        f.close();
+
+        if (mqtt_client->connected()) {
+            char topic[256];
+            sprintf(topic, "%s/%u/up/csr", config.mqttTopic, config.deviceId);
+            ESP_LOGD(TAG, "Publishing certificate request: %s", topic);
+            if (!mqtt_client->publish(topic, csr)) ESP_LOGE(TAG, "failed to publish csr!");
+        } else {
+            ESP_LOGE(TAG, "Generated CSR, but could not submit as MQTT not connected");
+        }
+  }
+
   void callback(char* topic, byte* payload, unsigned int length) {
     char buf[256];
     char msg[length + 1];
@@ -199,6 +242,8 @@ namespace mqtt {
       setSPS30AutoCleanIntervalCallback(interval);
     } else if (strncmp(buf, "cleanSPS30", strlen(buf)) == 0) {
       cleanSPS30Callback();
+    } else if (strncmp(buf, "requestCert", strlen(buf)) == 0) {
+      requestCert();
     } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
       publishConfiguration();
     } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
@@ -304,12 +349,6 @@ namespace mqtt {
     getSPS30StatusCallback = _getSPS30StatusCallback;
 
     if (config.mqttUseTls) {
-      // TODO: (Move elsewhere)
-      if (!LittleFS.exists(MQTT_CLIENT_KEY_FILENAME)) {
-        if (!initKey()) {
-          ESP_LOGE(TAG, "Failed to create MQTT client key");
-        }
-      }
       wifiClient = new WiFiClientSecure();
       if (config.mqttInsecure) {
         ((WiFiClientSecure*)wifiClient)->setInsecure();
@@ -354,6 +393,8 @@ namespace mqtt {
           publishConfigurationInternal();
         } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
           publishSensorsInternal(msg.mask);
+        } else if (msg.cmd == X_CMD_REQUEST_CERT) {
+          requestCertInternal();
         }
       }
       if (!mqtt_client->connected()) {

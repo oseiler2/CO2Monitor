@@ -233,7 +233,7 @@ void setup() {
 
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
-    8192,               // stack size of task
+    12288,               // stack size of task
     (void*)1,           // parameter of the task
     2,                  // priority of the task
     &mqtt::mqttTask,    // task handle
