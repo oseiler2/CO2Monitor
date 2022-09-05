@@ -79,7 +79,7 @@ namespace Power {
     rtc_gpio_deinit((gpio_num_t)BTN_1);
     if (config.neopixelData > 0) disableRtcHold((gpio_num_t)config.neopixelData);
     if (config.oledEn > 0) disableRtcHold((gpio_num_t)config.oledEn);
-    if (config.buzzer > 0) disableRtcHold((gpio_num_t)config.buzzer);
+    if (config.buzzerPin > 0) disableRtcHold((gpio_num_t)config.buzzerPin);
     disableRtcHold((gpio_num_t)LED_PIN);
     //  disableRtcHold((gpio_num_t)VBAT_EN); // 46 - bootstrap
 
@@ -217,7 +217,7 @@ namespace Power {
     //    digitalWrite(config.oledEn, LOW);
     digitalWrite(LED_PIN, LOW);
     digitalWrite(config.neopixelData, LOW);
-    digitalWrite(config.buzzer, LOW);
+    digitalWrite(config.buzzerPin, LOW);
     digitalWrite(config.vBatEn, LOW);
 
     mqtt::shutDownMqtt();
@@ -236,7 +236,7 @@ namespace Power {
 
     enableRtcHold((gpio_num_t)config.neopixelData);
     enableRtcHold((gpio_num_t)config.oledEn);
-    enableRtcHold((gpio_num_t)config.buzzer);
+    enableRtcHold((gpio_num_t)config.buzzerPin);
     enableRtcHold((gpio_num_t)LED_PIN);
     //    enableRtcHold((gpio_num_t)VBAT_EN); // 46 - bootstrap
   }

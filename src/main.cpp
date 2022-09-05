@@ -285,7 +285,7 @@ void setup() {
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
 #endif
-  hasBuzzer = config.buzzer != 0;
+  hasBuzzer = config.buzzerPin != 0;
   hasSdSlot = (config.sdDetect != 0 && config.sdDat0 != 0 && config.sdDat1 != 0 && config.sdDat2 != 0 && config.sdDat3 != 0 && config.sdClk != 0 && config.sdCmd != 0);
   hasBtn2 = config.btn2 != 0;
   hasBtn3 = config.btn3 != 0;
@@ -308,8 +308,8 @@ void setup() {
     digitalWrite(config.neopixelData, LOW);
   }
   if (hasBuzzer) {
-    pinMode(config.buzzer, OUTPUT);
-    digitalWrite(config.buzzer, LOW);
+    pinMode(config.buzzerPin, OUTPUT);
+    digitalWrite(config.buzzerPin, LOW);
   }
   if (hasBattery) {
     pinMode(config.vBatEn, OUTPUT);
@@ -333,7 +333,7 @@ void setup() {
 #if CONFIG_IDF_TARGET_ESP32
   if (hasHub75) hub75 = new HUB75(model);
 #endif
-  if (hasBuzzer) buzzer = new Buzzer(model, config.buzzer, reinitFromSleep);
+  if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
   if (hasSdCard)  hasSdCard &= SdCard::setup();
 
   Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
@@ -423,6 +423,7 @@ void loop() {
   if (hasBtn2 && button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
     oldConfirmedButton2State = button2State;
     if (oldConfirmedButton2State == 1) {
+      ESP_LOGI(TAG, "Button 2 pressed!");
       Menu::button2Pressed();
     }
   }

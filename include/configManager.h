@@ -63,7 +63,7 @@ struct Config {
   uint8_t btn3 = BTN_3;
   uint8_t btn4 = BTN_4;
   uint8_t oledEn = OLED_EN;
-  uint8_t buzzer = BUZZER_PIN;
+  uint8_t buzzerPin = BUZZER_PIN;
   uint8_t sdDetect = SD_DETECT;
   uint8_t sdDat0 = SD_DAT0;
   uint8_t sdDat1 = SD_DAT1;
@@ -72,7 +72,7 @@ struct Config {
   uint8_t sdClk = SD_CLK;
   uint8_t sdCmd = SD_CMD;
 
-  BuzzerMode buzzerMode = BUZ_OFF;
+  BuzzerMode buzzerMode;
 };
 
 void setupConfigManager();
@@ -81,6 +81,7 @@ boolean loadConfiguration(Config& config);
 boolean saveConfiguration(const Config& config);
 void logConfiguration(const Config& config);
 void printFile();
+BuzzerMode getBuzzerModeFromUint(uint8_t buzzerMode);
 
 extern Config config;
 

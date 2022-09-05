@@ -52,17 +52,15 @@ namespace Menu {
 
   void setBuzzerAction(uint8_t selection) {
     ESP_LOGI(TAG, "setBuzzerAction %u", selection);
-    switch (selection) {
-      case 1: config.buzzerMode = BUZ_LVL_CHANGE; break;
-      case 2: config.buzzerMode = BUZ_ALWAYS; break;
-      default: config.buzzerMode = BUZ_OFF; break;
-    }
+    config.buzzerMode = getBuzzerModeFromUint(selection);
+    saveConfiguration(config);
     model->configurationChanged();
   }
 
   void setBrightnessAction(uint8_t selection) {
     ESP_LOGI(TAG, "setBrightnessAction %u", selection);
     config.brightness = selection;
+    saveConfiguration(config);
     model->configurationChanged();
   }
 

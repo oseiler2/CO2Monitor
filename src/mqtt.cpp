@@ -114,6 +114,7 @@ namespace mqtt {
     json["iaqRedThreshold"] = config.iaqRedThreshold;
     json["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
     json["brightness"] = config.brightness;
+    json["buzzerMode"] = config.buzzerMode;
     sprintf(buf, "%s", WifiManager::getMac().c_str());
     json["mac"] = buf;
     sprintf(buf, "%s", WiFi.localIP().toString().c_str());
@@ -219,6 +220,7 @@ namespace mqtt {
       if (doc.containsKey("iaqRedThreshold")) config.iaqRedThreshold = doc["iaqRedThreshold"].as<uint16_t>();
       if (doc.containsKey("iaqDarkRedThreshold")) config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"].as<uint16_t>();
       if (doc.containsKey("brightness")) config.brightness = doc["brightness"].as<uint8_t>();
+      if (doc.containsKey("buzzerMode")) config.buzzerMode = getBuzzerModeFromUint(doc["buzzerMode"].as<uint8_t>());
       if (doc.containsKey("ssd1306Rows")) { config.ssd1306Rows = doc["ssd1306Rows"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("greenLed")) { config.greenLed = doc["greenLed"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("yellowLed")) { config.yellowLed = doc["yellowLed"].as<uint8_t>(); rebootRequired = true; }

@@ -32,6 +32,7 @@ Config config;
   "iaqRedThreshold": 200,
   "iaqDarkRedThreshold": 300,
   "brightness": 255,
+  "buzzerMode": 1,
   "ssd1306Rows": 64,
   "greenLed": 27,
   "yellowLed": 26,
@@ -107,6 +108,7 @@ void setupConfigManager() {
 #define DEFAULT_HUB75_CLK                 27
 #define DEFAULT_HUB75_LAT                 26
 #define DEFAULT_HUB75_OE                  25
+#define DEFAULT_BUZZER_MODE               BUZ_LVL_CHANGE
 
 void getDefaultConfiguration(Config& config) {
   config.deviceId = DEFAULT_DEVICE_ID;
@@ -125,6 +127,7 @@ void getDefaultConfiguration(Config& config) {
   config.iaqRedThreshold = DEFAULT_IAQ_RED_THRESHOLD;
   config.iaqDarkRedThreshold = DEFAULT_IAQ_DARK_RED_THRESHOLD;
   config.brightness = DEFAULT_BRIGHTNESS;
+  config.buzzerMode = DEFAULT_BUZZER_MODE;
   config.ssd1306Rows = DEFAULT_SSD1306_ROWS;
   config.greenLed = DEFAULT_GREEN_LED;
   config.yellowLed = DEFAULT_YELLOW_LED;
@@ -165,6 +168,7 @@ void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "iaqRedThreshold: %u", config.iaqRedThreshold);
   ESP_LOGD(TAG, "iaqDarkRedThreshold: %u", config.iaqDarkRedThreshold);
   ESP_LOGD(TAG, "brightness: %u", config.brightness);
+  ESP_LOGD(TAG, "buzzerMode: %u", config.buzzerMode);
   ESP_LOGD(TAG, "ssd1306Rows: %u", config.ssd1306Rows);
   ESP_LOGD(TAG, "greenLed: %u", config.greenLed);
   ESP_LOGD(TAG, "yellowLed: %u", config.yellowLed);
@@ -231,6 +235,7 @@ boolean loadConfiguration(Config& config) {
   config.iaqRedThreshold = doc["iaqRedThreshold"] | DEFAULT_IAQ_RED_THRESHOLD;
   config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"] | DEFAULT_IAQ_DARK_RED_THRESHOLD;
   config.brightness = doc["brightness"] | DEFAULT_BRIGHTNESS;
+  config.buzzerMode = doc["buzzerMode"] | DEFAULT_BUZZER_MODE;
   config.ssd1306Rows = doc["ssd1306Rows"] | DEFAULT_SSD1306_ROWS;
   config.greenLed = doc["greenLed"] | DEFAULT_GREEN_LED;
   config.yellowLed = doc["yellowLed"] | DEFAULT_YELLOW_LED;
@@ -291,6 +296,7 @@ boolean saveConfiguration(const Config& config) {
   doc["iaqRedThreshold"] = config.iaqRedThreshold;
   doc["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
   doc["brightness"] = config.brightness;
+  doc["buzzerMode"] = config.buzzerMode;
   doc["ssd1306Rows"] = config.ssd1306Rows;
   doc["greenLed"] = config.greenLed;
   doc["yellowLed"] = config.yellowLed;
@@ -343,4 +349,12 @@ void printFile() {
 
   // Close the file
   file.close();
+}
+
+BuzzerMode getBuzzerModeFromUint(uint8_t buzzerMode) {
+  switch (buzzerMode) {
+    case 1: return BUZ_LVL_CHANGE;
+    case 2: return BUZ_ALWAYS;
+    default: return BUZ_OFF;
+  }
 }
