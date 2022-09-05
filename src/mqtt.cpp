@@ -1,4 +1,5 @@
 #include <mqtt.h>
+#include <mqtt_auth.h>
 #include <Arduino.h>
 #include <config.h>
 
@@ -303,6 +304,12 @@ namespace mqtt {
     getSPS30StatusCallback = _getSPS30StatusCallback;
 
     if (config.mqttUseTls) {
+      // TODO: (Move elsewhere)
+      if (!LittleFS.exists(MQTT_CLIENT_KEY_FILENAME)) {
+        if (!initKey()) {
+          ESP_LOGE(TAG, "Failed to create MQTT client key");
+        }
+      }
       wifiClient = new WiFiClientSecure();
       if (config.mqttInsecure) {
         ((WiFiClientSecure*)wifiClient)->setInsecure();
