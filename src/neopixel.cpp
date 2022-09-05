@@ -6,7 +6,7 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
-#define BAT_BRIGHTNESS 30
+#define BAT_BRIGHTNESS (uint8_t)30
 
 Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinitFromSleep) {
   this->model = _model;
@@ -21,7 +21,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
   this->colourOff = this->strip->Color(0, 0, 0);
 
   this->strip->begin();
-  this->strip->setBrightness(Power::getPowerMode() == BATTERY ? BAT_BRIGHTNESS : config.brightness);
+  this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
   if (!reinitFromSleep) {
     // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
     cyclicTimer->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
@@ -75,13 +75,13 @@ void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightS
         break;
       case BATTERY:
         off();
-        this->strip->setBrightness(BAT_BRIGHTNESS);
+        this->strip->setBrightness(min(BAT_BRIGHTNESS, config.brightness));
         break;
       default: break;
     }
   }
   if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED) && !(mask && M_POWER_MODE)) return;
-  if (mask & M_CONFIG_CHANGED) this->strip->setBrightness(Power::getPowerMode() == BATTERY ? BAT_BRIGHTNESS : config.brightness);
+  if (mask & M_CONFIG_CHANGED) this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
   if (newStatus == GREEN) {
     fill(this->colourGreen); // Green
   } else if (newStatus == YELLOW) {
@@ -90,7 +90,7 @@ void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightS
     fill(colourRed); // Red
   } else if (newStatus == DARK_RED) {
     if (Power::getPowerMode() == BATTERY || oldStatus != newStatus)
-      fill(colourPurple); // Red
+      fill(colourPurple); // Purple
   }
 }
 
