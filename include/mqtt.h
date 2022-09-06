@@ -3,6 +3,11 @@
 
 #include "globals.h"
 #include <model.h>
+#include <ArduinoJson.h>
+
+// Size of buffer to serialize status messages into, can also be used
+// as size of the preceeding JsonDocument
+#define STATUS_BUFSIZE 512
 
 namespace mqtt {
   typedef void (*calibrateCo2SensorCallback_t)(uint16_t);
@@ -26,7 +31,8 @@ namespace mqtt {
 
   void publishSensors(uint16_t mask);
   void publishConfiguration();
-  void sendStatus(const char *statusmsg);
+  void sendStatus(DynamicJsonDocument *status);
+  void sendStatusMsg(const char *statusmsg);
 
   void mqttLoop(void* pvParameters);
 

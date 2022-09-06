@@ -37,7 +37,7 @@ namespace OTA {
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
       if (preUpdateCallback) preUpdateCallback();
-      mqtt::sendStatus("Starting OTA update");
+      mqtt::sendStatusMsg("Starting OTA update");
       esp32FOTA.execOTA();
     } else {
       ESP_LOGD(TAG, "No firmware update available");
@@ -54,7 +54,7 @@ namespace OTA {
     ESP_LOGD(TAG, "Beginning forced OTA");
     if (preUpdateCallback) preUpdateCallback();
     esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
-    mqtt::sendStatus("Starting forced OTA update");
+    mqtt::sendStatusMsg("Starting forced OTA update");
     esp32FOTA.forceUpdate(forceUpdateURL, false);
     forceUpdateURL = "";
     ESP_LOGD(TAG, "Forced OTA done");    forceUpdateURL = "";

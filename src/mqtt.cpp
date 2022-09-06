@@ -24,11 +24,14 @@ namespace mqtt {
   struct MqttMessage {
     uint8_t cmd;
     uint16_t mask;
+    // Only for X_CMD_PUBLISH_STATUS, pointer to status doc
+    // owned by MqttMessage, will be freed after use.
+    DynamicJsonDocument *status;
   };
 
   const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
   const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
-  const uint8_t X_CMD_PUBLISH_STATUSMSG = bit(2);
+  const uint8_t X_CMD_PUBLISH_STATUS = bit(2);
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
@@ -47,7 +50,6 @@ namespace mqtt {
 
   uint32_t lastReconnectAttempt = 0;
   uint32_t connectionAttempts = 0;
-  char statusmsg[512];
 
   void publishSensors(uint16_t mask) {
     if (!WiFi.isConnected() || !mqtt_client->connected()) return;
@@ -258,33 +260,46 @@ namespace mqtt {
     }
   }
 
-  void sendStatus(const char *newmsg) {
+  // Queue a status message with provided document.
+  // This takes ownership (and will free) the provided document after serialization.
+  // If the document does not contain a key name 'online', it will be added and set
+  // to true.
+  // The document is serialized into a buffer of STATUS_BUFSIZE bytes, so you should
+  // make sure to keep your document below that.
+  void sendStatus(DynamicJsonDocument *status) {
     MqttMessage msg;
-    msg.cmd = X_CMD_PUBLISH_STATUSMSG;
-    sprintf(statusmsg, "%s", newmsg);
-    if (strlen(statusmsg) > 0) {
-      if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
-    }
+    msg.cmd = X_CMD_PUBLISH_STATUS;
+    msg.status = status;
+    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
 
-  void publishStatusInternal() {
+  // Helper for sending a simple status message. Must be shorter than
+  //  STATUS_BUFSZIZE - 48 (e.g. 464 chars by default) to allow for JSON overhead.
+  void sendStatusMsg(const char *msg) {
+    DynamicJsonDocument *status = new DynamicJsonDocument(STATUS_BUFSIZE);
+    (*status)["status"] = msg;
+    if (status->overflowed()) {
+      ESP_LOGW(TAG, "Status overflowed buffer, may not be sent: %s", msg);
+    }
+    sendStatus(status);
+  }
+
+  void publishStatusInternal(DynamicJsonDocument *status) {
     if (!mqtt_client->connected()) {
       return;
     }
-    char msg[1024];
-    StaticJsonDocument<1024> json;
-    json["online"] = true;
-    if (strlen(statusmsg) > 0) {
-      json["status"] = statusmsg;
+    char msg[STATUS_BUFSIZE];
+    if ((*status)["online"].isNull()) {
+      (*status)["online"] = true;
     }
-    if (serializeJson(json, msg) == 0) {
-      ESP_LOGW(TAG, "Failed to serialise status payload");
+    if (serializeJson(*status, msg) == 0) {
+      ESP_LOGE(TAG, "Failed to serialise status payload");
       return;
     }
+    delete status;
     char buf[256];
     sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
     mqtt_client->publish(buf, msg);
-    sprintf(statusmsg, "");
   }
 
   void reconnect() {
@@ -302,8 +317,9 @@ namespace mqtt {
         mqtt_client->subscribe(buf);
         sprintf(buf, "%s/down/#", config.mqttTopic);
         mqtt_client->subscribe(buf);
-        sprintf(statusmsg, "connected after %d attempts", connectionAttempts);
-        publishStatusInternal();
+        DynamicJsonDocument *status = new DynamicJsonDocument(STATUS_BUFSIZE);
+        (*status)["connectionAttempts"] = connectionAttempts;
+        publishStatusInternal(status);
       } else {
         ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client->state());
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -380,8 +396,8 @@ namespace mqtt {
           publishConfigurationInternal();
         } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
           publishSensorsInternal(msg.mask);
-        } else if (msg.cmd == X_CMD_PUBLISH_STATUSMSG) {
-          publishStatusInternal();
+        } else if (msg.cmd == X_CMD_PUBLISH_STATUS) {
+          publishStatusInternal(msg.status);
         }
       }
       if (!mqtt_client->connected()) {
