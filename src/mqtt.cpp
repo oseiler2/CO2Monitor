@@ -321,7 +321,7 @@ namespace mqtt {
     cleanSPS30Callback_t _cleanSPS30Callback,
     getSPS30StatusCallback_t _getSPS30StatusCallback
   ) {
-    mqttQueue = xQueueCreate(2, sizeof(struct MqttMessage*));
+    mqttQueue = xQueueCreate(2, sizeof(struct MqttMessage));
     if (mqttQueue == NULL) {
       ESP_LOGE(TAG, "Queue creation failed!");
     }
