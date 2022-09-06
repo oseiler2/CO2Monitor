@@ -186,10 +186,17 @@ namespace mqtt {
             return;
         }
 
-        char csr[PEM_BUFLEN];
-        int len = f.read((uint8_t *)&csr[0], PEM_BUFLEN);
-        if (len <= 0) {
-            ESP_LOGE(TAG, "CSR was empty");
+        int len = f.size();
+        char *csr = (char *)malloc(len+1);
+        if (csr == NULL) {
+            ESP_LOGE(TAG, "Could not malloc CSR buffer");
+            return;
+        }
+        memset(csr, 0, len+1);
+        int read = f.read((uint8_t *)csr, len);
+        if (read != len) {
+            ESP_LOGE(TAG, "CSR read failed");
+            free(csr);
             return;
         }
         csr[len] = '\0';
@@ -203,6 +210,7 @@ namespace mqtt {
         } else {
             ESP_LOGE(TAG, "Generated CSR, but could not submit as MQTT not connected");
         }
+        free(csr);
   }
 
   void callback(char* topic, byte* payload, unsigned int length) {
