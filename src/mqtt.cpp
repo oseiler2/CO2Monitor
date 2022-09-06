@@ -163,15 +163,16 @@ namespace mqtt {
   }
 
     // Attempts to register a CSR with the server to requst a certificate
-    void requestCert(void) {
+    void requestCert(bool regenerateKey) {
         MqttMessage msg;
         msg.cmd = X_CMD_REQUEST_CERT;
+        msg.mask = regenerateKey;  // re-use mask field as regen flag.
         if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
     }
 
-    void requestCertInternal() {
+    void requestCertInternal(bool regenerateKey) {
         ESP_LOGD(TAG, "Requesting Certificate...");
-        if (!LittleFS.exists(MQTT_CLIENT_CSR_FILENAME)) {
+        if (!LittleFS.exists(MQTT_CLIENT_CSR_FILENAME) || regenerateKey) {
             if (!initKey()) {
                 ESP_LOGE(TAG, "Failed to create MQTT client key");
                 return;
@@ -243,7 +244,9 @@ namespace mqtt {
     } else if (strncmp(buf, "cleanSPS30", strlen(buf)) == 0) {
       cleanSPS30Callback();
     } else if (strncmp(buf, "requestCert", strlen(buf)) == 0) {
-      requestCert();
+      requestCert(false);
+    } else if (strncmp(buf, "regenerateKey", strlen(buf)) == 0) {
+      requestCert(true);
     } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
       publishConfiguration();
     } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
@@ -394,7 +397,7 @@ namespace mqtt {
         } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
           publishSensorsInternal(msg.mask);
         } else if (msg.cmd == X_CMD_REQUEST_CERT) {
-          requestCertInternal();
+          requestCertInternal(msg.mask == 1);
         }
       }
       if (!mqtt_client->connected()) {
