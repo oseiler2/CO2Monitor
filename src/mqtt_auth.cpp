@@ -11,6 +11,7 @@
 #include <mbedtls/x509_csr.h>
 #include <mbedtls/pk.h>
 #include <mbedtls/rsa.h>
+#include <esp_task_wdt.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -27,6 +28,10 @@ namespace mqtt {
     bool finishInitKey(mbedtls_pk_context *key, mbedtls_x509write_csr *req,
                        mbedtls_entropy_context *entropy,
                        mbedtls_ctr_drbg_context *ctr_drbg, const char *step, int ret) {
+
+        // Reset watchdog timer to default
+        esp_task_wdt_init(CONFIG_ESP_TASK_WDT_TIMEOUT_S, true);
+
         mbedtls_pk_free(key);
         mbedtls_x509write_csr_free(req);
         mbedtls_ctr_drbg_free(ctr_drbg);
@@ -69,6 +74,10 @@ namespace mqtt {
     // Attempts to initialize an RSA key (and associated CSR) for the device
     bool initKey(void) {
         ESP_LOGD(TAG, "Generating RSA private key... ");
+
+        // Getting the entropy for the key can take a few seconds, which doesn't play well with the default (5s) watchdog timer
+        // So bump it up for a bit while we generate the key - will be reset to the default value in finishInitKey above.
+        esp_task_wdt_init(15, true);
 
         mbedtls_pk_context key;
         mbedtls_x509write_csr req;
