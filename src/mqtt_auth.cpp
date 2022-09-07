@@ -8,6 +8,8 @@
 #include <mbedtls/error.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
+#include "mbedtls/x509.h"
+#include "mbedtls/x509_crt.h"
 #include <mbedtls/x509_csr.h>
 #include <mbedtls/pk.h>
 #include <mbedtls/rsa.h>
@@ -84,6 +86,43 @@ namespace mqtt {
         return true;
     }
 
+    // Trims any trailing space/newlines and ensures null terminated.
+    // Buf must be at least buflen+1 so there's space to add a null if required.
+    int trimAndNull(unsigned char *buf, int buflen) {
+        while (buf[buflen-1] == '\n' || buf[buflen-1] == ' ') {
+            buf[buflen-1] = '\0';
+            buflen--;
+        }
+        if (buf[buflen-1] != '\0') {
+            buf[buflen] = '\0';
+            buflen++;
+        }
+        return buflen;
+    }
+
+    // Helper to read a PEM file from disk.
+    int readPEM(const char *filename, unsigned char *buf, int buflen) {
+        File f;
+        if (!(f = LittleFS.open(filename, FILE_READ))) {
+            ESP_LOGE(TAG, "could not read %s", filename);
+            return -1;
+        }
+
+        if (buflen < f.size()+1) {
+            ESP_LOGE(TAG, "Insufficient buffer to read %s", filename);
+            return -1;
+        }
+        int read = f.read((uint8_t *)buf, buflen);
+        if (read != f.size()) {
+            ESP_LOGE(TAG, "PEM read from %s failed", filename);
+            return -1;
+        }
+        f.close();
+
+        // Strip any trailing newline, ensure null terminated.
+        return trimAndNull(buf, read);
+    }
+
     // Attempts to initialize an RSA key (and associated CSR) for the device
     bool initKey(void) {
         ESP_LOGD(TAG, "Generating RSA private key... ");
@@ -154,6 +193,137 @@ namespace mqtt {
 
         ESP_LOGD(TAG, "Key generated.");
         return finishInitKey(key, req, entropy, ctr_drbg, output_buf, "", 0);
+    }
+
+    // Clean-up after certificate installation and report status
+    bool finishInstallCert(mbedtls_x509_crt *cacert, mbedtls_x509_crt *crt, mbedtls_x509_crl *cacrl,
+                           mbedtls_pk_context *pk, mbedtls_ctr_drbg_context *ctr_drbg, const char *step, int ret) {
+
+        mbedtls_x509_crt_free(cacert);
+        mbedtls_x509_crt_free(crt);
+        mbedtls_pk_free(pk);
+        mbedtls_ctr_drbg_free(ctr_drbg);
+        delete cacert;
+        delete crt;
+        delete pk;
+        delete ctr_drbg;
+
+        if (ret != 0) {
+            char *status = (char *)malloc(1024);
+            char *errMsg = (char *)malloc(1024);
+            if (status != NULL && errMsg != NULL) {
+                mbedtls_strerror( ret, errMsg, 1024);
+                snprintf(status, 1024, "Failed to install certificate at %s: %s", step, errMsg);
+                free(errMsg);
+            } else {
+                ESP_LOGE(TAG, "(status not sent due to alloc failure) Failed to install certificate at %s", step);
+            }
+            // waiting for https://github.com/oseiler2/CO2Monitor/pull/14/files
+            //sendStatus(status)
+            ESP_LOGD(TAG, "installCert finished: %s", status);
+            free(status);
+            return false;
+        }
+
+        //sendStatus("Key initialized successfully");
+        ESP_LOGD(TAG, "Installed new certificate with Subject: %s", step);
+        return true;
+    }
+
+    // Attempts to install the provided cert
+    bool installCert(char *cert_pem, const unsigned int len) {
+        ESP_LOGD(TAG, "Installing certificate... ");
+
+        mbedtls_ctr_drbg_context *ctr_drbg = new mbedtls_ctr_drbg_context;
+        mbedtls_x509_crt *cacert = new mbedtls_x509_crt;
+        mbedtls_x509_crt *crt = new mbedtls_x509_crt;
+        mbedtls_x509_crl *cacrl = new mbedtls_x509_crl;
+        mbedtls_pk_context *pk = new mbedtls_pk_context;
+
+        int ret = 1;
+
+        mbedtls_ctr_drbg_init(ctr_drbg);
+        mbedtls_x509_crt_init(cacert);
+        mbedtls_x509_crt_init(crt);
+        mbedtls_pk_init(pk);
+        memset(cacrl, 0, sizeof(mbedtls_x509_crl));
+
+        // Load CA
+        unsigned char *pem_buf = (unsigned char *)malloc(PEM_BUFLEN);
+        if (pem_buf == NULL) {
+            finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "ca buffer",  MBEDTLS_ERR_X509_ALLOC_FAILED);
+        }
+        int ca_len = readPEM(MQTT_ROOT_CA_FILENAME, pem_buf, PEM_BUFLEN);
+        if (ca_len > 0) {
+            ret = mbedtls_x509_crt_parse(cacert, pem_buf, ca_len);
+        } else {
+            ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
+        }
+        free(pem_buf);
+        if (ret < 0) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "loadca", ret);
+        }
+
+        // Load cert
+        int pem_len = trimAndNull((unsigned char *)cert_pem, len);
+        if ((ret = mbedtls_x509_crt_parse(crt, (const unsigned char *)cert_pem, pem_len)) < 0) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "parse cert", ret);
+        }
+        if (ret != 0) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "bad cert", 0);
+        }
+
+        // Validate against CA.
+        uint32_t flags;
+        if ((ret = mbedtls_x509_crt_verify(crt, cacert, cacrl, NULL, &flags, NULL, NULL)) != 0) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "verify ca", ret);
+        }
+
+        // Validate against key
+        pem_buf = (unsigned char *)malloc(PEM_BUFLEN);
+        if (pem_buf == NULL) {
+            finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "key buffer",  MBEDTLS_ERR_X509_ALLOC_FAILED);
+        }
+        int key_len = readPEM(MQTT_CLIENT_NEW_KEY_FILENAME, pem_buf, PEM_BUFLEN);
+        if (key_len > 0) {
+            ret = mbedtls_pk_parse_key(pk, pem_buf, key_len, NULL, 0);
+        } else {
+            ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
+        }
+        free(pem_buf);
+        if (ret != 0) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "load key", ret);
+        }
+        if ((ret = mbedtls_pk_check_pair(&crt->pk, pk)) != 0) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "verify key", ret);
+        }
+
+        // Backup existing key/cert before installing
+        if (LittleFS.exists(MQTT_CLIENT_KEY_FILENAME)) {
+            if (!LittleFS.rename(MQTT_CLIENT_KEY_FILENAME, MQTT_CLIENT_OLD_KEY_FILENAME)) {
+                return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "backup key", MBEDTLS_ERR_X509_FILE_IO_ERROR);
+            }
+        }
+         if (LittleFS.exists(MQTT_CLIENT_CERT_FILENAME)) {
+            if (!LittleFS.rename(MQTT_CLIENT_CERT_FILENAME, MQTT_CLIENT_OLD_CERT_FILENAME)) {
+                return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "backup cert", MBEDTLS_ERR_X509_FILE_IO_ERROR);
+            }
+        }
+
+        // Install new
+        if (!LittleFS.rename(MQTT_CLIENT_NEW_KEY_FILENAME, MQTT_CLIENT_KEY_FILENAME)) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "write key", MBEDTLS_ERR_X509_FILE_IO_ERROR);
+        }
+        if (!writeFile(MQTT_CLIENT_CERT_FILENAME, (unsigned char *)cert_pem)) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "write cert", MBEDTLS_ERR_X509_FILE_IO_ERROR);
+        }
+
+        // Extract subject
+        char subject_name[256];
+        if ((ret = mbedtls_x509_dn_gets(&subject_name[0], sizeof(subject_name), &crt->subject)) < 0) {
+            return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, "get subject", ret);
+        }
+        return finishInstallCert(cacert, crt, cacrl, pk, ctr_drbg, subject_name, 0);
     }
 
 }

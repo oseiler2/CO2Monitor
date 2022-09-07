@@ -255,6 +255,13 @@ namespace mqtt {
       requestCert(false);
     } else if (strncmp(buf, "regenerateKey", strlen(buf)) == 0) {
       requestCert(true);
+    } else if (strncmp(buf, "installCert", strlen(buf)) == 0) {
+      // TODO: Add config fallback support incase this doesn't work
+      // Use at your own risk for now.
+      if (installCert(&msg[0], length)) {
+        delay(1000);
+        esp_restart();
+      }
     } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
       publishConfiguration();
     } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
@@ -389,7 +396,7 @@ namespace mqtt {
     mqtt_client = new PubSubClient(*wifiClient);
     mqtt_client->setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client->setCallback(callback);
-    if (!mqtt_client->setBufferSize(CONFIG_SIZE)) ESP_LOGE(TAG, "mqtt_client->setBufferSize failed!");
+    if (!mqtt_client->setBufferSize(MQTT_BUFFER_SIZE)) ESP_LOGE(TAG, "mqtt_client->setBufferSize failed!");
   }
 
   void mqttLoop(void* pvParameters) {

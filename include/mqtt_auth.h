@@ -6,6 +6,8 @@
 
 namespace mqtt {
   bool initKey();
+  bool installCert(char *, const unsigned int);
+  unsigned char *readPEM(const char *);
 }
 
 #endif
