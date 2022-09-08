@@ -286,6 +286,8 @@ namespace mqtt {
 
   void publishStatusInternal(DynamicJsonDocument *status) {
     if (!mqtt_client->connected()) {
+      ESP_LOGE(TAG, "MQTT disconnected; status message lost.");
+      delete status;
       return;
     }
     char msg[STATUS_BUFSIZE];
@@ -293,7 +295,8 @@ namespace mqtt {
       (*status)["online"] = true;
     }
     if (serializeJson(*status, msg) == 0) {
-      ESP_LOGE(TAG, "Failed to serialise status payload");
+      ESP_LOGE(TAG, "Failed to serialise status payload; message lost.");
+      delete status;
       return;
     }
     delete status;
