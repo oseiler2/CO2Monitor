@@ -27,6 +27,16 @@ private:
 
   boolean priorityMessageActive;
   boolean menuActive;
+
+  uint8_t status_y;
+  uint8_t status_height;
+  uint8_t temp_hum_y;
+  uint8_t temp_hum_height;
+  uint8_t line1_y;
+  uint8_t line2_y;
+  uint8_t line3_y;
+  uint8_t line_height;
+
 };
 
 

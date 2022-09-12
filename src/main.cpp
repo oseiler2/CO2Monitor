@@ -365,13 +365,12 @@ void setup() {
       &OTA::otaTask,      // task handle
       1);                 // CPU core
 
-    if (scd30 || scd40 || sps30 || bme680) {
-      Sensors::start(
-        "sensorsLoop",    // name of task
-        4096,             // stack size of task
-        2,                // priority of the task
-        1);               // CPU core
-    }
+    Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
+    sensorsTask = Sensors::start(
+      "sensorsLoop",      // name of task
+      4096,               // stack size of task
+      2,                  // priority of the task
+      1);                 // CPU core
 
     housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
