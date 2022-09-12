@@ -56,6 +56,7 @@ SCD30* scd30;
 SCD40* scd40;
 SPS_30* sps30;
 BME680* bme680;
+TaskHandle_t sensorsTask;
 
 bool hasLEDs = false;
 bool hasNeoPixel = false;
