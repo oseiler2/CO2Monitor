@@ -26,6 +26,7 @@ namespace mqtt {
 
   void publishSensors(uint16_t mask);
   void publishConfiguration();
+  void publishStatusMsg(const char* statusMessage);
 
   void mqttLoop(void* pvParameters);
 
