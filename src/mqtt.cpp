@@ -1,4 +1,5 @@
 #include <mqtt.h>
+#include <certs.h>
 #include <Arduino.h>
 #include <config.h>
 
@@ -30,6 +31,7 @@ namespace mqtt {
   const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
   const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
   const uint8_t X_CMD_PUBLISH_STATUS_MSG = bit(2);
+  const uint8_t X_CMD_REQUEST_CERT = bit(3);
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
@@ -176,8 +178,8 @@ namespace mqtt {
 
   void publishStatusMsgInternal(const char* statusMessage) {
     if (strlen(statusMessage) > 200) return;
-    char buf[256];
-    sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+    char topic[256];
+    sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
     char msg[256];
     doc.clear();
     doc["msg"] = statusMessage;
@@ -185,7 +187,61 @@ namespace mqtt {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
     }
-    if (!mqtt_client->publish(buf, msg)) ESP_LOGE(TAG, "publish status msg failed!");
+    if (!mqtt_client->publish(topic, msg)) ESP_LOGE(TAG, "publish status msg failed!");
+  }
+
+  // Attempts to register a CSR with the server to requst a certificate
+  void requestCert(bool regenerateKey) {
+    MqttMessage msg;
+    msg.cmd = X_CMD_REQUEST_CERT;
+    msg.mask = regenerateKey;  // re-use mask field as regen flag.
+    msg.statusMessage = nullptr;
+    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+  }
+
+  void requestCertInternal(bool regenerateKey) {
+    ESP_LOGD(TAG, "Requesting Certificate...");
+    if (!LittleFS.exists(MQTT_CLIENT_CSR_FILENAME) || regenerateKey) {
+      if (!certs::initKey()) {
+        ESP_LOGE(TAG, "Failed to create MQTT client key");
+        return;
+      }
+    }
+
+    ESP_LOGD(TAG, "Submitting CSR...");
+    File f;
+    if (!(f = LittleFS.open(MQTT_CLIENT_CSR_FILENAME, FILE_READ))) {
+      ESP_LOGE(TAG, "could not read CSR");
+      return;
+    }
+
+    int len = f.size();
+    char* csr = (char*)malloc(len + 1);
+    if (csr == NULL) {
+      ESP_LOGE(TAG, "Could not malloc CSR buffer");
+      f.close();
+      return;
+    }
+    memset(csr, 0, len + 1);
+    int read = f.read((uint8_t*)csr, len);
+    if (read != len) {
+      ESP_LOGE(TAG, "CSR read failed");
+      free(csr);
+      f.close();
+      return;
+    }
+    csr[len] = '\0';
+    f.close();
+
+    if (mqtt_client->connected()) {
+      char topic[256];
+      sprintf(topic, "%s/%u/up/csr", config.mqttTopic, config.deviceId);
+      ESP_LOGD(TAG, "Publishing certificate request: %s", topic);
+      if (!mqtt_client->publish(topic, csr)) ESP_LOGE(TAG, "failed to publish csr!");
+    } else {
+      ESP_LOGE(TAG, "Generated CSR, but could not submit as MQTT not connected");
+    }
+    free(csr);
   }
 
   void callback(char* topic, byte* payload, unsigned int length) {
@@ -226,6 +282,18 @@ namespace mqtt {
       setSPS30AutoCleanIntervalCallback(interval);
     } else if (strncmp(buf, "cleanSPS30", strlen(buf)) == 0) {
       cleanSPS30Callback();
+    } else if (strncmp(buf, "requestCert", strlen(buf)) == 0) {
+      requestCert(false);
+    } else if (strncmp(buf, "regenerateKey", strlen(buf)) == 0) {
+      requestCert(true);
+    } else if (strncmp(buf, "installCert", strlen(buf)) == 0) {
+      // TODO: Add config fallback support incase this doesn't work
+      // Use at your own risk for now.
+      if (certs::installCert(&msg[0], length)) {
+        publishStatusMsgInternal("installed new cert, rebooting shortly");
+        delay(1000);
+        esp_restart();
+      }
     } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
       publishConfiguration();
     } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
@@ -285,20 +353,20 @@ namespace mqtt {
 
   void reconnect() {
     if (millis() - lastReconnectAttempt < 60000) return;
-    char buf[256];
-    sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+    char topic[256];
+    sprintf(topic, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     if (!WiFi.isConnected()) return;
     lastReconnectAttempt = millis();
     if (!mqtt_client->connected()) {
       ESP_LOGD(TAG, "Attempting MQTT connection...");
       connectionAttempts++;
-      if (mqtt_client->connect(buf, config.mqttUsername, config.mqttPassword)) {
+      if (mqtt_client->connect(topic, config.mqttUsername, config.mqttPassword)) {
         ESP_LOGD(TAG, "MQTT connected");
-        sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
-        mqtt_client->subscribe(buf);
-        sprintf(buf, "%s/down/#", config.mqttTopic);
-        mqtt_client->subscribe(buf);
-        sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+        sprintf(topic, "%s/%u/down/#", config.mqttTopic, config.deviceId);
+        mqtt_client->subscribe(topic);
+        sprintf(topic, "%s/down/#", config.mqttTopic);
+        mqtt_client->subscribe(topic);
+        sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
         char msg[256];
         doc.clear();
         doc["online"] = true;
@@ -307,7 +375,7 @@ namespace mqtt {
           ESP_LOGW(TAG, "Failed to serialise payload");
           return;
         }
-        if (mqtt_client->publish(buf, msg))
+        if (mqtt_client->publish(topic, msg))
           connectionAttempts = 0;
         else
           ESP_LOGE(TAG, "publish connect msg failed!");
@@ -372,7 +440,7 @@ namespace mqtt {
     mqtt_client = new PubSubClient(*wifiClient);
     mqtt_client->setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client->setCallback(callback);
-    if (!mqtt_client->setBufferSize(CONFIG_SIZE)) ESP_LOGE(TAG, "mqtt_client->setBufferSize failed!");
+    if (!mqtt_client->setBufferSize(MQTT_BUFFER_SIZE)) ESP_LOGE(TAG, "mqtt_client->setBufferSize failed!");
   }
 
   void mqttLoop(void* pvParameters) {
@@ -389,6 +457,8 @@ namespace mqtt {
           publishSensorsInternal(msg.mask);
         } else if (msg.cmd == X_CMD_PUBLISH_STATUS_MSG) {
           publishStatusMsgInternal(msg.statusMessage);
+        } else if (msg.cmd == X_CMD_REQUEST_CERT) {
+          requestCertInternal(msg.mask == 1);
         }
       }
       if (!mqtt_client->connected()) {

@@ -4,6 +4,13 @@
 #include "globals.h"
 #include <model.h>
 
+// If you issue really large certs (e.g. long CN, extra options) this value may need to be
+// increased, but 1600 is plenty for a typical CN and standard option openSSL issued cert.
+#define MQTT_CERT_SIZE 1600
+
+// Use larger of cert or config for MQTT buffer size.
+#define MQTT_BUFFER_SIZE MQTT_CERT_SIZE > CONFIG_SIZE ? MQTT_CERT_SIZE : CONFIG_SIZE
+
 namespace mqtt {
   typedef void (*calibrateCo2SensorCallback_t)(uint16_t);
   typedef void (*setTemperatureOffsetCallback_t)(float);
