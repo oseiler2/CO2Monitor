@@ -1,5 +1,5 @@
 #include <mqtt.h>
-#include <mqtt_auth.h>
+#include <certs.h>
 #include <Arduino.h>
 #include <config.h>
 
@@ -29,7 +29,7 @@ namespace mqtt {
 
   const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
   const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
-  const uint8_t X_CMD_REQUEST_CERT = bit(2);
+  const uint8_t X_CMD_REQUEST_CERT = bit(2);  // TODO change to 3
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
@@ -162,55 +162,57 @@ namespace mqtt {
     if (!mqtt_client->publish(buf, msg)) ESP_LOGE(TAG, "publish failed!");
   }
 
-    // Attempts to register a CSR with the server to requst a certificate
-    void requestCert(bool regenerateKey) {
-        MqttMessage msg;
-        msg.cmd = X_CMD_REQUEST_CERT;
-        msg.mask = regenerateKey;  // re-use mask field as regen flag.
-        if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+  // Attempts to register a CSR with the server to requst a certificate
+  void requestCert(bool regenerateKey) {
+    MqttMessage msg;
+    msg.cmd = X_CMD_REQUEST_CERT;
+    msg.mask = regenerateKey;  // re-use mask field as regen flag.
+    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+  }
+
+  void requestCertInternal(bool regenerateKey) {
+    ESP_LOGD(TAG, "Requesting Certificate...");
+    if (!LittleFS.exists(MQTT_CLIENT_CSR_FILENAME) || regenerateKey) {
+      if (!certs::initKey()) {
+        ESP_LOGE(TAG, "Failed to create MQTT client key");
+        return;
+      }
     }
 
-    void requestCertInternal(bool regenerateKey) {
-        ESP_LOGD(TAG, "Requesting Certificate...");
-        if (!LittleFS.exists(MQTT_CLIENT_CSR_FILENAME) || regenerateKey) {
-            if (!initKey()) {
-                ESP_LOGE(TAG, "Failed to create MQTT client key");
-                return;
-            }
-        }
+    ESP_LOGD(TAG, "Submitting CSR...");
+    File f;
+    if (!(f = LittleFS.open(MQTT_CLIENT_CSR_FILENAME, FILE_READ))) {
+      ESP_LOGE(TAG, "could not read CSR");
+      return;
+    }
 
-        ESP_LOGD(TAG, "Submitting CSR...");
-        File f;
-        if (!(f = LittleFS.open(MQTT_CLIENT_CSR_FILENAME, FILE_READ))) {
-            ESP_LOGE(TAG, "could not read CSR");
-            return;
-        }
+    int len = f.size();
+    char* csr = (char*)malloc(len + 1);
+    if (csr == NULL) {
+      ESP_LOGE(TAG, "Could not malloc CSR buffer");
+      f.close();
+      return;
+    }
+    memset(csr, 0, len + 1);
+    int read = f.read((uint8_t*)csr, len);
+    if (read != len) {
+      ESP_LOGE(TAG, "CSR read failed");
+      free(csr);
+      f.close();
+      return;
+    }
+    csr[len] = '\0';
+    f.close();
 
-        int len = f.size();
-        char *csr = (char *)malloc(len+1);
-        if (csr == NULL) {
-            ESP_LOGE(TAG, "Could not malloc CSR buffer");
-            return;
-        }
-        memset(csr, 0, len+1);
-        int read = f.read((uint8_t *)csr, len);
-        if (read != len) {
-            ESP_LOGE(TAG, "CSR read failed");
-            free(csr);
-            return;
-        }
-        csr[len] = '\0';
-        f.close();
-
-        if (mqtt_client->connected()) {
-            char topic[256];
-            sprintf(topic, "%s/%u/up/csr", config.mqttTopic, config.deviceId);
-            ESP_LOGD(TAG, "Publishing certificate request: %s", topic);
-            if (!mqtt_client->publish(topic, csr)) ESP_LOGE(TAG, "failed to publish csr!");
-        } else {
-            ESP_LOGE(TAG, "Generated CSR, but could not submit as MQTT not connected");
-        }
-        free(csr);
+    if (mqtt_client->connected()) {
+      char topic[256];
+      sprintf(topic, "%s/%u/up/csr", config.mqttTopic, config.deviceId);
+      ESP_LOGD(TAG, "Publishing certificate request: %s", topic);
+      if (!mqtt_client->publish(topic, csr)) ESP_LOGE(TAG, "failed to publish csr!");
+    } else {
+      ESP_LOGE(TAG, "Generated CSR, but could not submit as MQTT not connected");
+    }
+    free(csr);
   }
 
   void callback(char* topic, byte* payload, unsigned int length) {
@@ -258,7 +260,8 @@ namespace mqtt {
     } else if (strncmp(buf, "installCert", strlen(buf)) == 0) {
       // TODO: Add config fallback support incase this doesn't work
       // Use at your own risk for now.
-      if (installCert(&msg[0], length)) {
+      if (certs::installCert(&msg[0], length)) {
+        // TODO:        publishStatusMsgInternal("installed new cert, rebooting shortly");
         delay(1000);
         esp_restart();
       }
