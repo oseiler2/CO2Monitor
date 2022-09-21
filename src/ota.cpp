@@ -2,9 +2,9 @@
 #include <config.h>
 #include <mqtt.h>
 #include <ota.h>
+#include <LittleFS.h>
 #include <esp32fota.h>
 #include <Ticker.h>
-#include <LittleFS.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -31,7 +31,8 @@ namespace OTA {
   }
 
   void checkForUpdateInternal() {
-    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
+    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, false, false);
+    esp32FOTA.setCertFileSystem(&LittleFS);
     esp32FOTA.checkURL = String(OTA_URL);
     bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
     if (shouldExecuteFirmwareUpdate) {
@@ -53,7 +54,8 @@ namespace OTA {
   void forceUpdateInternal() {
     ESP_LOGD(TAG, "Beginning forced OTA");
     if (preUpdateCallback) preUpdateCallback();
-    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
+    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, false, false);
+    esp32FOTA.setCertFileSystem(&LittleFS);
     mqtt::publishStatusMsg("Starting forced OTA update");
     esp32FOTA.forceUpdate(forceUpdateURL, false);
     forceUpdateURL = "";
