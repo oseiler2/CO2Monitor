@@ -50,6 +50,9 @@ volatile uint8_t buttonState = 0;
 uint8_t oldConfirmedButtonState = 0;
 uint32_t lastConfirmedBtnPressedTime = 0;
 
+volatile uint8_t wifiDisconnected = 0;
+uint32_t lastWifiReconnectAttempt = 0;
+
 void ICACHE_RAM_ATTR buttonHandler() {
   buttonState = (digitalRead(TRIGGER_PIN) ? 0 : 1);
   lastBtnDebounceTime = millis();
@@ -159,10 +162,12 @@ void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t 
     switch (event_id) {
       case WIFI_EVENT_STA_CONNECTED:
         ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_CONNECTED");
+        wifiDisconnected = 0;
         digitalWrite(LED_PIN, HIGH);
         break;
       case WIFI_EVENT_STA_DISCONNECTED:
         ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_DISCONNECTED");
+        wifiDisconnected = 1;
         digitalWrite(LED_PIN, LOW);
         break;
       default:
@@ -206,6 +211,8 @@ void setup() {
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
 
+
+  lastWifiReconnectAttempt = millis();
   Wire.begin((int)SDA, (int)SCL, (uint32_t)I2C_CLK);
 
   I2C::initI2C();
@@ -284,6 +291,12 @@ void loop() {
         calibrateCo2SensorCallback(420);
       }
     }
+  }
+
+  if (wifiDisconnected == 1 && !WiFi.isConnected()) {
+    if (millis() - lastWifiReconnectAttempt < 60000) return;
+    WiFi.begin();
+    lastWifiReconnectAttempt = millis();
   }
 
   vTaskDelay(pdMS_TO_TICKS(50));
