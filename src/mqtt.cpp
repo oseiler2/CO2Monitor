@@ -140,8 +140,12 @@ namespace mqtt {
     doc["redLed"] = config.redLed;
     doc["neopixelData"] = config.neopixelData;
     doc["neopixelNumber"] = config.neopixelNumber;
+    doc["neopixelMatrixData"] = config.neopixelMatrixData;
     doc["featherMatrixData"] = config.featherMatrixData;
     doc["featherMatrixClock"] = config.featherMatrixClock;
+    doc["matrixColumns"] = config.matrixColumns;
+    doc["matrixRows"] = config.matrixRows;
+    doc["matrixLayout"] = config.matrixLayout;
     doc["hub75R1"] = config.hub75R1;
     doc["hub75G1"] = config.hub75G1;
     doc["hub75B1"] = config.hub75B1;
@@ -250,8 +254,12 @@ namespace mqtt {
       if (doc.containsKey("redLed")) { config.redLed = doc["redLed"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("neopixelData")) { config.neopixelData = doc["neopixelData"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("neopixelNumber")) { config.neopixelNumber = doc["neopixelNumber"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("neopixelMatrixData")) { config.neopixelMatrixData = doc["neopixelMatrixData"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("featherMatrixData")) { config.featherMatrixData = doc["featherMatrixData"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("featherMatrixClock")) { config.featherMatrixClock = doc["featherMatrixClock"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("matrixColumns")) { config.matrixColumns = doc["matrixColumns"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("matrixRows")) { config.matrixRows = doc["matrixRows"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("matrixLayout")) { config.matrixLayout = doc["matrixLayout"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("hub75R1")) { config.hub75R1 = doc["hub75R1"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("hub75G1")) { config.hub75G1 = doc["hub75G1"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("hub75B1")) { config.hub75B1 = doc["hub75B1"].as<uint8_t>(); rebootRequired = true; }

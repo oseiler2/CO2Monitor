@@ -11,5 +11,6 @@ namespace housekeeping {
 }
 
 extern TaskHandle_t sensorsTask;
+extern TaskHandle_t neopixelMatrixTask;
 
 #endif

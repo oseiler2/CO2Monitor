@@ -18,6 +18,7 @@
 #include <lcd.h>
 #include <trafficLight.h>
 #include <neopixel.h>
+#include <neopixelMatrix.h>
 #include <featherMatrix.h>
 #include <hub75.h>
 #include <bme680.h>
@@ -31,6 +32,7 @@ Model* model;
 LCD* lcd;
 TrafficLight* trafficLight;
 Neopixel* neopixel;
+NeopixelMatrix* neopixelMatrix;
 FeatherMatrix* featherMatrix;
 HUB75* hub75;
 SCD30* scd30;
@@ -38,10 +40,12 @@ SCD40* scd40;
 SPS_30* sps30;
 BME680* bme680;
 TaskHandle_t sensorsTask;
+TaskHandle_t neopixelMatrixTask;
 
 bool hasLEDs = false;
 bool hasNeoPixel = false;
 bool hasFeatherMatrix = false;
+bool hasNeopixelMatrix = false;
 bool hasHub75 = false;
 
 const uint32_t debounceDelay = 50;
@@ -85,6 +89,7 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if (hasLEDs && trafficLight) trafficLight->update(mask, oldStatus, newStatus);
   if (hasNeoPixel && neopixel) neopixel->update(mask, oldStatus, newStatus);
   if (hasFeatherMatrix && featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
+  if (hasNeopixelMatrix && neopixelMatrix) neopixelMatrix->update(mask, oldStatus, newStatus);
   if (hasHub75 && hub75) hub75->update(mask, oldStatus, newStatus);
   if ((mask & M_PRESSURE) && I2C::scd40Present() && scd40) scd40->setAmbientPressure(model->getPressure());
   if ((mask & M_PRESSURE) && I2C::scd30Present() && scd30) scd30->setAmbientPressure(model->getPressure());
@@ -208,6 +213,7 @@ void setup() {
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
+  hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
 
@@ -226,6 +232,7 @@ void setup() {
   if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed);
   if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber);
   if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock);
+  if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
   if (hasHub75) hub75 = new HUB75(model);
 
   mqtt::setupMqtt(
@@ -260,6 +267,14 @@ void setup() {
     4096,               // stack size of task
     2,                  // priority of the task
     1);                 // CPU core
+
+  if (hasNeopixelMatrix) {
+    neopixelMatrixTask = neopixelMatrix->start(
+      "neopixelMatrixLoop",
+      4096,
+      3,
+      1);
+  }
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 

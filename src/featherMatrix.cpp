@@ -49,6 +49,7 @@ FeatherMatrix::FeatherMatrix(Model* _model, uint8_t dataPin, uint8_t clockPin) {
 
 FeatherMatrix::~FeatherMatrix() {
   if (this->matrix) delete matrix;
+  if (cyclicTimer) delete cyclicTimer;
 };
 
 void FeatherMatrix::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
@@ -65,7 +66,7 @@ void FeatherMatrix::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficL
   matrix->setCursor(0, 5);
   scrollPosition = 0;
   if (model->getCo2() == 0) {
-    strcpy(txt, "----");
+    strcpy(txt, "---");
   } else {
     sprintf(txt, "%u", model->getCo2());
   }
@@ -90,7 +91,7 @@ void FeatherMatrix::timer() {
   if (scrollWidth <= 0) return;
 
   if (scrollPosition == 0) scrollDirection = -1;
-  else  if (scrollPosition == -scrollWidth) scrollDirection = 1;
+  else if (scrollPosition == -scrollWidth) scrollDirection = 1;
   scrollPosition += scrollDirection;
 
   matrix->setCursor(scrollPosition + (scrollWidth > 0 ? 1 : 0), 5);

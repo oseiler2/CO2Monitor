@@ -186,8 +186,12 @@ Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its 
   "redLed": 25,
   "neopixelData": 16,
   "neopixelNumber": 3,
+  "neopixelMatrixData": 14,
   "featherMatrixData": 27,
   "featherMatrixClock": 13,
+  "matrixRows": 5,
+  "matrixColumns": 12,
+  "matrixLayout": 0,
   "hub75R1": 15,
   "hub75G1": 2,
   "hub75B1": 4,
@@ -280,6 +284,7 @@ To connect to an MQTT server using TLS (recommended) you need to enable TLS in t
 - [Dot Star feather wing](https://www.adafruit.com/product/3449)
 - [Neopixel feather wing](https://www.adafruit.com/product/2945)
 - Neopixel strips
+- Neopixel matrix feather wing
 - [HUB75 based RBG Matrix panels](https://www.adafruit.com/?q=RGB+LED+Matrix+Panel&sort=BestMatch)
 
 # Sensors
@@ -387,6 +392,10 @@ Set the `greenLed`, `yellowLed` and `redLed` configuration properties to valid p
 ## Neopixel
 
 Set the `neopixelData` and `neopixelNumber` configuration properties to the neopixel pin number (`16`) and the number of neopixels (`3`).
+
+## Neopixel matrix
+
+Set the `neopixelMatrixData`, `matrixColumns`, `matrixRows` and `matrixLayout` configuration properties to the neopixel matrix data pin number (`14`), number of columns (`12`) and rows (`5`), and the matrix layout (`0`).
 
 ## Feather wings
 

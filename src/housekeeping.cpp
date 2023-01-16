@@ -21,7 +21,10 @@ namespace housekeeping {
       ESP_LOGD(TAG, "SensorsLoop %d bytes left | Taskstate = %d",
         uxTaskGetStackHighWaterMark(sensorsTask), eTaskGetState(sensorsTask));
     }
-
+    if (neopixelMatrixTask) {
+      ESP_LOGD(TAG, "NeopixelMatrixLoop %d bytes left | Taskstate = %d",
+        uxTaskGetStackHighWaterMark(neopixelMatrixTask), eTaskGetState(neopixelMatrixTask));
+    }
     if (ESP.getMinFreeHeap() <= 2048) {
       ESP_LOGW(TAG,
         "Memory full, counter cleared (heap low water mark = %d Bytes / "
