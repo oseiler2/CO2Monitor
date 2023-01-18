@@ -105,10 +105,16 @@ namespace mqtt {
   }
 
   void publishConfigurationInternal() {
-    char buf[384];
+    char buf[256];
     char msg[CONFIG_SIZE];
     doc.clear();
     doc["appVersion"] = APP_VERSION;
+    doc["mqttHost"] = config.mqttHost;
+    doc["mqttServerPort"] = config.mqttServerPort;
+    doc["mqttUsername"] = config.mqttUsername;
+    doc["mqttTopic"] = config.mqttTopic;
+    doc["mqttUseTls"] = config.mqttUseTls;
+    doc["mqttInsecure"] = config.mqttInsecure;
     doc["altitude"] = config.altitude;
     doc["co2YellowThreshold"] = config.co2YellowThreshold;
     doc["co2RedThreshold"] = config.co2RedThreshold;
@@ -180,8 +186,8 @@ namespace mqtt {
 
   void publishStatusMsgInternal(const char* statusMessage) {
     if (strlen(statusMessage) > 200) return;
-    char buf[256];
-    sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+    char topic[256];
+    sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
     char msg[256];
     doc.clear();
     doc["msg"] = statusMessage;
@@ -189,7 +195,7 @@ namespace mqtt {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return;
     }
-    if (!mqtt_client->publish(buf, msg)) ESP_LOGE(TAG, "publish status msg failed!");
+    if (!mqtt_client->publish(topic, msg)) ESP_LOGE(TAG, "publish status msg failed!");
   }
 
   void callback(char* topic, byte* payload, unsigned int length) {
@@ -273,6 +279,70 @@ namespace mqtt {
       if (doc.containsKey("hub75Clk")) { config.hub75Clk = doc["hub75Clk"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("hub75Lat")) { config.hub75Lat = doc["hub75Lat"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("hub75Oe")) { config.hub75Oe = doc["hub75Oe"].as<uint8_t>(); rebootRequired = true; }
+
+      Config mqttConfig = config;
+      bool mqttConfigUpdated = false;
+      bool mqttTestSuccess = true;
+      if (doc.containsKey("mqttHost")) { strlcpy(mqttConfig.mqttHost, doc["mqttHost"], sizeof(config.mqttHost)); mqttConfigUpdated = true; }
+      if (doc.containsKey("mqttServerPort")) { mqttConfig.mqttServerPort = doc["mqttServerPort"].as<uint16_t>(); mqttConfigUpdated = true; }
+      if (doc.containsKey("mqttUsername")) { strlcpy(mqttConfig.mqttUsername, doc["mqttUsername"], sizeof(config.mqttUsername)); mqttConfigUpdated = true; }
+      if (doc.containsKey("mqttPassword")) { strlcpy(mqttConfig.mqttPassword, doc["mqttPassword"], sizeof(config.mqttPassword)); mqttConfigUpdated = true; }
+      if (doc.containsKey("mqttTopic")) { strlcpy(mqttConfig.mqttTopic, doc["mqttTopic"], sizeof(config.mqttTopic)); mqttConfigUpdated = true; }
+      if (doc.containsKey("mqttUseTls")) { mqttConfig.mqttUseTls = doc["mqttUseTls"].as<boolean>(); mqttConfigUpdated = true; }
+      if (doc.containsKey("mqttInsecure")) { mqttConfig.mqttInsecure = doc["mqttInsecure"].as<boolean>(); mqttConfigUpdated = true; }
+
+      if (mqttConfigUpdated) {
+        WiFiClient* testWifiClient;
+        if (mqttConfig.mqttUseTls) {
+          testWifiClient = new WiFiClientSecure();
+          if (mqttConfig.mqttInsecure) {
+            ((WiFiClientSecure*)testWifiClient)->setInsecure();
+          }
+          File root_ca_file = LittleFS.open(MQTT_ROOT_CA_FILENAME, "r");
+          if (root_ca_file) {
+            ESP_LOGD(TAG, "Loading MQTT root ca from FS (%s)", MQTT_ROOT_CA_FILENAME);
+            ((WiFiClientSecure*)testWifiClient)->loadCACert(root_ca_file, root_ca_file.size());
+            root_ca_file.close();
+          }
+          File client_key_file = LittleFS.open(MQTT_CLIENT_KEY_FILENAME, "r");
+          if (client_key_file) {
+            ESP_LOGD(TAG, "Loading MQTT client key from FS (%s)", MQTT_CLIENT_KEY_FILENAME);
+            ((WiFiClientSecure*)testWifiClient)->loadPrivateKey(client_key_file, client_key_file.size());
+            client_key_file.close();
+          }
+          File client_cert_file = LittleFS.open(MQTT_CLIENT_CERT_FILENAME, "r");
+          if (client_cert_file) {
+            ESP_LOGD(TAG, "Loading MQTT client cert from FS (%s)", MQTT_CLIENT_CERT_FILENAME);
+            ((WiFiClientSecure*)testWifiClient)->loadCertificate(client_cert_file, client_cert_file.size());
+            client_cert_file.close();
+          }
+        } else {
+          testWifiClient = new WiFiClient();
+        }
+        PubSubClient* testMqttClient = new PubSubClient(*testWifiClient);
+        testMqttClient->setServer(mqttConfig.mqttHost, mqttConfig.mqttServerPort);
+
+        sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+        mqttTestSuccess = testMqttClient->connect(buf, mqttConfig.mqttUsername, mqttConfig.mqttPassword);
+        if (mqttTestSuccess) {
+          ESP_LOGD(TAG, "Test MQTT connected");
+          sprintf(buf, "%s/%u/up/status", mqttConfig.mqttTopic, config.deviceId);
+          char msg[256];
+          doc.clear();
+          doc["test"] = true;
+          if (serializeJson(doc, msg) == 0) {
+            ESP_LOGW(TAG, "Failed to serialise payload");
+          } else {
+            mqttTestSuccess = testMqttClient->publish(buf, msg);
+          }
+          if (!mqttTestSuccess) ESP_LOGE(TAG, "publish connect msg failed!");
+        }
+        if (!mqttTestSuccess) ESP_LOGE(TAG, "connecting using new mqtt settings failed!");
+        if (mqttTestSuccess) {
+          config = mqttConfig;
+          rebootRequired = true;
+        }
+      }
       if (saveConfiguration(config) && rebootRequired) {
         sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
         publishStatusMsgInternal("configuration updated, rebooting shortly");
@@ -294,18 +364,18 @@ namespace mqtt {
   void reconnect() {
     if (!WiFi.isConnected() || mqtt_client->connected()) return;
     if (millis() - lastReconnectAttempt < 60000) return;
-    char buf[256];
-    sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+    char topic[256];
+    sprintf(topic, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     lastReconnectAttempt = millis();
     ESP_LOGD(TAG, "Attempting MQTT connection...");
     connectionAttempts++;
-    if (mqtt_client->connect(buf, config.mqttUsername, config.mqttPassword)) {
+    if (mqtt_client->connect(topic, config.mqttUsername, config.mqttPassword)) {
       ESP_LOGD(TAG, "MQTT connected");
-      sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
-      mqtt_client->subscribe(buf);
-      sprintf(buf, "%s/down/#", config.mqttTopic);
-      mqtt_client->subscribe(buf);
-      sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+      sprintf(topic, "%s/%u/down/#", config.mqttTopic, config.deviceId);
+      mqtt_client->subscribe(topic);
+      sprintf(topic, "%s/down/#", config.mqttTopic);
+      mqtt_client->subscribe(topic);
+      sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
       char msg[256];
       doc.clear();
       doc["online"] = true;
@@ -314,7 +384,7 @@ namespace mqtt {
         ESP_LOGW(TAG, "Failed to serialise payload");
         return;
       }
-      if (mqtt_client->publish(buf, msg))
+      if (mqtt_client->publish(topic, msg))
         connectionAttempts = 0;
       else
         ESP_LOGE(TAG, "publish connect msg failed!");
