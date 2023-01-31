@@ -95,6 +95,7 @@ uint16_t NeopixelMatrix::ppmToColour(uint16_t ppm) {
 }
 
 void NeopixelMatrix::showText() {
+  matrix->setBrightness(config.brightness);
   matrix->fillScreen(0);
   matrix->setTextColor(matrix->Color(255, 255, 255));//ppmToColour(currentPpm));
   matrix->setCursor(scrollPosition + (scrollWidth > 0 ? 1 : 0), MATRIX_HEIGHT);
@@ -111,6 +112,9 @@ void NeopixelMatrix::show(uint16_t ppm, bool showDrip) {
   // takes about  1297 micros
   //  uint32_t start = micros();
   uint8_t dots = ppmToDots(ppm);
+
+  float eps = 1 - ((float)dots / NUMBER_OF_DOTS);
+  matrix->setBrightness(min(int(config.brightness + (eps * 10)), 255));
 
   matrix->clear();
   matrix->fillScreen(0);
@@ -311,7 +315,7 @@ void NeopixelMatrix::neopixelMatrixLoop(void* pvParameters) {
         instance->update(instance->currentPpm);
       }
     }
-    notified = xQueueReceive(instance->updateQueue, &msg, pdMS_TO_TICKS(10));
+    notified = xQueueReceive(instance->updateQueue, &msg, pdMS_TO_TICKS(100));
     if (notified == pdPASS) {
       if (msg.cmd == X_CMD_SHOW_PPM) {
         instance->show(msg.ppm, false);
