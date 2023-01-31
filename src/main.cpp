@@ -62,8 +62,12 @@ void ICACHE_RAM_ATTR buttonHandler() {
   lastBtnDebounceTime = millis();
 }
 
-void stopHub75DMA() {
+void prepareOta() {
   if (hasHub75 && hub75) hub75->stopDMA();
+  if (hasNeopixelMatrix && neopixelMatrix) {
+    hasNeopixelMatrix = false;
+    neopixelMatrix->stop();
+  }
 }
 
 void updateMessage(char const* msg) {
@@ -277,7 +281,7 @@ void setup() {
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
-  OTA::setupOta(stopHub75DMA);
+  OTA::setupOta(prepareOta);
 
   attachInterrupt(TRIGGER_PIN, buttonHandler, CHANGE);
 
@@ -299,7 +303,7 @@ void loop() {
       ESP_LOGD(TAG, "lastConfirmedBtnPressedTime - millis() %u", btnPressTime);
       if (btnPressTime < 2000) {
         digitalWrite(LED_PIN, LOW);
-        stopHub75DMA();
+        prepareOta();
         WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
       } else if (btnPressTime > 5000) {
         calibrateCo2SensorCallback(420);

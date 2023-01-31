@@ -66,6 +66,18 @@ TaskHandle_t NeopixelMatrix::start(const char* name, uint32_t stackSize, UBaseTy
   return displayTask;
 }
 
+void NeopixelMatrix::stop() {
+  vTaskSuspend(displayTask);
+  updateQueue = NULL;
+  if (snakeTicker->active()) snakeTicker->detach();
+  if (cyclicTimer->active()) cyclicTimer->detach();
+  if (matrix) {
+    matrix->setBrightness(0);
+    matrix->fillScreen(0);
+    matrix->show();
+  }
+}
+
 /**
  * Return the number of dots that represent the given PPM value, with ppm <= LOWER_LIMIT returning NUMBER_OF_DOTS (= full tank) and
  * ppm >= UPPER_LIMIT returning 0 (= empty tank)

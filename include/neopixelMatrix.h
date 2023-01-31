@@ -15,6 +15,7 @@ public:
 
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
   TaskHandle_t start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core);
+  void stop();
 
 private:
 

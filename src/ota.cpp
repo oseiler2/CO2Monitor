@@ -40,6 +40,8 @@ namespace OTA {
       if (preUpdateCallback) preUpdateCallback();
       mqtt::publishStatusMsg("Starting OTA update");
       esp32FOTA.execOTA();
+      delay(1000);
+      esp_restart();
     } else {
       ESP_LOGD(TAG, "No firmware update available");
     }
@@ -61,6 +63,8 @@ namespace OTA {
     forceUpdateURL = "";
     ESP_LOGD(TAG, "Forced OTA done");
     forceUpdateURL = "";
+    delay(1000);
+    esp_restart();
   }
 
   void otaLoop(void* pvParameters) {
