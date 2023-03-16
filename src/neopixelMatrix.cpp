@@ -6,10 +6,13 @@
 static const char TAG[] = __FILE__;
 
 NeopixelMatrix::NeopixelMatrix(Model* _model, uint8_t _pin, uint8_t _columns, uint8_t _rows, uint8_t _layout) {
+  if (xPortGetCoreID() != 1)
+    ESP_LOGW(TAG, ">>>>>>>>>>>>>>> Running on core %u instead of core 1", xPortGetCoreID());
   this->model = _model;
   // default layout: NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE
-  this->matrix = new Adafruit_NeoMatrix((int)_columns, (int)_rows, _pin, _layout, NEO_GRB + NEO_KHZ800);
 
+  pin = _pin;
+  layout = _layout;
   MATRIX_WIDTH = _columns;
   MATRIX_HEIGHT = _rows;
   NUMBER_OF_DOTS = MATRIX_WIDTH * MATRIX_HEIGHT;
@@ -21,31 +24,6 @@ NeopixelMatrix::NeopixelMatrix(Model* _model, uint8_t _pin, uint8_t _columns, ui
   MID_POINT = config.co2YellowThreshold;
   RANGE = UPPER_LIMIT - LOWER_LIMIT;
   PPM_PER_DOT = (float)RANGE / (NUMBER_OF_DOTS);
-
-  GREEN = matrix->Color(0, 255, 0);
-  YELLOW = matrix->Color(255, 255, 0);
-  RED = matrix->Color(255, 0, 0);
-
-  updateQueue = xQueueCreate(2, sizeof(struct QueueMessage));
-  if (updateQueue == NULL) {
-    ESP_LOGE(TAG, "Queue creation failed!");
-  }
-
-  matrix->begin();
-  matrix->setFont(&TomThumb);
-  matrix->setTextWrap(false);
-
-  matrix->setBrightness(5);
-  for (byte i = 0; i < 3; i++) {
-    matrix->fillScreen(matrix->Color(255 * (i <= 1 ? 1 : 0), 255 * (i >= 1 ? 1 : 0), 0));
-    matrix->show();
-    vTaskDelay(pdMS_TO_TICKS(500));
-  }
-  matrix->setBrightness(config.brightness);
-  matrix->fillScreen(0);
-  matrix->show();
-  cyclicTimer = new Ticker();
-  snakeTicker = new Ticker();
 }
 
 NeopixelMatrix::~NeopixelMatrix() {
@@ -55,6 +33,8 @@ NeopixelMatrix::~NeopixelMatrix() {
 }
 
 TaskHandle_t NeopixelMatrix::start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
+  if (xPortGetCoreID() != 1)
+    ESP_LOGW(TAG, ">>>>>>>>>>>>>>> Running on core %u instead of core 1", xPortGetCoreID());
   xTaskCreatePinnedToCore(
     this->neopixelMatrixLoop,  // task function
     name,                      // name of task
@@ -71,6 +51,7 @@ void NeopixelMatrix::stop() {
   updateQueue = NULL;
   if (snakeTicker->active()) snakeTicker->detach();
   if (cyclicTimer->active()) cyclicTimer->detach();
+  cyclicTimerMode = TIMER_OFF;
   if (matrix) {
     matrix->setBrightness(0);
     matrix->fillScreen(0);
@@ -195,7 +176,10 @@ void NeopixelMatrix::update(uint16_t ppm) {
   if (displayMode == SHOW_TEXT) {
     matrix->setRotation(0);
     if (snakeTicker->active()) snakeTicker->detach();
-    if (cyclicTimer->active()) cyclicTimer->detach();
+    if (cyclicTimerMode != TIMER_SCROLL && cyclicTimer->active()) {
+      cyclicTimer->detach();
+      cyclicTimerMode = TIMER_OFF;
+    }
     scrollPosition = 0;
     if (ppm == 0) {
       strcpy(txt, "---");
@@ -209,10 +193,17 @@ void NeopixelMatrix::update(uint16_t ppm) {
     if (scrollWidth > 0) {
       scrollWidth += 2;
     }
-    showText();
     // ESP_LOGD(TAG, "textTimer=> scrollPosition %i, textWidth %u, scrollWidth %i, scrollDirection %i", scrollPosition, textWidth, scrollWidth, scrollDirection);
-    if (scrollWidth > 0) cyclicTimer->attach_ms(TEXT_TIMER_INTERVAL, +[](NeopixelMatrix* instance) { instance->textTimer(); }, this);
-
+    if (scrollWidth > 0) {
+      if (!cyclicTimer->active()) {
+        cyclicTimerMode = TIMER_SCROLL;
+        cyclicTimer->attach_ms(TEXT_TIMER_INTERVAL, +[](NeopixelMatrix* instance) { instance->textTimer(); }, this);
+      }
+    } else {
+      if (cyclicTimer->active()) cyclicTimer->detach();
+      cyclicTimerMode = TIMER_OFF;
+      showText();
+    }
   } else if (displayMode == SHOW_TANK) {
     matrix->setRotation(rotateTank ? 1 : 0);
 
@@ -236,12 +227,14 @@ void NeopixelMatrix::update(uint16_t ppm) {
         dripFinalRow = TANK_HEIGHT - 1;
         //      ESP_LOGD(TAG, "dripTimer=> dripColumn %u, dripCurrentRow %u", dripColumn, dripCurrentRow);
       }
-      if (cyclicTimer->active()) cyclicTimer->detach(); // cyclicTimer could be active on WAVE, hence detach
+      if (cyclicTimer->active()) cyclicTimer->detach();
+      cyclicTimerMode = TIMER_DRIP;
       cyclicTimer->attach_ms(DRIP_TIMER_INTERVAL, +[](NeopixelMatrix* instance) { instance->dripTimer(); }, this);
     } else {
       amplitude = 1;
       lastPpmUpdate = millis();
       if (cyclicTimer->active()) cyclicTimer->detach(); // cyclicTimer could be active on DRIP, hence detach
+      cyclicTimerMode = TIMER_WAVE;
       cyclicTimer->attach_ms(WAVE_TIMER_INTERVAL, +[](NeopixelMatrix* instance) { instance->waveTimer(); }, this);
     }
     // turn on snake(s) if only 1 row or less is visible
@@ -256,6 +249,7 @@ void NeopixelMatrix::update(uint16_t ppm) {
 void NeopixelMatrix::waveTimer() {
   if (amplitude < 0.05f) {
     cyclicTimer->detach();
+    cyclicTimerMode = TIMER_OFF;
     if (currentPpm > UPPER_LIMIT - (TANK_WIDTH * PPM_PER_DOT)) {
       // turn on snake(s) if only 1 row or less is visible
       if (!snakeTicker->active()) snakeTicker->attach_ms(SNAKE_TICKER_INTERVAL, +[](NeopixelMatrix* instance) { instance->snakeTimer(); }, this);
@@ -277,6 +271,7 @@ void NeopixelMatrix::waveTimer() {
 void NeopixelMatrix::dripTimer() {
   if (dripCurrentRow == dripFinalRow) {
     cyclicTimer->detach();
+    cyclicTimerMode = TIMER_OFF;
     QueueMessage msg;
     msg.cmd = X_CMD_SHOW_PPM;
     msg.ppm = currentPpm;
@@ -312,6 +307,35 @@ void NeopixelMatrix::neopixelMatrixLoop(void* pvParameters) {
   NeopixelMatrix* instance = (NeopixelMatrix*)pvParameters;
   BaseType_t notified;
   QueueMessage msg;
+
+  instance->matrix = new Adafruit_NeoMatrix((int)instance->MATRIX_WIDTH, (int)instance->MATRIX_HEIGHT, instance->pin, instance->layout, NEO_GRB + NEO_KHZ800);
+
+  instance->GREEN = instance->matrix->Color(0, 255, 0);
+  instance->YELLOW = instance->matrix->Color(255, 255, 0);
+  instance->RED = instance->matrix->Color(255, 0, 0);
+
+  instance->updateQueue = xQueueCreate(2, sizeof(struct QueueMessage));
+  if (instance->updateQueue == NULL) {
+    ESP_LOGE(TAG, "Queue creation failed!");
+  }
+
+  instance->matrix->begin();
+  instance->matrix->setFont(&TomThumb);
+  instance->matrix->setTextWrap(false);
+
+  instance->matrix->setBrightness(5);
+  for (byte i = 0; i < 3; i++) {
+    instance->matrix->fillScreen(instance->matrix->Color(255 * (i <= 1 ? 1 : 0), 255 * (i >= 1 ? 1 : 0), 0));
+    instance->matrix->show();
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+  instance->matrix->setBrightness(config.brightness);
+  instance->matrix->fillScreen(0);
+  instance->matrix->show();
+  instance->cyclicTimer = new Ticker();
+  instance->snakeTicker = new Ticker();
+
+
   uint32_t lastModeChange = millis();
   while (1) {
     if (instance->displayMode == SHOW_TANK) {

@@ -31,10 +31,21 @@ private:
   uint16_t ppmToColour(uint16_t ppm);
 
   Model* model;
+  uint8_t pin;
+  uint8_t layout;
 
   Adafruit_NeoMatrix* matrix;
   Ticker* cyclicTimer;
   Ticker* snakeTicker;
+
+  typedef enum {
+    TIMER_OFF = 0,
+    TIMER_WAVE,
+    TIMER_DRIP,
+    TIMER_SCROLL
+  } CyclicTimerMode;
+
+  CyclicTimerMode cyclicTimerMode = TIMER_OFF;
 
   TaskHandle_t neopixelMatrixTask;
 
