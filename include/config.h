@@ -30,6 +30,10 @@ static const char* CONFIG_FILENAME = "/config.json";
 static const char* MQTT_ROOT_CA_FILENAME = "/mqtt_root_ca.pem";
 static const char* MQTT_CLIENT_CERT_FILENAME = "/mqtt_client_cert.pem";
 static const char* MQTT_CLIENT_KEY_FILENAME = "/mqtt_client_key.pem";
+static const char* TEMP_MQTT_ROOT_CA_FILENAME = "/temp_mqtt_root_ca.pem";
+static const char* ROOT_CA_FILENAME = "/root_ca.pem";
+
+#define MQTT_QUEUE_LENGTH      25
 
 #define PWM_CHANNEL_LEDS        0
 

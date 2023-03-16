@@ -264,7 +264,17 @@ A message to `co2monitor/<id>/down/setSPS30AutoCleanInterval` will set the SPS30
 
 A message to `co2monitor/<id>/down/cleanSPS30` will run a fan clean on the SPS30.
 
+A message to `co2monitor/<id>/down/installMqttRootCa` will attempt to install the pem-based ca cert in the payload as root cert for tls enabled MQTT connections. A connection attempt will be made using the configured MQTT settings and the new cert, and if successful the cert will be persisted, otherwise discarded.
+
+A message to `co2monitor/<id>/down/installRootCa` will install the pem-based ca cert in the payload as root cert for OTA update requests.
+
+A message to `co2monitor/<id>/down/ota` will trigger the OTA polling mechnism if configured.
+
+A message to `co2monitor/<id>/down/forceota` will force an OTA update using the URL provided in the payload.
+
 A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
+
+A message to `co2monitor/<id>/down/resetWifi` will wipe configured WiFi settings (SSID/password) and force a reboot.
 
 ### MQTT TLS support
 
