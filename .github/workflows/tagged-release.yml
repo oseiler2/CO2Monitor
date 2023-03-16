@@ -50,4 +50,4 @@ jobs:
           prerelease: false
           files: |
             .pio/build/release/firmware.bin
-            .pio/build/debug/firmware-combined.bin
+            .pio/build/release/firmware-combined.bin
