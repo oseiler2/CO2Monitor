@@ -5,10 +5,23 @@
 #define OTA_APP               "co2monitor"
 //#define OTA_POLL
 
-#define TRIGGER_PIN           0
-#define LED_PIN               2
+#if CONFIG_IDF_TARGET_ESP32
 
+#define LED_PIN                2
+#define BTN_1                  0
+#define SDA_PIN              SDA
+#define SCL_PIN              SCL
 #define SCD30_RDY_PIN         35
+
+#elif CONFIG_IDF_TARGET_ESP32S3
+
+#define LED_PIN                2
+#define BTN_1                  0
+#define SDA_PIN               14
+#define SCL_PIN               21
+#define SCD30_RDY_PIN         -1
+
+#endif
 
 #define I2C_CLK 100000UL
 #define SCD30_I2C_CLK 50000UL   // SCD30 recommendation of 50kHz

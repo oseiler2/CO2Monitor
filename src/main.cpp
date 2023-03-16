@@ -58,7 +58,7 @@ volatile uint8_t wifiDisconnected = 0;
 uint32_t lastWifiReconnectAttempt = 0;
 
 void ICACHE_RAM_ATTR buttonHandler() {
-  buttonState = (digitalRead(TRIGGER_PIN) ? 0 : 1);
+  buttonState = (digitalRead(BTN_1) ? 0 : 1);
   lastBtnDebounceTime = millis();
 }
 
@@ -191,7 +191,7 @@ void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t 
 void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
-  pinMode(TRIGGER_PIN, INPUT_PULLUP);
+  pinMode(BTN_1, INPUT_PULLUP);
   Serial.begin(115200);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
   ESP_LOGI(TAG, "CO2 Monitor v%s. Built from %s @ %s", APP_VERSION, SRC_REVISION, BUILD_TIMESTAMP);
@@ -217,8 +217,7 @@ void setup() {
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
-
-  Wire.begin((int)SDA, (int)SCL, (uint32_t)I2C_CLK);
+  Wire.begin((int)SDA_PIN, (int)SCL_PIN, (uint32_t)I2C_CLK);
 
   I2C::initI2C();
 
@@ -283,7 +282,7 @@ void setup() {
 
   OTA::setupOta(prepareOta);
 
-  attachInterrupt(TRIGGER_PIN, buttonHandler, CHANGE);
+  attachInterrupt(BTN_1, buttonHandler, CHANGE);
 
   ESP_LOGI(TAG, "Setup done.");
 #ifdef SHOW_DEBUG_MSGS
