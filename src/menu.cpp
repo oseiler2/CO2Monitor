@@ -66,6 +66,7 @@ namespace Menu {
 
   void setSleepModeAction(uint8_t selection) {
     ESP_LOGI(TAG, "setSleepModeAction %u", selection);
+    config.sleepModeOledLed = getSleepModeOledLedFromUint(selection);
   }
 
   void doCalibrateAction(uint8_t selection) {
@@ -87,6 +88,7 @@ namespace Menu {
     Power::setPowerMode(BATTERY);
     if (scd40) scd40->setSampleRate(LP_PERIODIC);
     if (bme680) bme680->setSampleRate(ULP);
+    if ((config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) && hasNeoPixel && neopixel) neopixel->off();
   }
 
   void powerDownAction(uint8_t selection) {
@@ -107,11 +109,12 @@ namespace Menu {
   uint8_t currentMenuItem = 0;
   MenuItem* brightnessMenuItem = new MenuItem("Brightness", 0, 255, 5, config.brightness, renderSelectionAsLabel, setBrightnessAction);
   MenuItem* buzzerMenuItem = new MenuItem("Buzzer", 0, 2, 1, 0, miBuzzerLabels, setBuzzerAction);
+  MenuItem* sleepModeMenuItem = new MenuItem("Sleep mode", 0, 2, 1, 0, miSleepLabels, setSleepModeAction);
   MenuItem* menuItems[] = {
    new MenuItem("Back", noAction),
    brightnessMenuItem,
    buzzerMenuItem,
-   new MenuItem("Sleep mode", 0, 2, 1, 0, miSleepLabels, setSleepModeAction),
+   sleepModeMenuItem,
    new MenuItem("Calibrate", miCalibrationLabels, doCalibrateAction),
    new MenuItem("Start AP", miAccessPointLabels, startAPAction),
    new MenuItem("Sleep...", miGoToSleepLabels, goToSleepAction),
@@ -134,6 +137,7 @@ namespace Menu {
       if (menuLevel == -1) {
         brightnessMenuItem->setSelection(config.brightness);
         buzzerMenuItem->setSelection(config.buzzerMode);
+        sleepModeMenuItem->setSelection(config.sleepModeOledLed);
         currentMenuItem = 0;
       }
       menuLevel++;

@@ -214,7 +214,8 @@ namespace Power {
   }
 
   void prepareForDeepSleep() {
-    //    digitalWrite(config.oledEn, LOW);
+    if (config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) digitalWrite(config.oledEn, LOW);
+    if (config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) ;
     digitalWrite(LED_PIN, LOW);
     digitalWrite(config.neopixelData, LOW);
     digitalWrite(config.buzzerPin, LOW);

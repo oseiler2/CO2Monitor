@@ -358,3 +358,12 @@ BuzzerMode getBuzzerModeFromUint(uint8_t buzzerMode) {
     default: return BUZ_OFF;
   }
 }
+
+SleepModeOledLed getSleepModeOledLedFromUint(uint8_t mode) {
+  switch (mode) {
+    case 1: return SLEEP_OLED_ON_LED_OFF;
+    case 2: return SLEEP_OLED_OFF_LED_ON;
+    case 3: return SLEEP_OLED_OFF_LED_OFF;
+    default: return SLEEP_OLED_ON_LED_ON;
+  }
+}

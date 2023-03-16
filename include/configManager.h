@@ -18,6 +18,13 @@ typedef enum {
   BUZ_ALWAYS
 } BuzzerMode;
 
+typedef enum {
+  SLEEP_OLED_ON_LED_ON = 0,
+  SLEEP_OLED_ON_LED_OFF,
+  SLEEP_OLED_OFF_LED_ON,
+  SLEEP_OLED_OFF_LED_OFF
+} SleepModeOledLed;
+
 struct Config {
   uint16_t deviceId;
   char mqttTopic[MQTT_TOPIC_ID_LEN + 1];
@@ -73,6 +80,7 @@ struct Config {
   uint8_t sdCmd = SD_CMD;
 
   BuzzerMode buzzerMode;
+  SleepModeOledLed sleepModeOledLed = SLEEP_OLED_ON_LED_ON;
 };
 
 void setupConfigManager();
@@ -82,6 +90,7 @@ boolean saveConfiguration(const Config& config);
 void logConfiguration(const Config& config);
 void printFile();
 BuzzerMode getBuzzerModeFromUint(uint8_t buzzerMode);
+SleepModeOledLed getSleepModeOledLedFromUint(uint8_t mode);
 
 extern Config config;
 
