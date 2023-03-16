@@ -280,7 +280,7 @@ void setup() {
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
-  OTA::setupOta(prepareOta);
+  OTA::setupOta(prepareOta, setPriorityMessage, clearPriorityMessage);
 
   attachInterrupt(BTN_1, buttonHandler, CHANGE);
 
