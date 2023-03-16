@@ -43,6 +43,7 @@ LCD::LCD(TwoWire* _wire, Model* _model) {
   this->display->clearDisplay();
   this->display->display();
   this->display->setTextColor(WHITE);
+  this->display->setTextWrap(false);
   I2C::giveMutex();
 }
 
