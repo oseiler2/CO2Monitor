@@ -39,8 +39,12 @@ Config config;
   "redLed": 25,
   "neopixelData": 16,
   "neopixelNumber": 3,
+  "neopixelMatrixData": 14,
   "featherMatrixData": 27,
   "featherMatrixClock": 13,
+  "matrixColumns": 12,
+  "matrixRows": 5,
+  "matrixLayout": 0,
   "hub75R1": 15,
   "hub75G1": 2,
   "hub75B1": 4,
@@ -91,9 +95,14 @@ void setupConfigManager() {
 // 16
 #define DEFAULT_NEOPIXEL_DATA              0
 #define DEFAULT_NEOPIXEL_NUMBER            3
+// 14
+#define DEFAULT_NEOPIXEL_MATRIX_DATA       0
 // 27
 #define DEFAULT_FEATHER_MATRIX_DATA        0
 #define DEFAULT_FEATHER_MATRIX_CLK        13
+#define DEFAULT_MATRIX_COLUMNS            12
+#define DEFAULT_MATRIX_ROWS                5
+#define DEFAULT_MATRIX_LAYOUT              0
 // 15
 #define DEFAULT_HUB75_R1                   0
 #define DEFAULT_HUB75_G1                   2
@@ -134,8 +143,12 @@ void getDefaultConfiguration(Config& config) {
   config.redLed = DEFAULT_RED_LED;
   config.neopixelData = DEFAULT_NEOPIXEL_DATA;
   config.neopixelNumber = DEFAULT_NEOPIXEL_NUMBER;
+  config.neopixelMatrixData = DEFAULT_NEOPIXEL_MATRIX_DATA;
   config.featherMatrixData = DEFAULT_FEATHER_MATRIX_DATA;
   config.featherMatrixClock = DEFAULT_FEATHER_MATRIX_CLK;
+  config.matrixColumns = DEFAULT_MATRIX_COLUMNS;
+  config.matrixRows = DEFAULT_MATRIX_ROWS;
+  config.matrixLayout = DEFAULT_MATRIX_LAYOUT;
   config.hub75R1 = DEFAULT_HUB75_R1;
   config.hub75G1 = DEFAULT_HUB75_G1;
   config.hub75B1 = DEFAULT_HUB75_B1;
@@ -175,8 +188,12 @@ void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "redLed: %u", config.redLed);
   ESP_LOGD(TAG, "neopixelData: %u", config.neopixelData);
   ESP_LOGD(TAG, "neopixelNumber: %u", config.neopixelNumber);
+  ESP_LOGD(TAG, "neopixelMatrixData: %u", config.neopixelMatrixData);
   ESP_LOGD(TAG, "featherMatrixData: %u", config.featherMatrixData);
   ESP_LOGD(TAG, "featherMatrixClock: %u", config.featherMatrixClock);
+  ESP_LOGD(TAG, "matrixColumns: %u", config.matrixColumns);
+  ESP_LOGD(TAG, "matrixRows: %u", config.matrixRows);
+  ESP_LOGD(TAG, "matrixLayout: %u", config.matrixLayout);
   ESP_LOGD(TAG, "hub75R1: %u", config.hub75R1);
   ESP_LOGD(TAG, "hub75G1: %u", config.hub75G1);
   ESP_LOGD(TAG, "hub75B1: %u", config.hub75B1);
@@ -242,8 +259,12 @@ boolean loadConfiguration(Config& config) {
   config.redLed = doc["redLed"] | DEFAULT_RED_LED;
   config.neopixelData = doc["neopixelData"] | DEFAULT_NEOPIXEL_DATA;
   config.neopixelNumber = doc["neopixelNumber"] | DEFAULT_NEOPIXEL_NUMBER;
+  config.neopixelMatrixData = doc["neopixelMatrixData"] | DEFAULT_NEOPIXEL_MATRIX_DATA;
   config.featherMatrixData = doc["featherMatrixData"] | DEFAULT_FEATHER_MATRIX_DATA;
   config.featherMatrixClock = doc["featherMatrixClock"] | DEFAULT_FEATHER_MATRIX_CLK;
+  config.matrixColumns = doc["matrixColumns"] | DEFAULT_MATRIX_COLUMNS;
+  config.matrixRows = doc["matrixRows"] | DEFAULT_MATRIX_ROWS;
+  config.matrixLayout = doc["matrixLayout"] | DEFAULT_MATRIX_LAYOUT;
   config.hub75R1 = doc["hub75R1"] | DEFAULT_HUB75_R1;
   config.hub75G1 = doc["hub75G1"] | DEFAULT_HUB75_G1;
   config.hub75B1 = doc["hub75B1"] | DEFAULT_HUB75_B1;
@@ -303,8 +324,12 @@ boolean saveConfiguration(const Config& config) {
   doc["redLed"] = config.redLed;
   doc["neopixelData"] = config.neopixelData;
   doc["neopixelNumber"] = config.neopixelNumber;
+  doc["neopixelMatrixData"] = config.neopixelMatrixData;
   doc["featherMatrixData"] = config.featherMatrixData;
   doc["featherMatrixClock"] = config.featherMatrixClock;
+  doc["matrixColumns"] = config.matrixColumns;
+  doc["matrixRows"] = config.matrixRows;
+  doc["matrixLayout"] = config.matrixLayout;
   doc["hub75R1"] = config.hub75R1;
   doc["hub75G1"] = config.hub75G1;
   doc["hub75B1"] = config.hub75B1;

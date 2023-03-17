@@ -51,6 +51,13 @@ void Model::updateStatus() {
   //  ESP_LOGD(TAG, "UpdateStatus CO2: %i (%u), IAQ: %i (%u) ==> %i", co2Status, this->co2, iaqStatus, this->iaq, this->status);
 }
 
+void Model::updateModel(uint16_t _co2) {
+  this->co2 = _co2;
+  TrafficLightStatus oldStatus = this->status;
+  this->updateStatus();
+  modelUpdatedEvt((_co2 != 0 ? M_CO2 : M_NONE), oldStatus, this->status);
+}
+
 void Model::updateModel(uint16_t _co2, float _temperature, float _humidity) {
   this->co2 = _co2;
   this->temperature = _temperature;
@@ -79,7 +86,7 @@ void Model::updateModel(uint16_t _pm0_5, uint16_t _pm1, uint16_t _pm2_5, uint16_
   modelUpdatedEvt(M_PM0_5 | M_PM1_0 | M_PM2_5 | M_PM4 | M_PM10, this->status, this->status);
 }
 
-void Model::updateModel(uint16_t _mV) {
+void Model::updateModelmV(uint16_t _mV) {
   this->voltageInMv = _mV;
   modelUpdatedEvt(M_VOLTAGE, this->status, this->status);
 }

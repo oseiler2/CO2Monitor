@@ -48,8 +48,12 @@ struct Config {
   uint8_t redLed;
   uint8_t neopixelData;
   uint8_t neopixelNumber;
+  uint8_t neopixelMatrixData;
   uint8_t featherMatrixData;
   uint8_t featherMatrixClock;
+  uint8_t matrixColumns;
+  uint8_t matrixRows;
+  uint8_t matrixLayout;
   uint8_t hub75R1;
   uint8_t hub75G1;
   uint8_t hub75B1;

@@ -186,8 +186,12 @@ Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its 
   "redLed": 25,
   "neopixelData": 16,
   "neopixelNumber": 3,
+  "neopixelMatrixData": 14,
   "featherMatrixData": 27,
   "featherMatrixClock": 13,
+  "matrixRows": 5,
+  "matrixColumns": 12,
+  "matrixLayout": 0,
   "hub75R1": 15,
   "hub75G1": 2,
   "hub75B1": 4,
@@ -260,7 +264,17 @@ A message to `co2monitor/<id>/down/setSPS30AutoCleanInterval` will set the SPS30
 
 A message to `co2monitor/<id>/down/cleanSPS30` will run a fan clean on the SPS30.
 
+A message to `co2monitor/<id>/down/installMqttRootCa` will attempt to install the pem-based ca cert in the payload as root cert for tls enabled MQTT connections. A connection attempt will be made using the configured MQTT settings and the new cert, and if successful the cert will be persisted, otherwise discarded.
+
+A message to `co2monitor/<id>/down/installRootCa` will install the pem-based ca cert in the payload as root cert for OTA update requests.
+
+A message to `co2monitor/<id>/down/ota` will trigger the OTA polling mechnism if configured.
+
+A message to `co2monitor/<id>/down/forceota` will force an OTA update using the URL provided in the payload.
+
 A message to `co2monitor/<id>/down/reboot` will trigger a reset on the node.
+
+A message to `co2monitor/<id>/down/resetWifi` will wipe configured WiFi settings (SSID/password) and force a reboot.
 
 ### MQTT TLS support
 
@@ -280,6 +294,7 @@ To connect to an MQTT server using TLS (recommended) you need to enable TLS in t
 - [Dot Star feather wing](https://www.adafruit.com/product/3449)
 - [Neopixel feather wing](https://www.adafruit.com/product/2945)
 - Neopixel strips
+- Neopixel matrix feather wing
 - [HUB75 based RBG Matrix panels](https://www.adafruit.com/?q=RGB+LED+Matrix+Panel&sort=BestMatch)
 
 # Sensors
@@ -387,6 +402,10 @@ Set the `greenLed`, `yellowLed` and `redLed` configuration properties to valid p
 ## Neopixel
 
 Set the `neopixelData` and `neopixelNumber` configuration properties to the neopixel pin number (`16`) and the number of neopixels (`3`).
+
+## Neopixel matrix
+
+Set the `neopixelMatrixData`, `matrixColumns`, `matrixRows` and `matrixLayout` configuration properties to the neopixel matrix data pin number (`14`), number of columns (`12`) and rows (`5`), and the matrix layout (`0`).
 
 ## Feather wings
 

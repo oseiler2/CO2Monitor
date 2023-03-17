@@ -49,6 +49,7 @@ LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
     this->display->display();
   }
   this->display->setTextColor(SSD1306_WHITE);
+  this->display->setTextWrap(false);
   I2C::giveMutex();
 }
 

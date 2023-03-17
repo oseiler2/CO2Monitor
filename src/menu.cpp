@@ -23,7 +23,7 @@ extern BME680* bme680;
 extern bool hasBuzzer;
 extern bool hasNeoPixel;
 
-extern void stopHub75DMA();
+extern void prepareOta();
 extern void calibrateCo2SensorCallback(uint16_t co2Reference);
 extern void updateMessage(char const* msg);
 extern void setPriorityMessage(char const* msg);
@@ -78,7 +78,7 @@ namespace Menu {
     ESP_LOGI(TAG, "startAPAction %u", selection);
     if (Power::getPowerMode() == USB) {
       digitalWrite(LED_PIN, LOW);
-      stopHub75DMA();
+      prepareOta();
       WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
     }
   }

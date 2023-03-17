@@ -17,7 +17,7 @@ namespace Battery {
   }
 
   void readVoltage() {
-    if (model) model->updateModel(getBatteryLevelInmV());
+    if (model) model->updateModelmV(getBatteryLevelInmV());
   }
 
   boolean batteryPresent() {

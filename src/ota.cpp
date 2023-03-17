@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include <config.h>
+#include <mqtt.h>
 #include <ota.h>
+#include <LittleFS.h>
 #include <esp32fota.h>
 #include <Ticker.h>
-#include <LittleFS.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -12,10 +13,14 @@ namespace OTA {
 
   Ticker cyclicTimer;
   preUpdateCallback_t preUpdateCallback;
+  setPriorityMessageCallback_t setPriorityMessageCallback;
+  clearPriorityMessageCallback_t clearPriorityMessageCallback;
   String forceUpdateURL;
 
-  void setupOta(preUpdateCallback_t _preUpdateCallback) {
+  void setupOta(preUpdateCallback_t _preUpdateCallback, setPriorityMessageCallback_t _setPriorityMessageCallback, clearPriorityMessageCallback_t _clearPriorityMessageCallback) {
     preUpdateCallback = _preUpdateCallback;
+    setPriorityMessageCallback = _setPriorityMessageCallback;
+    clearPriorityMessageCallback = _clearPriorityMessageCallback;
 #ifdef OTA_POLL
     cyclicTimer.attach(1060 * 60 * 24, checkForUpdate);
 #endif
@@ -30,13 +35,20 @@ namespace OTA {
   }
 
   void checkForUpdateInternal() {
-    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
+    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, false, false);
+    esp32FOTA.setCertFileSystem(&LittleFS);
     esp32FOTA.checkURL = String(OTA_URL);
     bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
       if (preUpdateCallback) preUpdateCallback();
+      setPriorityMessageCallback("Starting OTA update");
+      mqtt::publishStatusMsg("Starting OTA update");
       esp32FOTA.execOTA();
+      setPriorityMessageCallback("Rebooting");
+      delay(1000);
+      clearPriorityMessageCallback();
+      esp_restart();
     } else {
       ESP_LOGD(TAG, "No firmware update available");
     }
@@ -51,10 +63,17 @@ namespace OTA {
   void forceUpdateInternal() {
     ESP_LOGD(TAG, "Beginning forced OTA");
     if (preUpdateCallback) preUpdateCallback();
-    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, LittleFS, false, false);
+    esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, false, false);
+    esp32FOTA.setCertFileSystem(&LittleFS);
+    mqtt::publishStatusMsg("Starting forced OTA update");
+    setPriorityMessageCallback("Starting OTA update");
     esp32FOTA.forceUpdate(forceUpdateURL, false);
     forceUpdateURL = "";
-    ESP_LOGD(TAG, "Forced OTA done");    forceUpdateURL = "";
+    ESP_LOGD(TAG, "Forced OTA done");
+    setPriorityMessageCallback("Rebooting");
+    delay(1000);
+    clearPriorityMessageCallback();
+    esp_restart();
   }
 
   void otaLoop(void* pvParameters) {

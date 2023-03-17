@@ -20,6 +20,7 @@
 #include <lcd.h>
 #include <trafficLight.h>
 #include <neopixel.h>
+#include <neopixelMatrix.h>
 #include <featherMatrix.h>
 #include <buzzer.h>
 #include <bme680.h>
@@ -47,6 +48,7 @@ Model* model;
 LCD* lcd;
 TrafficLight* trafficLight;
 Neopixel* neopixel;
+NeopixelMatrix* neopixelMatrix;
 FeatherMatrix* featherMatrix;
 #if CONFIG_IDF_TARGET_ESP32
 HUB75* hub75;
@@ -57,11 +59,13 @@ SCD40* scd40;
 SPS_30* sps30;
 BME680* bme680;
 TaskHandle_t sensorsTask;
+TaskHandle_t neopixelMatrixTask;
 
 bool hasLEDs = false;
 bool hasNeoPixel = false;
 bool hasFeatherMatrix = false;
 bool hasBuzzer = false;
+bool hasNeopixelMatrix = false;
 bool hasHub75 = false;
 bool hasSdSlot = false;
 bool hasSdCard = false;
@@ -70,6 +74,9 @@ bool hasBtn3 = false;
 bool hasBtn4 = false;
 bool hasOledEnable = false;
 bool hasBattery = false;
+
+volatile uint8_t wifiDisconnected = 0;
+uint32_t lastWifiReconnectAttempt = 0;
 
 const uint32_t debounceDelay = 50;
 volatile uint32_t lastBtn1DebounceTime = 0;
@@ -105,10 +112,14 @@ void ICACHE_RAM_ATTR button4Handler() {
   lastBtn4DebounceTime = millis();
 }
 
-void stopHub75DMA() {
+void prepareOta() {
 #if CONFIG_IDF_TARGET_ESP32
   if (hasHub75 && hub75) hub75->stopDMA();
 #endif
+  if (hasNeopixelMatrix && neopixelMatrix) {
+    hasNeopixelMatrix = false;
+    neopixelMatrix->stop();
+  }
 }
 
 void updateMessage(char const* msg) {
@@ -134,6 +145,7 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if (hasLEDs && trafficLight) trafficLight->update(mask, oldStatus, newStatus);
   if (hasNeoPixel && neopixel) neopixel->update(mask, oldStatus, newStatus);
   if (hasFeatherMatrix && featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
+  if (hasNeopixelMatrix && neopixelMatrix) neopixelMatrix->update(mask, oldStatus, newStatus);
 #if CONFIG_IDF_TARGET_ESP32
   if (hasHub75 && hub75) hub75->update(mask, oldStatus, newStatus);
 #endif
@@ -215,8 +227,12 @@ void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t 
     switch (event_id) {
       case WIFI_EVENT_STA_CONNECTED:
         digitalWrite(LED_PIN, HIGH);
+        ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_CONNECTED");
+        wifiDisconnected = 0;
         break;
       case WIFI_EVENT_STA_DISCONNECTED:
+        ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_DISCONNECTED");
+        wifiDisconnected = 1;
         digitalWrite(LED_PIN, LOW);
         break;
       default:
@@ -277,11 +293,13 @@ void setup() {
 
     // try to connect with known settings
     WiFi.begin();
+    lastWifiReconnectAttempt = millis();
   }
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
+  hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
 #if CONFIG_IDF_TARGET_ESP32
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
@@ -331,6 +349,7 @@ void setup() {
   if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed, reinitFromSleep);
   if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber, reinitFromSleep);
   if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock, reinitFromSleep);
+  if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
 #if CONFIG_IDF_TARGET_ESP32
   if (hasHub75) hub75 = new HUB75(model);
 #endif
@@ -373,9 +392,17 @@ void setup() {
       2,                  // priority of the task
       1);                 // CPU core
 
+    if (hasNeopixelMatrix) {
+      neopixelMatrixTask = neopixelMatrix->start(
+        "neopixelMatrixLoop",
+        4096,
+        3,
+        1);
+    }
+
     housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
-    OTA::setupOta(stopHub75DMA);
+    OTA::setupOta(prepareOta, setPriorityMessage, clearPriorityMessage);
 
     clockTimer.attach(1, showTimeLcd);
   }
@@ -408,6 +435,7 @@ void loop() {
         if (scd40) scd40->shutdown();
         if (bme680) bme680->shutdown();
         Power::powerDown();
+
       }
     }
     if ((config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) && hasNeoPixel && neopixel) neopixel->off();
@@ -441,6 +469,12 @@ void loop() {
       ESP_LOGI(TAG, "Button 4 pressed!");
       Menu::button4Pressed();
     }
+  }
+
+  if (Power::getPowerMode() == USB && wifiDisconnected == 1 && !WiFi.isConnected()) {
+    if (millis() - lastWifiReconnectAttempt < 60000) return;
+    WiFi.begin();
+    lastWifiReconnectAttempt = millis();
   }
 
   vTaskDelay(pdMS_TO_TICKS(5));

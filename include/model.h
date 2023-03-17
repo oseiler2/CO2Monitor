@@ -53,10 +53,11 @@ public:
   TrafficLightStatus getStatus();
   void setStatus(TrafficLightStatus status);
 
+  void updateModel(uint16_t _co2);
   void updateModel(uint16_t co2, float temperature, float humidity);
   void updateModel(float temperature, float humidity, uint16_t pressure, uint16_t iaq);
   void updateModel(uint16_t pm0_5, uint16_t pm1, uint16_t pm2_5, uint16_t pm4, uint16_t pm10);
-  void updateModel(uint16_t mV);
+  void updateModelmV(uint16_t mV);
   void powerModeChanged();
   void configurationChanged();
 
