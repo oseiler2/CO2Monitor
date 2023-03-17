@@ -85,7 +85,7 @@ void Buzzer::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSta
 }
 
 void Buzzer::timer() {
-  if (model->getStatus() == DARK_RED) {
+  if (model->getStatus() == DARK_RED && config.buzzerMode != BUZ_OFF) {
     if (ledcRead(PWM_CHANNEL_BUZZER) == 0) {
       if (buzzCtr > 0) ledcWrite(PWM_CHANNEL_BUZZER, BUZZER_DUTY);
     } else {
