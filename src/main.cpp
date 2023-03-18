@@ -8,6 +8,7 @@
 #include <i2c.h>
 #include <esp_event.h>
 #include <esp_err.h>
+#include <esp_task_wdt.h>
 
 #include <power.h>
 #include <configManager.h>
@@ -258,6 +259,7 @@ void showTimeLcd() {
 }
 
 void setup() {
+  esp_task_wdt_init(20, true);
   Serial.begin(115200);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
   ESP_LOGI(TAG, "CO2 Monitor v%s. Built from %s @ %s", APP_VERSION, SRC_REVISION, BUILD_TIMESTAMP);

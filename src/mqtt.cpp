@@ -393,7 +393,7 @@ namespace mqtt {
         } else {
           testWifiClient = new WiFiClient();
         }
-        mqttTestSuccess = testMqttConfig(testWifiClient, config);
+        mqttTestSuccess = testMqttConfig(testWifiClient, mqttConfig);
         delete testWifiClient;
         if (mqttTestSuccess) {
           config = mqttConfig;
@@ -465,39 +465,34 @@ namespace mqtt {
   }
 
   void reconnect() {
-    if (!WiFi.isConnected() || mqtt_client->connected()) return;
+    if (!WiFi.isConnected() || mqtt_client->connected() || shutdownInProgress) return;
     if (millis() - lastReconnectAttempt < 5000) return;
     char topic[256];
-    sprintf(topic, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+    char id[64];
+    sprintf(id, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     lastReconnectAttempt = millis();
-    if (!shutdownInProgress) {
-      ESP_LOGD(TAG, "Attempting MQTT connection...");
-      connectionAttempts++;
+    if (mqtt_client->connect(id, config.mqttUsername, config.mqttPassword, topic, 1, false, "{\"msg\":\"disconnected\"}")) {
+      ESP_LOGD(TAG, "MQTT connected");
+      sprintf(topic, "%s/%u/down/#", config.mqttTopic, config.deviceId);
+      mqtt_client->subscribe(topic);
+      sprintf(topic, "%s/down/#", config.mqttTopic);
+      mqtt_client->subscribe(topic);
       sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
-      boolean result = false;
-      if (mqtt_client->connect(topic, config.mqttUsername, config.mqttPassword, topic, 1, false, "{\"msg\":\"disconnected\"}")) {
-        ESP_LOGD(TAG, "MQTT connected");
-        sprintf(topic, "%s/%u/down/#", config.mqttTopic, config.deviceId);
-        mqtt_client->subscribe(topic);
-        sprintf(topic, "%s/down/#", config.mqttTopic);
-        mqtt_client->subscribe(topic);
-        sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
-        char msg[256];
-        doc.clear();
-        doc["online"] = true;
-        doc["connectionAttempts"] = connectionAttempts;
-        if (serializeJson(doc, msg) == 0) {
-          ESP_LOGW(TAG, "Failed to serialise payload");
-          return;
-        }
-        if (mqtt_client->publish(topic, msg))
-          connectionAttempts = 0;
-        else
-          ESP_LOGI(TAG, "publish connect msg failed!");
-      } else {
-        ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client->state());
-        vTaskDelay(pdMS_TO_TICKS(1000));
+      char msg[256];
+      doc.clear();
+      doc["online"] = true;
+      doc["connectionAttempts"] = connectionAttempts;
+      if (serializeJson(doc, msg) == 0) {
+        ESP_LOGW(TAG, "Failed to serialise payload");
+        return;
       }
+      if (mqtt_client->publish(topic, msg))
+        connectionAttempts = 0;
+      else
+        ESP_LOGI(TAG, "publish connect msg failed!");
+    } else {
+      ESP_LOGW(TAG, "MQTT connection failed, rc=%i", mqtt_client->state());
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
