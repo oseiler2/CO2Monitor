@@ -388,7 +388,7 @@ namespace mqtt {
         } else {
           testWifiClient = new WiFiClient();
         }
-        mqttTestSuccess = testMqttConfig(testWifiClient, config);
+        mqttTestSuccess = testMqttConfig(testWifiClient, mqttConfig);
         delete testWifiClient;
         if (mqttTestSuccess) {
           config = mqttConfig;
@@ -463,13 +463,13 @@ namespace mqtt {
     if (!WiFi.isConnected() || mqtt_client->connected()) return;
     if (millis() - lastReconnectAttempt < 5000) return;
     char topic[256];
-    sprintf(topic, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+    char id[64];
+    sprintf(id, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
     lastReconnectAttempt = millis();
     ESP_LOGD(TAG, "Attempting MQTT connection...");
     connectionAttempts++;
     sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
-    boolean result = false;
-    if (mqtt_client->connect(topic, config.mqttUsername, config.mqttPassword, topic, 1, false, "{\"msg\":\"disconnected\"}")) {
+    if (mqtt_client->connect(id, config.mqttUsername, config.mqttPassword, topic, 1, false, "{\"msg\":\"disconnected\"}")) {
       ESP_LOGD(TAG, "MQTT connected");
       sprintf(topic, "%s/%u/down/#", config.mqttTopic, config.deviceId);
       mqtt_client->subscribe(topic);
