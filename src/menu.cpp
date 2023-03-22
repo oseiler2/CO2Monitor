@@ -67,6 +67,7 @@ namespace Menu {
   void setSleepModeAction(uint8_t selection) {
     ESP_LOGI(TAG, "setSleepModeAction %u", selection);
     config.sleepModeOledLed = getSleepModeOledLedFromUint(selection);
+    saveConfiguration(config);
   }
 
   void doCalibrateAction(uint8_t selection) {
@@ -109,7 +110,7 @@ namespace Menu {
   uint8_t currentMenuItem = 0;
   MenuItem* brightnessMenuItem = new MenuItem("Brightness", 0, 255, 5, config.brightness, renderSelectionAsLabel, setBrightnessAction);
   MenuItem* buzzerMenuItem = new MenuItem("Buzzer", 0, 2, 1, 0, miBuzzerLabels, setBuzzerAction);
-  MenuItem* sleepModeMenuItem = new MenuItem("Sleep mode", 0, 2, 1, 0, miSleepLabels, setSleepModeAction);
+  MenuItem* sleepModeMenuItem = new MenuItem("Sleep mode", 0, 3, 1, 0, miSleepLabels, setSleepModeAction);
   MenuItem* menuItems[] = {
    new MenuItem("Back", noAction),
    brightnessMenuItem,

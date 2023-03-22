@@ -218,6 +218,7 @@ namespace mqtt {
     doc["hub75Clk"] = config.hub75Clk;
     doc["hub75Lat"] = config.hub75Lat;
     doc["hub75Oe"] = config.hub75Oe;
+    doc["sleepModeOledLed"] = config.sleepModeOledLed;
     sprintf(buf, "%.1f", getTemperatureOffsetCallback());
     doc["tempOffset"] = buf;
     if (serializeJson(doc, msg) == 0) {
@@ -370,6 +371,7 @@ namespace mqtt {
       if (doc.containsKey("hub75Clk")) { config.hub75Clk = doc["hub75Clk"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("hub75Lat")) { config.hub75Lat = doc["hub75Lat"].as<uint8_t>(); rebootRequired = true; }
       if (doc.containsKey("hub75Oe")) { config.hub75Oe = doc["hub75Oe"].as<uint8_t>(); rebootRequired = true; }
+      if (doc.containsKey("sleepModeOledLed")) { config.sleepModeOledLed = getSleepModeOledLedFromUint(doc["sleepModeOledLed"].as<uint8_t>()); }
 
       Config mqttConfig = config;
       bool mqttConfigUpdated = false;

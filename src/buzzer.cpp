@@ -65,7 +65,7 @@ void Buzzer::beep(uint8_t n) {
 }
 
 void Buzzer::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (config.buzzerMode != BUZ_ALWAYS && oldStatus == newStatus) return;
+  if (!(mask & M_CO2) || (config.buzzerMode != BUZ_ALWAYS && oldStatus == newStatus)) return;
   if (newStatus == GREEN) {
     ledcWrite(PWM_CHANNEL_BUZZER, 0);
     beep(1);

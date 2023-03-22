@@ -57,7 +57,8 @@ Config config;
   "hub75ChD": 14,
   "hub75Clk": 27,
   "hub75Lat": 26,
-  "hub75Oe": 25
+  "hub75Oe": 25,
+  "sleepModeOledLed": 0
 }
 */
 
@@ -118,6 +119,7 @@ void setupConfigManager() {
 #define DEFAULT_HUB75_LAT                 26
 #define DEFAULT_HUB75_OE                  25
 #define DEFAULT_BUZZER_MODE               BUZ_LVL_CHANGE
+#define DEFAULT_SLEEP_MODE_OLED_LED       SLEEP_OLED_ON_LED_ON
 
 void getDefaultConfiguration(Config& config) {
   config.deviceId = DEFAULT_DEVICE_ID;
@@ -162,6 +164,7 @@ void getDefaultConfiguration(Config& config) {
   config.hub75Clk = DEFAULT_HUB75_CLK;
   config.hub75Lat = DEFAULT_HUB75_LAT;
   config.hub75Oe = DEFAULT_HUB75_OE;
+  config.sleepModeOledLed = DEFAULT_SLEEP_MODE_OLED_LED;
 }
 
 void logConfiguration(const Config& config) {
@@ -207,6 +210,7 @@ void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "hub75Clk: %u", config.hub75Clk);
   ESP_LOGD(TAG, "hub75Lat: %u", config.hub75Lat);
   ESP_LOGD(TAG, "hub75Oe: %u", config.hub75Oe);
+  ESP_LOGD(TAG, "sleepModeOledLed: %u", config.sleepModeOledLed);
 }
 
 boolean loadConfiguration(Config& config) {
@@ -278,6 +282,7 @@ boolean loadConfiguration(Config& config) {
   config.hub75Clk = doc["hub75Clk"] | DEFAULT_HUB75_CLK;
   config.hub75Lat = doc["hub75Lat"] | DEFAULT_HUB75_LAT;
   config.hub75Oe = doc["hub75Oe"] | DEFAULT_HUB75_OE;
+  config.sleepModeOledLed = doc["sleepModeOledLed"] | DEFAULT_SLEEP_MODE_OLED_LED;
 
   file.close();
   return true;
@@ -343,6 +348,7 @@ boolean saveConfiguration(const Config& config) {
   doc["hub75Clk"] = config.hub75Clk;
   doc["hub75Lat"] = config.hub75Lat;
   doc["hub75Oe"] = config.hub75Oe;
+  doc["sleepModeOledLed"] = config.sleepModeOledLed;
 
   // Serialize JSON to file
   if (serializeJson(doc, file) == 0) {

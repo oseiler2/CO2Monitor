@@ -83,7 +83,7 @@ struct Config {
   uint8_t sdClk = SD_CLK;
   uint8_t sdCmd = SD_CMD;
 
-  BuzzerMode buzzerMode;
+  BuzzerMode buzzerMode = BUZ_LVL_CHANGE;
   SleepModeOledLed sleepModeOledLed = SLEEP_OLED_ON_LED_ON;
 };
 

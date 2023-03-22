@@ -299,7 +299,8 @@ void setup() {
   }
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
-  hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
+  hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0
+    && (Power::getPowerMode() == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)));
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
 #if CONFIG_IDF_TARGET_ESP32
@@ -320,7 +321,8 @@ void setup() {
   if (hasBtn2) pinMode(config.btn2, INPUT_PULLUP);
   if (hasBtn3) pinMode(config.btn3, INPUT_PULLUP);
   if (hasBtn4) pinMode(config.btn4, INPUT_PULLUP);
-  if (hasOledEnable) {
+  if (hasOledEnable
+    && (Power::getPowerMode() == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))) {
     pinMode(config.oledEn, OUTPUT);
     digitalWrite(config.oledEn, HIGH);
   }
@@ -346,7 +348,9 @@ void setup() {
   if (I2C::scd40Present()) scd40 = new SCD40(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage, reinitFromSleep);
-  if (I2C::lcdPresent()) lcd = new LCD(&Wire, model, reinitFromSleep);
+  if (I2C::lcdPresent()
+    && (Power::getPowerMode() == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))
+    ) lcd = new LCD(&Wire, model, reinitFromSleep);
 
   if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed, reinitFromSleep);
   if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber, reinitFromSleep);
@@ -417,7 +421,7 @@ void setup() {
 
   ESP_LOGI(TAG, "Setup done.");
 #ifdef SHOW_DEBUG_MSGS
-  if (I2C::lcdPresent()) {
+  if (lcd) {
     lcd->updateMessage("Setup done.");
   }
 #endif
