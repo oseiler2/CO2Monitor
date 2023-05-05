@@ -21,7 +21,7 @@ private:
 
   static void neopixelMatrixLoop(void* pvParameters);
   uint8_t ppmToDots(uint16_t ppm);
-  void show(uint16_t ppm, bool showDrip);
+  void showTank(uint16_t ppm, bool showDrip);
   void showText();
   void waveTimer();
   void dripTimer();
@@ -105,7 +105,7 @@ private:
   const uint8_t NUMBER_OF_SNAKES = 1;
   const uint8_t SNAKE_LENGTH = 5;
   volatile uint8_t snakePos = 0;
-  const static uint16_t SNAKE_TICKER_INTERVAL = 250;
+  const static uint16_t SNAKE_TICKER_INTERVAL = 333;
 
   // === PPM DISPLAY ===
   char txt[6];
