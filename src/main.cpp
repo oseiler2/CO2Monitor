@@ -8,6 +8,7 @@
 #include <esp_event.h>
 #include <esp_err.h>
 #include <esp_task_wdt.h>
+#include <rom/rtc.h>
 
 #include <configManager.h>
 #include <mqtt.h>
@@ -203,6 +204,8 @@ void setup() {
 
   logCoreInfo();
 
+  RESET_REASON resetReason = rtc_get_reset_reason(0);
+
   ESP_ERROR_CHECK(esp_event_loop_create_default());
   ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, eventHandler, NULL));
   ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, eventHandler, NULL));
@@ -220,6 +223,7 @@ void setup() {
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
+
   Wire.begin((int)SDA_PIN, (int)SCL_PIN, (uint32_t)I2C_CLK);
 
   I2C::initI2C();
@@ -249,6 +253,10 @@ void setup() {
     setSPS30AutoCleanInterval,
     cleanSPS30,
     getSPS30Status);
+
+  char msg[128];
+  sprintf(msg, "Reset reason: %u", resetReason);
+  mqtt::publishStatusMsg(msg);
 
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
