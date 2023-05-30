@@ -20,9 +20,11 @@ struct Config {
   bool mqttInsecure;
   uint16_t mqttServerPort;
   uint16_t altitude;
+  uint16_t co2GreenThreshold;
   uint16_t co2YellowThreshold;
   uint16_t co2RedThreshold;
   uint16_t co2DarkRedThreshold;
+  uint16_t iaqGreenThreshold;
   uint16_t iaqYellowThreshold;
   uint16_t iaqRedThreshold;
   uint16_t iaqDarkRedThreshold;

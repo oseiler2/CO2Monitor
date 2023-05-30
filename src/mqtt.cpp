@@ -167,9 +167,11 @@ namespace mqtt {
     doc["mqttUseTls"] = config.mqttUseTls;
     doc["mqttInsecure"] = config.mqttInsecure;
     doc["altitude"] = config.altitude;
+    doc["co2GreenThreshold"] = config.co2GreenThreshold;
     doc["co2YellowThreshold"] = config.co2YellowThreshold;
     doc["co2RedThreshold"] = config.co2RedThreshold;
     doc["co2DarkRedThreshold"] = config.co2DarkRedThreshold;
+    doc["iaqGreenThreshold"] = config.iaqGreenThreshold;
     doc["iaqYellowThreshold"] = config.iaqYellowThreshold;
     doc["iaqRedThreshold"] = config.iaqRedThreshold;
     doc["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
@@ -264,7 +266,7 @@ namespace mqtt {
     if (!mqtt_client->publish(topic, msg)) {
       ESP_LOGI(TAG, "publish status msg failed!");
       if (!keepOnFailure) free(statusMessage);
-      // don't free heap, since message will be re-tried      
+      // don't free heap, since message will be re-tried
       return false;
     }
     free(statusMessage);
@@ -335,9 +337,11 @@ namespace mqtt {
       }
       bool rebootRequired = false;
       if (doc.containsKey("altitude")) config.altitude = doc["altitude"].as<int>();
+      if (doc.containsKey("co2GreenThreshold")) config.co2GreenThreshold = doc["co2GreenThreshold"].as<uint16_t>();
       if (doc.containsKey("co2YellowThreshold")) config.co2YellowThreshold = doc["co2YellowThreshold"].as<uint16_t>();
       if (doc.containsKey("co2RedThreshold")) config.co2RedThreshold = doc["co2RedThreshold"].as<uint16_t>();
       if (doc.containsKey("co2DarkRedThreshold")) config.co2DarkRedThreshold = doc["co2DarkRedThreshold"].as<uint16_t>();
+      if (doc.containsKey("iaqGreenThreshold")) config.iaqGreenThreshold = doc["iaqGreenThreshold"].as<uint16_t>();
       if (doc.containsKey("iaqYellowThreshold")) config.iaqYellowThreshold = doc["iaqYellowThreshold"].as<uint16_t>();
       if (doc.containsKey("iaqRedThreshold")) config.iaqRedThreshold = doc["iaqRedThreshold"].as<uint16_t>();
       if (doc.containsKey("iaqDarkRedThreshold")) config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"].as<uint16_t>();
