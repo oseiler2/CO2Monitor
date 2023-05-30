@@ -38,7 +38,9 @@ void Neopixel::fill(uint32_t c) {
 void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
   if (mask & M_CONFIG_CHANGED) this->strip->setBrightness(config.brightness);
-  if (newStatus == GREEN) {
+  if (newStatus == OFF) {
+    fill(this->strip->Color(0, 0, 0)); // off
+  } else if (newStatus == GREEN) {
     fill(this->strip->Color(0, 255, 0)); // Green
   } else if (newStatus == YELLOW) {
     fill(this->strip->Color(255, 70, 0)); // Amber

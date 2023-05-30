@@ -55,7 +55,12 @@ TrafficLight::~TrafficLight() {
 
 void TrafficLight::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
-  if (newStatus == GREEN) {
+  if (newStatus == OFF) {
+    ledcDetachPin(pinGreen);
+    ledcDetachPin(pinYellow);
+    ledcDetachPin(pinRed);
+    ledcWrite(PWM_CHANNEL_LEDS, 0);
+  } else if (newStatus == GREEN) {
     ledcAttachPin(pinGreen, PWM_CHANNEL_LEDS);
     ledcDetachPin(pinYellow);
     ledcDetachPin(pinRed);
