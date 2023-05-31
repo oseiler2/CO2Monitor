@@ -163,9 +163,11 @@ Sending `co2monitor/<id>/down/getConfig` will triger the node to reply with its 
 {
   "appVersion": 1,
   "altitude": 10,
+  "co2GreenThreshold": 0,
   "co2YellowThreshold": 700,
   "co2RedThreshold": 900,
   "co2DarkRedThreshold": 1200,
+  "iaqGreenThreshold": 0,
   "iaqYellowThreshold": 100,
   "iaqRedThreshold": 200,
   "iaqDarkRedThreshold": 300,
@@ -213,9 +215,11 @@ A message to `co2monitor/<id>/down/setConfig` will set the node's configuration 
 ```
 {
   "altitude": 10,
+  "co2GreenThreshold": 0,
   "co2YellowThreshold": 700,
   "co2RedThreshold": 900,
   "co2DarkRedThreshold": 1200,
+  "iaqGreenThreshold": 0,
   "iaqYellowThreshold": 100,
   "iaqRedThreshold": 200,
   "iaqDarkRedThreshold": 300,
