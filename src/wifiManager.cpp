@@ -10,6 +10,8 @@
 #include <esp_wifi.h>
 #include <DNSServer.h>
 
+#include <ImprovWiFiLibrary.h>
+
 #ifndef AP_PW
 #define AP_PW ""
 #endif
@@ -113,6 +115,33 @@ namespace WifiManager {
   setPriorityMessageCallback_t setPriorityMessageCallback;
   clearPriorityMessageCallback_t clearPriorityMessageCallback;
 
+  ImprovWiFi improvSerial(&Serial);
+
+  void onImprovWiFiErrorCb(ImprovTypes::Error err) {
+    ESP_LOGI(TAG, "onImprovWiFiErrorCb: %u", err);
+  }
+
+  void onImprovWiFiConnectedCb(const char* ssid, const char* password) {
+    ESP_LOGI(TAG, "onImprovWiFiConnectedCb: %s", ssid);
+  }
+
+  bool improvConnectWifi(const char* _ssid, const char* _password) {
+    ESP_LOGI(TAG, "onImprovWiFiConnectedCb: %s", ssid);
+    //    strncpy(ssid, _ssid, MAX_SSID_LEN);
+    //    ssid[MAX_SSID_LEN] = 0x00;
+    //    strncpy(password, _password, MAX_PW_LEN);
+    //    password[MAX_PW_LEN] = 0x00;
+    //    xTaskNotify(wifiManagerTask, X_CMD_CONNECT, eSetBits);
+    lastWifiReconnectAttempt = millis();
+    if (keepCaptivePortalActive) {
+      WiFi.mode(WIFI_MODE_APSTA);
+    } else {
+      WiFi.mode(WIFI_MODE_STA);
+    }
+    WiFi.begin(_ssid, _password);
+    return (WiFi.waitForConnectResult() == WL_CONNECTED);
+  }
+
   /*
     const char* WIFI_STATUS_STR[] = {
         "WL_IDLE_STATUS",
@@ -138,7 +167,7 @@ namespace WifiManager {
     clearPriorityMessageCallback = _clearPriorityMessageCallback;
 
     // TODO: only if Wifi is configured
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_MODE_STA);
     ESP_LOGD(TAG, "Turning on Wifi, ssid: %s", getStoredWiFiSsid());
     lastWifiReconnectAttempt = millis();
     WiFi.begin();
@@ -162,6 +191,11 @@ namespace WifiManager {
 
     server.begin();
     logging::addOnLogCallback(logCallback);
+
+    improvSerial.setDeviceInfo(ImprovTypes::ChipFamily::CF_ESP32, appName, "0.0.1", getSSID().c_str(), "");
+    improvSerial.onImprovError(onImprovWiFiErrorCb);
+    improvSerial.onImprovConnected(onImprovWiFiConnectedCb);
+    improvSerial.setCustomConnectWiFi(improvConnectWifi);
   }
 
   void logCallback(int level, const char* tag, const char* message) {
@@ -667,7 +701,7 @@ namespace WifiManager {
       delete dnsServer;
       dnsServer = nullptr;
     }
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_MODE_STA);
   }
 
   bool handleReboot(AsyncWebServerRequest* request) {
@@ -693,7 +727,7 @@ namespace WifiManager {
           if (keepCaptivePortalActive) {
             WiFi.mode(WIFI_MODE_APSTA);
           } else {
-            WiFi.mode(WIFI_STA);
+            WiFi.mode(WIFI_MODE_STA);
           }
           WiFi.begin(ssid, password);
         }
@@ -738,6 +772,7 @@ namespace WifiManager {
           scanWifiDone();
         }
       }
+      improvSerial.handleSerial();
       vTaskDelay(pdMS_TO_TICKS(1));
     }
     vTaskDelete(NULL);
