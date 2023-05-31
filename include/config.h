@@ -1,6 +1,8 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+#include <logging.h>
+
 #define OTA_URL               "https://otahost/co2monitor/firmware.json"
 #define OTA_APP               "co2monitor"
 //#define OTA_POLL

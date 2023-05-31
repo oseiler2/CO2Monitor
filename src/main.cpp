@@ -1,3 +1,4 @@
+#include <logging.h>
 #include <globals.h>
 #include <Arduino.h>
 #include <config.h>
@@ -11,6 +12,7 @@
 #include <rom/rtc.h>
 
 #include <configManager.h>
+#include <configParameter.h>
 #include <mqtt.h>
 #include <sensors.h>
 #include <scd30.h>
@@ -42,6 +44,7 @@ SCD40* scd40;
 SPS_30* sps30;
 BME680* bme680;
 TaskHandle_t sensorsTask;
+TaskHandle_t wifiManagerTask;
 TaskHandle_t neopixelMatrixTask;
 
 bool hasLEDs = false;
@@ -55,9 +58,6 @@ volatile uint32_t lastBtnDebounceTime = 0;
 volatile uint8_t buttonState = 0;
 uint8_t oldConfirmedButtonState = 0;
 uint32_t lastConfirmedBtnPressedTime = 0;
-
-volatile uint8_t wifiDisconnected = 0;
-uint32_t lastWifiReconnectAttempt = 0;
 
 void ICACHE_RAM_ATTR buttonHandler() {
   buttonState = (digitalRead(BTN_1) ? 0 : 1);
@@ -166,29 +166,6 @@ void logCoreInfo() {
     ESP.getFlashChipSpeed());
 }
 
-void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-  if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-    ESP_LOGD(TAG, "eventHandler IP_EVENT IP_EVENT_STA_GOT_IP");
-  } else if (event_base == WIFI_EVENT) {
-    switch (event_id) {
-      case WIFI_EVENT_STA_CONNECTED:
-        ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_CONNECTED");
-        wifiDisconnected = 0;
-        digitalWrite(LED_PIN, HIGH);
-        break;
-      case WIFI_EVENT_STA_DISCONNECTED:
-        ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_DISCONNECTED");
-        wifiDisconnected = 1;
-        digitalWrite(LED_PIN, LOW);
-        break;
-      default:
-        ESP_LOGD(TAG, "eventHandler WIFI_EVENT %u", event_id);
-        break;
-    }
-  } else {
-    ESP_LOGD(TAG, "eventHandler %s %u", event_base, event_id);
-  }
-}
 
 void setup() {
   esp_task_wdt_init(20, true);
@@ -197,6 +174,7 @@ void setup() {
   digitalWrite(LED_PIN, LOW);
   pinMode(BTN_1, INPUT_PULLUP);
   Serial.begin(115200);
+  esp_log_set_vprintf(logging::logger);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
   ESP_LOGI(TAG, "CO2 Monitor v%s. Built from %s @ %s", APP_VERSION, SRC_REVISION, BUILD_TIMESTAMP);
 
@@ -207,8 +185,8 @@ void setup() {
   RESET_REASON resetReason = rtc_get_reset_reason(0);
 
   ESP_ERROR_CHECK(esp_event_loop_create_default());
-  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, eventHandler, NULL));
-  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, eventHandler, NULL));
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, WifiManager::eventHandler, NULL, NULL));
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, WifiManager::eventHandler, NULL, NULL));
 
   setupConfigManager();
   if (!loadConfiguration(config)) {
@@ -216,6 +194,9 @@ void setup() {
     saveConfiguration(config);
   }
   logConfiguration(config);
+
+  WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, true,
+    updateMessage, setPriorityMessage, clearPriorityMessage);
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
@@ -239,10 +220,6 @@ void setup() {
   if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock);
   if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
   if (hasHub75) hub75 = new HUB75(model);
-
-  // try to connect with known settings
-  WiFi.begin();
-  lastWifiReconnectAttempt = millis();
 
   mqtt::setupMqtt(
     model,
@@ -283,11 +260,17 @@ void setup() {
 
   if (hasNeopixelMatrix) {
     neopixelMatrixTask = neopixelMatrix->start(
-      "neopixelMatrixLoop",
-      4096,
-      3,
-      1);
+      "neopixelMatrixLoop",  // name of task 
+      4096,                  // stack size of task
+      3,                     // priority of the task
+      1);                    // CPU core
   }
+
+  wifiManagerTask = WifiManager::start(
+    "wifiManagerLoop",  // name of task
+    8192,               // stack size of task
+    2,                  // priority of the task
+    1);                 // CPU core
 
   housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
 
@@ -314,18 +297,11 @@ void loop() {
       if (btnPressTime < 2000) {
         digitalWrite(LED_PIN, LOW);
         prepareOta();
-        WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
+        WifiManager::startCaptivePortal();
       } else if (btnPressTime > 5000) {
         calibrateCo2SensorCallback(420);
       }
     }
   }
-
-  if (wifiDisconnected == 1 && !WiFi.isConnected()) {
-    if (millis() - lastWifiReconnectAttempt < 60000) return;
-    WiFi.begin();
-    lastWifiReconnectAttempt = millis();
-  }
-
   vTaskDelay(pdMS_TO_TICKS(50));
 }

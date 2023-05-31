@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 #include <config.h>
+#include <configParameter.h>
+#include <vector>
 
 #define CONFIG_SIZE 1280
 
@@ -109,6 +111,7 @@ boolean loadConfiguration(Config& config);
 boolean saveConfiguration(const Config& config);
 void logConfiguration(const Config& config);
 void printFile();
+std::vector<ConfigParameterBase*> getConfigParameters();
 
 extern Config config;
 

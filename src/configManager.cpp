@@ -1,4 +1,3 @@
-
 #include <configManager.h>
 
 #include <FS.h>
@@ -380,4 +379,53 @@ void printFile() {
 
   // Close the file
   file.close();
+}
+
+std::vector<ConfigParameterBase*> configParameterVector;
+
+std::vector<ConfigParameterBase*> getConfigParameters() {
+  configParameterVector.push_back(new Uint16ConfigParameter("deviceId", "Device ID", &(config.*deviceIdPtr)));
+  configParameterVector.push_back(new CharArrayConfigParameter("mqttTopic", "MQTT topic", &(config.*mqttTopicPtr), MQTT_TOPIC_ID_LEN));
+  configParameterVector.push_back(new CharArrayConfigParameter("mqttUsername", "MQTT username", &(config.*mqttUsernamePtr), MQTT_USERNAME_LEN));
+  configParameterVector.push_back(new CharArrayConfigParameter("mqttPassword", "MQTT password", &(config.*mqttPasswordPtr), MQTT_PASSWORD_LEN));
+  configParameterVector.push_back(new CharArrayConfigParameter("mqttHost", "MQTT host", &(config.*mqttHostPtr), MQTT_HOSTNAME_LEN));
+  configParameterVector.push_back(new Uint16ConfigParameter("mqttServerPort", "MQTT port", &(config.*mqttServerPortPtr)));
+  configParameterVector.push_back(new BooleanConfigParameter("mqttUseTls", "MQTT use TLS", &(config.*mqttUseTlsPtr)));
+  configParameterVector.push_back(new BooleanConfigParameter("mqttInsecure", "MQTT Ignore certificate errors", &(config.*mqttInsecurePtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("altitude", "Altitude", &(config.*altitudePtr), 0, 8000));
+  configParameterVector.push_back(new Uint16ConfigParameter("co2GreenThreshold", "CO2 Green threshold ", &(config.*co2GreenThresholdPtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("co2YellowThreshold", "CO2 Yellow threshold ", &(config.*co2YellowThresholdPtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("co2RedThreshold", "CO2 Red threshold", &(config.*co2RedThresholdPtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("co2DarkRedThreshold", "CO2 Dark red threshold", &(config.*co2DarkRedThresholdPtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("iaqGreenThreshold", "IAQ Green threshold ", &(config.*iaqGreenThresholdPtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("iaqYellowThreshold", "IAQ Yellow threshold ", &(config.*iaqYellowThresholdPtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("iaqRedThreshold", "IAQ Red threshold", &(config.*iaqRedThresholdPtr)));
+  configParameterVector.push_back(new Uint16ConfigParameter("iaqDarkRedThreshold", "IAQ Dark red threshold", &(config.*iaqDarkRedThresholdPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("brightness", "LED brightness pwm", &(config.*brightnessPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("ssd1306Rows", "SSD1306 rows", &(config.*ssd1306RowsPtr), 32, 64));
+  configParameterVector.push_back(new Uint8ConfigParameter("greenLed", "Green Led pin", &(config.*greenLedPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("yellowLed", "Yellow Led pin", &(config.*yellowLedPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("redLed", "Red Led pin", &(config.*redLedPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("neopixelData", "Neopixel data pin", &(config.*neopixelDataPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("neopixelNumber", "Number of Neopixels", &(config.*neopixelNumberPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("neopixelMatrixData", "Neopixel matrix data pin", &(config.*neopixelMatrixDataPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("featherMatrixData", "Feather matrix data pin", &(config.*featherMatrixDataPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("featherMatrixClock", "Feather matrix clock pin", &(config.*featherMatrixClockPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("matrixColumns", "Matrix columns", &(config.*matrixColumnsPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("matrixRows", "Matrix rows", &(config.*matrixRowsPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("matrixLayout", "Matrix layout", &(config.*matrixLayoutPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75R1", "Hub75 R1 pin", &(config.*hub75R1Ptr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75G1", "Hub75 G1 pin", &(config.*hub75G1Ptr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75B1", "Hub75 B1 pin", &(config.*hub75B1Ptr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75R2", "Hub75 R2 pin", &(config.*hub75R2Ptr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75G2", "Hub75 G2 pin", &(config.*hub75G2Ptr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75B2", "Hub75 B2 pin", &(config.*hub75B2Ptr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75ChA", "Hub75 Channel A pin", &(config.*hub75ChAPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75ChB", "Hub75 Channel B pin", &(config.*hub75ChBPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75ChC", "Hub75 Channel C pin", &(config.*hub75ChCPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75ChD", "Hub75 Channel D pin", &(config.*hub75ChDPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75Clk", "Hub75 Clk pin", &(config.*hub75ClkPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75Lat", "Hub75 Lat pin", &(config.*hub75LatPtr)));
+  configParameterVector.push_back(new Uint8ConfigParameter("hub75Oe", "Hub75 Oe pin", &(config.*hub75OePtr)));
+  return configParameterVector;
 }

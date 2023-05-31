@@ -499,6 +499,10 @@ namespace mqtt {
     }
   }
 
+  void logCallback(int level, const char* tag, const char* message) {
+    publishStatusMsg(message);
+  }
+
   void setupMqtt(
     Model* _model,
     calibrateCo2SensorCallback_t _calibrateCo2SensorCallback,
@@ -537,6 +541,8 @@ namespace mqtt {
     mqtt_client->setServer(config.mqttHost, config.mqttServerPort);
     mqtt_client->setCallback(callback);
     if (!mqtt_client->setBufferSize(MQTT_BUFFER_SIZE)) ESP_LOGE(TAG, "mqtt_client->setBufferSize failed!");
+
+    //    logging::addOnLogCallback(logCallback);
   }
 
   void mqttLoop(void* pvParameters) {
@@ -572,5 +578,4 @@ namespace mqtt {
     }
     vTaskDelete(NULL);
   }
-
 }
