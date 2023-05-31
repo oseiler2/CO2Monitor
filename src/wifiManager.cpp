@@ -71,9 +71,11 @@ namespace WifiManager {
     configParameterVector.push_back(toParameterPair(new BooleanConfigParameter("mqttUseTls", "MQTT use TLS", &(config.*mqttUseTlsPtr))));
     configParameterVector.push_back(toParameterPair(new BooleanConfigParameter("mqttInsecure", "MQTT Ignore certificate errors", &(config.*mqttInsecurePtr))));
     configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("altitude", "Altitude", &(config.*altitudePtr))));
+    configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("co2GreenThreshold", "CO2 Green threshold ", &(config.*co2GreenThresholdPtr))));
     configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("co2YellowThreshold", "CO2 Yellow threshold ", &(config.*co2YellowThresholdPtr))));
     configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("co2RedThreshold", "CO2 Red threshold", &(config.*co2RedThresholdPtr))));
     configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("co2DarkRedThreshold", "CO2 Dark red threshold", &(config.*co2DarkRedThresholdPtr))));
+    configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("iaqGreenThreshold", "IAQ Green threshold ", &(config.*iaqGreenThresholdPtr))));
     configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("iaqYellowThreshold", "IAQ Yellow threshold ", &(config.*iaqYellowThresholdPtr))));
     configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("iaqRedThreshold", "IAQ Red threshold", &(config.*iaqRedThresholdPtr))));
     configParameterVector.push_back(toParameterPair(new Uint16ConfigParameter("iaqDarkRedThreshold", "IAQ Dark red threshold", &(config.*iaqDarkRedThresholdPtr))));
