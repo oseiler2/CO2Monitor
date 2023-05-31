@@ -2,7 +2,7 @@
 #define _SPS30_H
 
 #include <Arduino.h>
-#include "globals.h"
+#include <globals.h>
 #include <config.h>
 #include <messageSupport.h>
 #include <Wire.h>

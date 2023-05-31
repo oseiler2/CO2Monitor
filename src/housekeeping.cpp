@@ -14,19 +14,19 @@ namespace housekeeping {
   Ticker cyclicTimer;
 
   void doHousekeeping() {
-    ESP_LOGD(TAG, "Heap: Free:%d, Min:%d, Size:%d, Alloc:%d, StackHWM:%d",
+    ESP_LOGI(TAG, "Heap: Free:%d, Min:%d, Size:%d, Alloc:%d, StackHWM:%d",
       ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getHeapSize(),
       ESP.getMaxAllocHeap(), uxTaskGetStackHighWaterMark(NULL));
-    ESP_LOGD(TAG, "Mqttloop %d bytes left | Taskstate = %d | core = %u",
+    ESP_LOGI(TAG, "MqttLoop %d bytes left | Taskstate = %d | core = %u",
       uxTaskGetStackHighWaterMark(mqtt::mqttTask), eTaskGetState(mqtt::mqttTask), xTaskGetAffinity(mqtt::mqttTask));
-    ESP_LOGD(TAG, "Otaloop %d bytes left | Taskstate = %d | core = %u",
+    ESP_LOGI(TAG, "OtaLoop %d bytes left | Taskstate = %d | core = %u",
       uxTaskGetStackHighWaterMark(OTA::otaTask), eTaskGetState(OTA::otaTask), xTaskGetAffinity(OTA::otaTask));
     if (sensorsTask) {
-      ESP_LOGD(TAG, "SensorsLoop %d bytes left | Taskstate = %d | core = %u",
+      ESP_LOGI(TAG, "SensorsLoop %d bytes left | Taskstate = %d | core = %u",
         uxTaskGetStackHighWaterMark(sensorsTask), eTaskGetState(sensorsTask), xTaskGetAffinity(sensorsTask));
     }
     if (neopixelMatrixTask) {
-      ESP_LOGD(TAG, "NeopixelMatrixLoop %d bytes left | Taskstate = %d | core = %u",
+      ESP_LOGI(TAG, "NeopixelMatrixLoop %d bytes left | Taskstate = %d | core = %u",
         uxTaskGetStackHighWaterMark(neopixelMatrixTask), eTaskGetState(neopixelMatrixTask), xTaskGetAffinity(neopixelMatrixTask));
     }
     if (ESP.getMinFreeHeap() <= 2048) {

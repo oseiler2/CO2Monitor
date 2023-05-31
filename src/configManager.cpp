@@ -1,5 +1,4 @@
-#include <Arduino.h>
-#include <config.h>
+
 #include <configManager.h>
 
 #include <FS.h>
@@ -25,9 +24,11 @@ Config config;
   "mqttInsecure": false,
   "mqttServerPort": 65535,
   "altitude": 12345,
+  "co2GreenThreshold": 0,
   "co2YellowThreshold": 800,
   "co2RedThreshold": 1000,
   "co2DarkRedThreshold": 2000,
+  "iagGreenThreshold": 0,
   "iaqYellowThreshold": 100,
   "iaqRedThreshold": 200,
   "iaqDarkRedThreshold": 300,
@@ -81,9 +82,11 @@ void setupConfigManager() {
 #define DEFAULT_MQTT_INSECURE          false
 #define DEFAULT_DEVICE_ID                  0
 #define DEFAULT_ALTITUDE                   5
+#define DEFAULT_CO2_GREEN_THRESHOLD        0
 #define DEFAULT_CO2_YELLOW_THRESHOLD     700
 #define DEFAULT_CO2_RED_THRESHOLD        900
 #define DEFAULT_CO2_DARK_RED_THRESHOLD  1200
+#define DEFAULT_IAQ_GREEN_THRESHOLD        0
 #define DEFAULT_IAQ_YELLOW_THRESHOLD     100
 #define DEFAULT_IAQ_RED_THRESHOLD        200
 #define DEFAULT_IAQ_DARK_RED_THRESHOLD   300
@@ -131,9 +134,11 @@ void getDefaultConfiguration(Config& config) {
   config.mqttInsecure = DEFAULT_MQTT_INSECURE;
   config.mqttServerPort = DEFAULT_MQTT_PORT;
   config.altitude = DEFAULT_ALTITUDE;
+  config.co2GreenThreshold = DEFAULT_CO2_GREEN_THRESHOLD;
   config.co2YellowThreshold = DEFAULT_CO2_YELLOW_THRESHOLD;
   config.co2RedThreshold = DEFAULT_CO2_RED_THRESHOLD;
   config.co2DarkRedThreshold = DEFAULT_CO2_DARK_RED_THRESHOLD;
+  config.iaqGreenThreshold = DEFAULT_IAQ_GREEN_THRESHOLD;
   config.iaqYellowThreshold = DEFAULT_IAQ_YELLOW_THRESHOLD;
   config.iaqRedThreshold = DEFAULT_IAQ_RED_THRESHOLD;
   config.iaqDarkRedThreshold = DEFAULT_IAQ_DARK_RED_THRESHOLD;
@@ -177,9 +182,11 @@ void logConfiguration(const Config& config) {
   ESP_LOGD(TAG, "mqttInsecure: %s", config.mqttInsecure ? "true" : "false");
   ESP_LOGD(TAG, "mqttPort: %u", config.mqttServerPort);
   ESP_LOGD(TAG, "altitude: %u", config.altitude);
+  ESP_LOGD(TAG, "co2GreenThreshold: %u", config.co2GreenThreshold);
   ESP_LOGD(TAG, "co2YellowThreshold: %u", config.co2YellowThreshold);
   ESP_LOGD(TAG, "co2RedThreshold: %u", config.co2RedThreshold);
   ESP_LOGD(TAG, "co2DarkRedThreshold: %u", config.co2DarkRedThreshold);
+  ESP_LOGD(TAG, "iaqGreenThreshold: %u", config.iaqGreenThreshold);
   ESP_LOGD(TAG, "iaqYellowThreshold: %u", config.iaqYellowThreshold);
   ESP_LOGD(TAG, "iaqRedThreshold: %u", config.iaqRedThreshold);
   ESP_LOGD(TAG, "iaqDarkRedThreshold: %u", config.iaqDarkRedThreshold);
@@ -214,7 +221,7 @@ void logConfiguration(const Config& config) {
 }
 
 boolean loadConfiguration(Config& config) {
-  File file = LittleFS.open(CONFIG_FILENAME, "r");
+  File file = LittleFS.open(CONFIG_FILENAME, FILE_READ);
   if (!file) {
     ESP_LOGW(TAG, "Could not open config file");
     return false;
@@ -223,11 +230,12 @@ boolean loadConfiguration(Config& config) {
   // Allocate a temporary JsonDocument
   // Don't forget to change the capacity to match your requirements.
   // Use arduinojson.org/v6/assistant to compute the capacity.
-  StaticJsonDocument<CONFIG_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_SIZE);
 
   DeserializationError error = deserializeJson(doc, file);
   if (error) {
     ESP_LOGW(TAG, "Failed to parse config file: %s", error.f_str());
+    file.close();
     return false;
   }
 
@@ -249,9 +257,11 @@ boolean loadConfiguration(Config& config) {
   config.mqttUseTls = doc["mqttUseTls"] | DEFAULT_MQTT_USE_TLS;
   config.mqttInsecure = doc["mqttInsecure"] | DEFAULT_MQTT_INSECURE;
   config.altitude = doc["altitude"] | DEFAULT_ALTITUDE;
+  config.co2GreenThreshold = doc["co2GreenThreshold"] | DEFAULT_CO2_GREEN_THRESHOLD;
   config.co2YellowThreshold = doc["co2YellowThreshold"] | DEFAULT_CO2_YELLOW_THRESHOLD;
   config.co2RedThreshold = doc["co2RedThreshold"] | DEFAULT_CO2_RED_THRESHOLD;
   config.co2DarkRedThreshold = doc["co2DarkRedThreshold"] | DEFAULT_CO2_DARK_RED_THRESHOLD;
+  config.iaqGreenThreshold = doc["iaqGreenThreshold"] | DEFAULT_IAQ_GREEN_THRESHOLD;
   config.iaqYellowThreshold = doc["iaqYellowThreshold"] | DEFAULT_IAQ_YELLOW_THRESHOLD;
   config.iaqRedThreshold = doc["iaqRedThreshold"] | DEFAULT_IAQ_RED_THRESHOLD;
   config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"] | DEFAULT_IAQ_DARK_RED_THRESHOLD;
@@ -297,13 +307,13 @@ boolean saveConfiguration(const Config& config) {
   }
 
   // Open file for writing
-  File file = LittleFS.open(CONFIG_FILENAME, "w");
+  File file = LittleFS.open(CONFIG_FILENAME, FILE_WRITE);
   if (!file) {
     ESP_LOGW(TAG, "Could not create config file for writing");
     return false;
   }
 
-  StaticJsonDocument<CONFIG_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_SIZE);
 
   // Set the values in the document
   doc["deviceId"] = config.deviceId;
@@ -315,9 +325,11 @@ boolean saveConfiguration(const Config& config) {
   doc["mqttUseTls"] = config.mqttUseTls;
   doc["mqttInsecure"] = config.mqttInsecure;
   doc["altitude"] = config.altitude;
+  doc["co2GreenThreshold"] = config.co2GreenThreshold;
   doc["co2YellowThreshold"] = config.co2YellowThreshold;
   doc["co2RedThreshold"] = config.co2RedThreshold;
   doc["co2DarkRedThreshold"] = config.co2DarkRedThreshold;
+  doc["iaqGreenThreshold"] = config.iaqGreenThreshold;
   doc["iaqYellowThreshold"] = config.iaqYellowThreshold;
   doc["iaqRedThreshold"] = config.iaqRedThreshold;
   doc["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
@@ -366,7 +378,7 @@ boolean saveConfiguration(const Config& config) {
 // Prints the content of a file to the Serial
 void printFile() {
   // Open file for reading
-  File file = LittleFS.open(CONFIG_FILENAME, "r");
+  File file = LittleFS.open(CONFIG_FILENAME, FILE_READ);
   if (!file) {
     ESP_LOGW(TAG, "Could not open config file");
     return;

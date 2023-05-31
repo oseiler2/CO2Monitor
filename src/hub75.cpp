@@ -1,12 +1,12 @@
-#include <config.h>
-#if CONFIG_IDF_TARGET_ESP32
-
 #include <hub75.h>
+#include <config.h>
 #include <configManager.h>
 
 #include <smileys.h>
 #include <digits.h>
 #include <message.h>
+
+#if CONFIG_IDF_TARGET_ESP32
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -91,5 +91,13 @@ void HUB75::timer() {
     toggle = !toggle;
   }
 }
+
+#elif CONFIG_IDF_TARGET_ESP32S3
+
+HUB75::HUB75(Model* _model) {}
+HUB75::~HUB75() {}
+
+void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {}
+void HUB75::stopDMA() {}
 
 #endif

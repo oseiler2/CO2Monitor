@@ -5,6 +5,10 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
+#define ENABLE_TEXT   true
+#define TANK_INTERVAL 30000
+#define TEXT_INTERVAL 5000
+
 NeopixelMatrix::NeopixelMatrix(Model* _model, uint8_t _pin, uint8_t _columns, uint8_t _rows, uint8_t _layout) {
   if (xPortGetCoreID() != 1)
     ESP_LOGW(TAG, ">>>>>>>>>>>>>>> Running on core %u instead of core 1", xPortGetCoreID());
@@ -88,6 +92,8 @@ uint16_t NeopixelMatrix::ppmToColour(uint16_t ppm) {
 }
 
 void NeopixelMatrix::showText() {
+  if (this->displayMode != SHOW_TEXT) return;
+  matrix->setRotation(0);
   matrix->setBrightness(config.brightness);
   matrix->fillScreen(0);
   matrix->setTextColor(matrix->Color(255, 255, 255));//ppmToColour(currentPpm));
@@ -99,7 +105,8 @@ void NeopixelMatrix::showText() {
 /**
  * Render the given PPM value on the matrix->
  */
-void NeopixelMatrix::show(uint16_t ppm, bool showDrip) {
+void NeopixelMatrix::showTank(uint16_t ppm, bool showDrip) {
+  if (this->displayMode != SHOW_TANK) return;
   uint16_t color = ppmToColour(ppm); //showDrip ? GREEN : GREEN; //ppmToColour(ppm);
 
   // takes about  1297 micros
@@ -109,6 +116,7 @@ void NeopixelMatrix::show(uint16_t ppm, bool showDrip) {
   float eps = 1 - ((float)dots / NUMBER_OF_DOTS);
   matrix->setBrightness(min(int(config.brightness + (eps * 10)), 255));
 
+  matrix->setRotation(rotateTank ? 1 : 0);
   matrix->clear();
   matrix->fillScreen(0);
   //  matrix->fillScreen(matrix->Color(255, 0, 255));
@@ -174,7 +182,6 @@ void NeopixelMatrix::update(uint16_t ppm) {
   currentPpm = ppm;
 
   if (displayMode == SHOW_TEXT) {
-    matrix->setRotation(0);
     if (snakeTicker->active()) snakeTicker->detach();
     if (cyclicTimerMode != TIMER_SCROLL && cyclicTimer->active()) {
       cyclicTimer->detach();
@@ -202,20 +209,20 @@ void NeopixelMatrix::update(uint16_t ppm) {
     } else {
       if (cyclicTimer->active()) cyclicTimer->detach();
       cyclicTimerMode = TIMER_OFF;
-      showText();
+      QueueMessage msg;
+      msg.cmd = X_CMD_SHOW_TEXT;
+      msg.ppm = currentPpm;
+      if (updateQueue) xQueueSendToBack(updateQueue, (void*)&msg, pdMS_TO_TICKS(5));
     }
   } else if (displayMode == SHOW_TANK) {
-    matrix->setRotation(rotateTank ? 1 : 0);
-
-    uint16_t delta = previousPpm > currentPpm ? previousPpm - currentPpm : currentPpm - previousPpm;
-
-    if (delta > 0 && delta < 2 * PPM_PER_DOT) {
+    uint16_t delta = (uint16_t)abs(previousPpm - currentPpm);
+    if (ppm <= UPPER_LIMIT && delta > 0 && delta < 2 * PPM_PER_DOT) {
       if (previousPpm > currentPpm) {
         // ppm decreasing
         dripDirection = 1;
         uint8_t dots = ppmToDots(ppm);
         dripCurrentRow = TANK_HEIGHT;
-        dripColumn = (dots - 1) % TANK_WIDTH;
+        dripColumn = max(dots - 1, 0) % TANK_WIDTH;
         dripFinalRow = min((uint8_t)floor((dots - 1) / TANK_WIDTH), TANK_HEIGHT);
         //      ESP_LOGD(TAG, "dripTimer=> dripColumn %u, dripFinalRow %u", dripColumn, dripFinalRow);
       } else {
@@ -223,19 +230,24 @@ void NeopixelMatrix::update(uint16_t ppm) {
         dripDirection = -1;
         uint8_t dots = ppmToDots(previousPpm);
         dripCurrentRow = min((uint8_t)floor((dots - 1) / TANK_WIDTH), TANK_HEIGHT);
-        dripColumn = (dots - 1) % TANK_WIDTH;
+        dripColumn = max(dots - 1, 0) % TANK_WIDTH;
         dripFinalRow = TANK_HEIGHT - 1;
         //      ESP_LOGD(TAG, "dripTimer=> dripColumn %u, dripCurrentRow %u", dripColumn, dripCurrentRow);
       }
       if (cyclicTimer->active()) cyclicTimer->detach();
       cyclicTimerMode = TIMER_DRIP;
       cyclicTimer->attach_ms(DRIP_TIMER_INTERVAL, +[](NeopixelMatrix* instance) { instance->dripTimer(); }, this);
-    } else {
+    } else if (ppm <= UPPER_LIMIT && delta >= 2 * PPM_PER_DOT) {
       amplitude = 1;
       lastPpmUpdate = millis();
       if (cyclicTimer->active()) cyclicTimer->detach(); // cyclicTimer could be active on DRIP, hence detach
       cyclicTimerMode = TIMER_WAVE;
       cyclicTimer->attach_ms(WAVE_TIMER_INTERVAL, +[](NeopixelMatrix* instance) { instance->waveTimer(); }, this);
+    } else {
+      QueueMessage msg;
+      msg.cmd = X_CMD_SHOW_PPM;
+      msg.ppm = ppm;
+      if (updateQueue) xQueueSendToBack(updateQueue, (void*)&msg, pdMS_TO_TICKS(5));
     }
     // turn on snake(s) if only 1 row or less is visible
     if (currentPpm > UPPER_LIMIT - (TANK_WIDTH * PPM_PER_DOT)) {
@@ -247,7 +259,7 @@ void NeopixelMatrix::update(uint16_t ppm) {
 }
 
 void NeopixelMatrix::waveTimer() {
-  if (amplitude < 0.05f) {
+  if (amplitude < 0.05f || abs(currentPpm - previousPpm) * (amplitude) < PPM_PER_DOT) {
     cyclicTimer->detach();
     cyclicTimerMode = TIMER_OFF;
     if (currentPpm > UPPER_LIMIT - (TANK_WIDTH * PPM_PER_DOT)) {
@@ -259,7 +271,7 @@ void NeopixelMatrix::waveTimer() {
   uint16_t timePassed = millis() - lastPpmUpdate;
   float theta = float(timePassed) / 100; // 300
   uint16_t tempPpm = currentPpm - cos(theta) * (currentPpm - previousPpm) * (amplitude);
-  //  ESP_LOGD(TAG, "timer() timePassed %u, theta %.1f, cos %.1f, amplitude %.2f, delta %d, tempPpm %u", timePassed, theta, cos(theta), amplitude, (currentPpm - previousPpm), tempPpm);
+  // ESP_LOGD(TAG, "timer() timePassed %u, theta %.1f, cos %.1f, amplitude %.2f, delta %d %.1f, tempPpm %u", timePassed, theta, cos(theta), amplitude, (currentPpm - previousPpm), (currentPpm - previousPpm) / PPM_PER_DOT, tempPpm);
   amplitude -= amplitude * dampen;
 
   QueueMessage msg;
@@ -338,25 +350,27 @@ void NeopixelMatrix::neopixelMatrixLoop(void* pvParameters) {
 
   uint32_t lastModeChange = millis();
   while (1) {
-    if (instance->displayMode == SHOW_TANK) {
-      if (millis() - lastModeChange > 30000) {
-        instance->displayMode = SHOW_TEXT;
-        lastModeChange = millis();
-        instance->update(instance->currentPpm);
-      }
-    } else if (instance->displayMode == SHOW_TEXT) {
-      if (millis() - lastModeChange > 5000) {
-        instance->displayMode = SHOW_TANK;
-        lastModeChange = millis();
-        instance->update(instance->currentPpm);
+    if (ENABLE_TEXT) {
+      if (instance->displayMode == SHOW_TANK) {
+        if (millis() - lastModeChange > TANK_INTERVAL) {
+          instance->displayMode = SHOW_TEXT;
+          lastModeChange = millis();
+          instance->update(instance->currentPpm);
+        }
+      } else if (instance->displayMode == SHOW_TEXT) {
+        if (millis() - lastModeChange > TEXT_INTERVAL) {
+          instance->displayMode = SHOW_TANK;
+          lastModeChange = millis();
+          instance->update(instance->currentPpm);
+        }
       }
     }
     notified = xQueueReceive(instance->updateQueue, &msg, pdMS_TO_TICKS(100));
     if (notified == pdPASS) {
       if (msg.cmd == X_CMD_SHOW_PPM) {
-        instance->show(msg.ppm, false);
+        instance->showTank(msg.ppm, false);
       } else if (msg.cmd == X_CMD_SHOW_DRIP) {
-        instance->show(msg.ppm, true);
+        instance->showTank(msg.ppm, true);
       } else if (msg.cmd == X_CMD_SHOW_TEXT) {
         instance->showText();
       }

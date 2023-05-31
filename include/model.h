@@ -23,7 +23,7 @@ typedef enum {
 } Measurement;
 
 typedef enum {
-  UNDEFINED = 0,
+  OFF = 0,
   GREEN,
   YELLOW,
   RED,

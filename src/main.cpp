@@ -23,6 +23,7 @@
 #include <neopixel.h>
 #include <neopixelMatrix.h>
 #include <featherMatrix.h>
+#include <hub75.h>
 #include <buzzer.h>
 #include <bme680.h>
 #include <wifiManager.h>
@@ -34,16 +35,8 @@
 #include <timekeeper.h>
 #include <menu.h>
 
-#if CONFIG_IDF_TARGET_ESP32
-#include <hub75.h>
-#endif
-
 // Local logging tag
 static const char TAG[] = __FILE__;
-
-#if CONFIG_IDF_TARGET_ESP32
-#elif CONFIG_IDF_TARGET_ESP32S3
-#endif
 
 Model* model;
 LCD* lcd;
@@ -51,9 +44,7 @@ TrafficLight* trafficLight;
 Neopixel* neopixel;
 NeopixelMatrix* neopixelMatrix;
 FeatherMatrix* featherMatrix;
-#if CONFIG_IDF_TARGET_ESP32
 HUB75* hub75;
-#endif
 Buzzer* buzzer;
 SCD30* scd30;
 SCD40* scd40;
@@ -114,9 +105,7 @@ void ICACHE_RAM_ATTR button4Handler() {
 }
 
 void prepareOta() {
-#if CONFIG_IDF_TARGET_ESP32
   if (hasHub75 && hub75) hub75->stopDMA();
-#endif
   if (hasNeopixelMatrix && neopixelMatrix) {
     hasNeopixelMatrix = false;
     neopixelMatrix->stop();
@@ -147,9 +136,7 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if (hasNeoPixel && neopixel) neopixel->update(mask, oldStatus, newStatus);
   if (hasFeatherMatrix && featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
   if (hasNeopixelMatrix && neopixelMatrix) neopixelMatrix->update(mask, oldStatus, newStatus);
-#if CONFIG_IDF_TARGET_ESP32
   if (hasHub75 && hub75) hub75->update(mask, oldStatus, newStatus);
-#endif
   if (hasBuzzer && buzzer) buzzer->update(mask, oldStatus, newStatus);
   if ((mask & M_PRESSURE) && I2C::scd40Present() && scd40) scd40->setAmbientPressure(model->getPressure());
   if ((mask & M_PRESSURE) && I2C::scd30Present() && scd30) scd30->setAmbientPressure(model->getPressure());
@@ -223,13 +210,14 @@ void logCoreInfo() {
 
 void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
   if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+    ESP_LOGD(TAG, "eventHandler IP_EVENT IP_EVENT_STA_GOT_IP");
     Timekeeper::initSntp();
   } else if (event_base == WIFI_EVENT) {
     switch (event_id) {
       case WIFI_EVENT_STA_CONNECTED:
-        digitalWrite(LED_PIN, HIGH);
         ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_CONNECTED");
         wifiDisconnected = 0;
+        digitalWrite(LED_PIN, HIGH);
         break;
       case WIFI_EVENT_STA_DISCONNECTED:
         ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_DISCONNECTED");
@@ -237,10 +225,11 @@ void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t 
         digitalWrite(LED_PIN, LOW);
         break;
       default:
+        ESP_LOGD(TAG, "eventHandler WIFI_EVENT %u", event_id);
         break;
     }
   } else {
-    //    ESP_LOGD(TAG, "eventHandler %s %u", event_base, event_id);
+    ESP_LOGD(TAG, "eventHandler %s %u", event_base, event_id);
   }
 }
 
@@ -303,10 +292,8 @@ void setup() {
     && (Power::getPowerMode() == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)));
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
-#if CONFIG_IDF_TARGET_ESP32
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
-#endif
   hasBuzzer = config.buzzerPin != 0;
   hasSdSlot = (config.sdDetect != 0 && config.sdDat0 != 0 && config.sdDat1 != 0 && config.sdDat2 != 0 && config.sdDat3 != 0 && config.sdClk != 0 && config.sdCmd != 0);
   hasBtn2 = config.btn2 != 0;
@@ -356,9 +343,7 @@ void setup() {
   if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber, reinitFromSleep);
   if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock, reinitFromSleep);
   if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
-#if CONFIG_IDF_TARGET_ESP32
   if (hasHub75) hub75 = new HUB75(model);
-#endif
   if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
   if (hasSdCard)  hasSdCard &= SdCard::setup();
 
@@ -374,6 +359,10 @@ void setup() {
       setSPS30AutoCleanInterval,
       cleanSPS30,
       getSPS30Status);
+
+    char msg[128];
+    sprintf(msg, "Reset reason: %u", resetReason);
+    mqtt::publishStatusMsg(msg);
 
     xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
       "mqttLoop",         // name of task

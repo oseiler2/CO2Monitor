@@ -93,38 +93,38 @@ namespace Sensors {
     if (bme680) bme680->readBme680();
     while (loopActive) {
       if (scd40 && (millis() - lastScd40Reading > (uint32_t)(scd40->getInterval() * 1000))) {
-        lastScd40Reading += scd40->getInterval() * 1000;
+        lastScd40Reading += (uint32_t)(scd40->getInterval() * 1000);
         scd40->readScd40();
       }
       if (sps30 && (millis() - lastSps30Reading > (uint32_t)(sps30->getInterval() * 1000))) {
-        lastSps30Reading += sps30->getInterval() * 1000;
+        lastSps30Reading += (uint32_t)(sps30->getInterval() * 1000);
         sps30->readSps30();
       }
       if (bme680 && (millis() - lastBme680Reading > (uint32_t)(bme680->getInterval() * 1000))) {
-        lastBme680Reading += bme680->getInterval() * 1000;
+        lastBme680Reading += (uint32_t)(bme680->getInterval() * 1000);
         bme680->readBme680();
       }
 
       now = millis();
       uint32_t delay = 0xffffffff;
       if (scd40) {
-        uint32_t nextScd40 = lastScd40Reading + scd40->getInterval() * 1000 - now;
-        if (nextScd40 > scd40->getInterval() * 1000) nextScd40 = 0;
+        uint32_t nextScd40 = (uint32_t)(scd40->getInterval() * 1000) - (now - lastScd40Reading);
+        if (nextScd40 > (uint32_t)(scd40->getInterval() * 1000)) nextScd40 = 0;
         delay = min(delay, nextScd40);
       }
       if (scd30) {
-        uint32_t nextScd30 = lastScd30Reading + scd30->getInterval() * 1000 - now;
-        if (nextScd30 > scd30->getInterval() * 1000) nextScd30 = 0;
+        uint32_t nextScd30 = (uint32_t)(scd30->getInterval() * 1000) - (now - lastScd30Reading);
+        if (nextScd30 > (uint32_t)(scd30->getInterval() * 1000)) nextScd30 = 0;
         delay = min(delay, nextScd30);
       }
       if (sps30) {
-        uint32_t nextSps30 = lastSps30Reading + sps30->getInterval() * 1000 - now;
-        if (nextSps30 > sps30->getInterval() * 1000) nextSps30 = 0;
+        uint32_t nextSps30 = (uint32_t)(sps30->getInterval() * 1000) - (now - lastSps30Reading);
+        if (nextSps30 > (uint32_t)(sps30->getInterval() * 1000)) nextSps30 = 0;
         delay = min(delay, nextSps30);
       }
       if (bme680) {
-        uint32_t nextBme680 = lastBme680Reading + bme680->getInterval() * 1000 - now;
-        if (nextBme680 > bme680->getInterval() * 1000) nextBme680 = 0;
+        uint32_t nextBme680 = (uint32_t)(bme680->getInterval() * 1000) - (now - lastBme680Reading);
+        if (nextBme680 > (uint32_t)(bme680->getInterval() * 1000)) nextBme680 = 0;
         delay = min(delay, nextBme680);
       }
 
@@ -136,7 +136,7 @@ namespace Sensors {
         if (scd30 && taskNotification & X_CMD_SCD30_DATA_READY) {
           taskNotification &= ~X_CMD_SCD30_DATA_READY;
           scd30->readScd30();
-          lastScd30Reading += scd30->getInterval() * 1000;
+          lastScd30Reading += (uint32_t)(scd30->getInterval() * 1000);
         }
         if (taskNotification & X_CMD_SHUTDOWN) {
           taskNotification &= ~X_CMD_SHUTDOWN;
@@ -145,7 +145,7 @@ namespace Sensors {
       } else {
         if (scd30 && digitalRead(SCD30_RDY_PIN)) {
           scd30->readScd30();
-          lastScd30Reading += scd30->getInterval() * 1000;
+            lastScd30Reading += (uint32_t)(scd30->getInterval() * 1000);
         }
       }
     }

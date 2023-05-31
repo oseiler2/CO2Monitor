@@ -16,28 +16,32 @@ Model::Model(modelUpdatedEvt_t _modelUpdatedEvt) {
   this->pm4 = 0;
   this->pm10 = 0;
   this->modelUpdatedEvt = _modelUpdatedEvt;
-  this->status = UNDEFINED;
+  this->status = OFF;
   this->voltageInMv = 0;
 }
 
 Model::~Model() {}
 
 void Model::updateStatus() {
-  TrafficLightStatus co2Status = UNDEFINED;
+  TrafficLightStatus co2Status = OFF;
   if (this->co2 != 0) {
-    if (this->co2 < config.co2YellowThreshold) {
+    if (this->co2 <= config.co2GreenThreshold) {
+      co2Status = OFF;
+    } else if (this->co2 <= config.co2YellowThreshold) {
       co2Status = GREEN;
-    } else if (this->co2 < config.co2RedThreshold) {
+    } else if (this->co2 <= config.co2RedThreshold) {
       co2Status = YELLOW;
-    } else if (this->co2 < config.co2DarkRedThreshold) {
+    } else if (this->co2 <= config.co2DarkRedThreshold) {
       co2Status = RED;
     } else {
       co2Status = DARK_RED;
     }
   }
-  TrafficLightStatus iaqStatus = UNDEFINED;
+  TrafficLightStatus iaqStatus = OFF;
   if (iaq != 0) {
-    if (iaq <= config.iaqYellowThreshold) {
+    if (iaq <= config.iaqGreenThreshold) {
+      iaqStatus = OFF;
+    } else if (iaq <= config.iaqYellowThreshold) {
       iaqStatus = GREEN;
     } else if (iaq <= config.iaqRedThreshold) {
       iaqStatus = YELLOW;
@@ -151,4 +155,3 @@ uint16_t Model::getPM10() {
 uint16_t Model::getVoltageInMv() {
   return this->voltageInMv;
 }
-

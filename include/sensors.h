@@ -1,7 +1,7 @@
 #ifndef _SENSORS_H
 #define _SENSORS_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <scd30.h>
 #include <scd40.h>

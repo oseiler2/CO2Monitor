@@ -82,15 +82,17 @@ void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightS
   }
   if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED) && !(mask && M_POWER_MODE)) return;
   if (mask & M_CONFIG_CHANGED) this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
-  if (newStatus == GREEN) {
-    fill(this->colourGreen); // Green
+  if (newStatus == OFF) {
+    fill(colourOff);
+  } else if (newStatus == GREEN) {
+    fill(colourGreen);
   } else if (newStatus == YELLOW) {
-    fill(colourYellow); // Amber
+    fill(colourYellow);
   } else if (newStatus == RED) {
-    fill(colourRed); // Red
+    fill(colourRed);
   } else if (newStatus == DARK_RED) {
     if (Power::getPowerMode() == BATTERY || oldStatus != newStatus)
-      fill(colourPurple); // Purple
+      fill(colourPurple);
   }
 }
 

@@ -52,7 +52,7 @@ namespace mqtt {
   uint32_t lastReconnectAttempt = 0;
   uint16_t connectionAttempts = 0;
 
-  StaticJsonDocument<CONFIG_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_SIZE);
 
   char* cloneStr(const char* original) {
     char* copy = (char*)malloc(strlen(original) + 1);
@@ -119,19 +119,19 @@ namespace mqtt {
   }
 
   void setMqttCerts(WiFiClientSecure* wifiClient, const char* mqttRootCertFilename, const char* mqttClientKeyFilename, const char* mqttClientCertFilename) {
-    File root_ca_file = LittleFS.open(mqttRootCertFilename, "r");
+    File root_ca_file = LittleFS.open(mqttRootCertFilename, FILE_READ);
     if (root_ca_file) {
       ESP_LOGD(TAG, "Loading MQTT root ca from FS (%s)", mqttRootCertFilename);
       wifiClient->loadCACert(root_ca_file, root_ca_file.size());
       root_ca_file.close();
     }
-    File client_key_file = LittleFS.open(mqttClientKeyFilename, "r");
+    File client_key_file = LittleFS.open(mqttClientKeyFilename, FILE_READ);
     if (client_key_file) {
       ESP_LOGD(TAG, "Loading MQTT client key from FS (%s)", mqttClientKeyFilename);
       wifiClient->loadPrivateKey(client_key_file, client_key_file.size());
       client_key_file.close();
     }
-    File client_cert_file = LittleFS.open(mqttClientCertFilename, "r");
+    File client_cert_file = LittleFS.open(mqttClientCertFilename, FILE_READ);
     if (client_cert_file) {
       ESP_LOGD(TAG, "Loading MQTT client cert from FS (%s)", mqttClientCertFilename);
       wifiClient->loadCertificate(client_cert_file, client_cert_file.size());
@@ -145,6 +145,8 @@ namespace mqtt {
     PubSubClient* testMqttClient = new PubSubClient(*wifiClient);
     testMqttClient->setServer(testConfig.mqttHost, testConfig.mqttServerPort);
     sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+    // disconnect current connection if not enough heap avalable to initiate another tls session.
+    if (testConfig.mqttUseTls && ESP.getFreeHeap() < 75000) mqtt_client->disconnect();
     mqttTestSuccess = testMqttClient->connect(buf, testConfig.mqttUsername, testConfig.mqttPassword);
     if (mqttTestSuccess) {
       ESP_LOGD(TAG, "Test MQTT connected");
@@ -168,9 +170,11 @@ namespace mqtt {
     doc["mqttUseTls"] = config.mqttUseTls;
     doc["mqttInsecure"] = config.mqttInsecure;
     doc["altitude"] = config.altitude;
+    doc["co2GreenThreshold"] = config.co2GreenThreshold;
     doc["co2YellowThreshold"] = config.co2YellowThreshold;
     doc["co2RedThreshold"] = config.co2RedThreshold;
     doc["co2DarkRedThreshold"] = config.co2DarkRedThreshold;
+    doc["iaqGreenThreshold"] = config.iaqGreenThreshold;
     doc["iaqYellowThreshold"] = config.iaqYellowThreshold;
     doc["iaqRedThreshold"] = config.iaqRedThreshold;
     doc["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
@@ -239,7 +243,6 @@ namespace mqtt {
       ESP_LOGW(TAG, "msg too long - discarding");
       return;
     }
-
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_STATUS_MSG;
     msg.mask = 0;
@@ -267,7 +270,7 @@ namespace mqtt {
     if (!mqtt_client->publish(topic, msg)) {
       ESP_LOGI(TAG, "publish status msg failed!");
       if (!keepOnFailure) free(statusMessage);
-      // don't free heap, since message will be re-tried      
+      // don't free heap, since message will be re-tried
       return false;
     }
     free(statusMessage);
@@ -338,9 +341,11 @@ namespace mqtt {
       }
       bool rebootRequired = false;
       if (doc.containsKey("altitude")) config.altitude = doc["altitude"].as<int>();
+      if (doc.containsKey("co2GreenThreshold")) config.co2GreenThreshold = doc["co2GreenThreshold"].as<uint16_t>();
       if (doc.containsKey("co2YellowThreshold")) config.co2YellowThreshold = doc["co2YellowThreshold"].as<uint16_t>();
       if (doc.containsKey("co2RedThreshold")) config.co2RedThreshold = doc["co2RedThreshold"].as<uint16_t>();
       if (doc.containsKey("co2DarkRedThreshold")) config.co2DarkRedThreshold = doc["co2DarkRedThreshold"].as<uint16_t>();
+      if (doc.containsKey("iaqGreenThreshold")) config.iaqGreenThreshold = doc["iaqGreenThreshold"].as<uint16_t>();
       if (doc.containsKey("iaqYellowThreshold")) config.iaqYellowThreshold = doc["iaqYellowThreshold"].as<uint16_t>();
       if (doc.containsKey("iaqRedThreshold")) config.iaqRedThreshold = doc["iaqRedThreshold"].as<uint16_t>();
       if (doc.containsKey("iaqDarkRedThreshold")) config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"].as<uint16_t>();

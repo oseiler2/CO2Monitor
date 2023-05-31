@@ -39,7 +39,7 @@ jobs:
       - name: Set env
         run: echo "GITHUB_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - name: Run PlatformIO
-        run: pio run --environment release
+        run: pio run --environment esp32
       - name: "Build & test"
         run: |
           echo "done!"
@@ -49,5 +49,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            .pio/build/release/firmware.bin
-            .pio/build/release/firmware-combined.bin
+            .pio/build/esp32/firmware.bin
+            .pio/build/esp32/firmware-combined.bin

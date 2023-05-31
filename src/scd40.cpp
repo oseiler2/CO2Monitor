@@ -1,4 +1,4 @@
-#include "globals.h"
+#include <globals.h>
 #include <config.h>
 #include <scd40.h>
 #include <model.h>

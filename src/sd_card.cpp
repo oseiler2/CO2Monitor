@@ -132,7 +132,7 @@ namespace SdCard {
       fprintf(f, "%u,", model->getPressure());
     else
       fprintf(f, ",");
-    if (status != UNDEFINED)
+    if (status != OFF)
       fprintf(f, "%u,", status);
     else
       fprintf(f, ",");

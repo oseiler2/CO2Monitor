@@ -1,10 +1,21 @@
 {
     "node-red": {
         "name": "node-red",
-        "version": "2.2.2",
+        "version": "3.0.0",
         "local": false,
         "user": false,
         "nodes": {
+            "junction": {
+                "name": "junction",
+                "types": [
+                    "junction"
+                ],
+                "enabled": true,
+                "local": false,
+                "user": false,
+                "module": "node-red",
+                "file": "/usr/src/node-red/node_modules/@node-red/nodes/core/common/05-junction.js"
+            },
             "inject": {
                 "name": "inject",
                 "types": [
