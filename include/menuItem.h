@@ -10,8 +10,8 @@ const char* renderSelectionAsLabel(uint8_t index);
 
 class MenuItem {
 public:
-  MenuItem(char const* name, uint8_t minValue, uint8_t maxValue, uint8_t steps, uint8_t  initialSelection, getLabelForSelectionCallback_t getLabelForSelectionCallback, actionMenuItemCallback_t actionMenuItemCallback = nullptr);
-  MenuItem(char const* name, uint8_t minValue, uint8_t maxValue, uint8_t steps, uint8_t  initialSelection, const char* const* labels, actionMenuItemCallback_t actionMenuItemCallback = nullptr);
+  MenuItem(char const* name, uint8_t minValue, uint8_t maxValue, uint8_t steps, uint8_t initialSelection, getLabelForSelectionCallback_t getLabelForSelectionCallback, actionMenuItemCallback_t actionMenuItemCallback = nullptr);
+  MenuItem(char const* name, uint8_t minValue, uint8_t maxValue, uint8_t steps, uint8_t initialSelection, const char* const* labels, actionMenuItemCallback_t actionMenuItemCallback = nullptr);
   MenuItem(char const* name, const char* const* labels, actionMenuItemCallback_t actionMenuItemCallback);
   MenuItem(char const* name, actionMenuItemCallback_t actionMenuItemCallback);
   ~MenuItem();

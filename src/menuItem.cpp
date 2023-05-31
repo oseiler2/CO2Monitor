@@ -7,7 +7,7 @@ static const char TAG[] = __FILE__;
 
 char buf[5];
 
-MenuItem::MenuItem(char const* _name, uint8_t _minValue, uint8_t _maxValue, uint8_t _steps, uint8_t  _initialSelection, getLabelForSelectionCallback_t _getLabelForSelectionCallback, actionMenuItemCallback_t _actionMenuItemCallback) {
+MenuItem::MenuItem(char const* _name, uint8_t _minValue, uint8_t _maxValue, uint8_t _steps, uint8_t _initialSelection, getLabelForSelectionCallback_t _getLabelForSelectionCallback, actionMenuItemCallback_t _actionMenuItemCallback) {
   _ASSERT(_maxValue >= _minValue);
   _ASSERT((_steps <= _maxValue - _minValue + 1) && (steps >= 0));
   _ASSERT(_minValue <= _initialSelection && _initialSelection <= _maxValue);
@@ -22,7 +22,7 @@ MenuItem::MenuItem(char const* _name, uint8_t _minValue, uint8_t _maxValue, uint
   //  ESP_LOGD(TAG, "name %s, min %u, max %u, steps %u, initialSelection %u, offset %u, range %u", _name, _minValue, _maxValue, _steps, _initialSelection, offset, range);
 }
 
-MenuItem::MenuItem(char const* _name, uint8_t _minValue, uint8_t _maxValue, uint8_t _steps, uint8_t  _initialSelection, const char* const* _labels, actionMenuItemCallback_t _actionMenuItemCallback) {
+MenuItem::MenuItem(char const* _name, uint8_t _minValue, uint8_t _maxValue, uint8_t _steps, uint8_t _initialSelection, const char* const* _labels, actionMenuItemCallback_t _actionMenuItemCallback) {
   _ASSERT(_maxValue >= _minValue);
   _ASSERT((_steps <= _maxValue - _minValue + 1) && (steps >= 0));
   _ASSERT(_minValue <= _initialSelection && _initialSelection <= _maxValue);
