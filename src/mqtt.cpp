@@ -49,7 +49,7 @@ namespace mqtt {
   uint32_t lastReconnectAttempt = 0;
   uint16_t connectionAttempts = 0;
 
-  StaticJsonDocument<CONFIG_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_SIZE);
 
   char* cloneStr(const char* original) {
     char* copy = (char*)malloc(strlen(original) + 1);
@@ -116,19 +116,19 @@ namespace mqtt {
   }
 
   void setMqttCerts(WiFiClientSecure* wifiClient, const char* mqttRootCertFilename, const char* mqttClientKeyFilename, const char* mqttClientCertFilename) {
-    File root_ca_file = LittleFS.open(mqttRootCertFilename, "r");
+    File root_ca_file = LittleFS.open(mqttRootCertFilename, FILE_READ);
     if (root_ca_file) {
       ESP_LOGD(TAG, "Loading MQTT root ca from FS (%s)", mqttRootCertFilename);
       wifiClient->loadCACert(root_ca_file, root_ca_file.size());
       root_ca_file.close();
     }
-    File client_key_file = LittleFS.open(mqttClientKeyFilename, "r");
+    File client_key_file = LittleFS.open(mqttClientKeyFilename, FILE_READ);
     if (client_key_file) {
       ESP_LOGD(TAG, "Loading MQTT client key from FS (%s)", mqttClientKeyFilename);
       wifiClient->loadPrivateKey(client_key_file, client_key_file.size());
       client_key_file.close();
     }
-    File client_cert_file = LittleFS.open(mqttClientCertFilename, "r");
+    File client_cert_file = LittleFS.open(mqttClientCertFilename, FILE_READ);
     if (client_cert_file) {
       ESP_LOGD(TAG, "Loading MQTT client cert from FS (%s)", mqttClientCertFilename);
       wifiClient->loadCertificate(client_cert_file, client_cert_file.size());
@@ -238,7 +238,6 @@ namespace mqtt {
       ESP_LOGW(TAG, "msg too long - discarding");
       return;
     }
-
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_STATUS_MSG;
     msg.mask = 0;

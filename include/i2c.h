@@ -1,7 +1,7 @@
 #ifndef _I2C_H
 #define _I2C_H
 
-#include "globals.h"
+#include <globals.h>
 
 #define I2C_MUTEX_DEF_WAIT pdMS_TO_TICKS(5000)
 

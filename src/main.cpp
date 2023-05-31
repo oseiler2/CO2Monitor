@@ -267,7 +267,7 @@ void setup() {
     0);                 // CPU core
 
   xTaskCreatePinnedToCore(OTA::otaLoop,  // task function
-    "otaLoop",         // name of task
+    "otaLoop",          // name of task
     8192,               // stack size of task
     (void*)1,           // parameter of the task
     2,                  // priority of the task

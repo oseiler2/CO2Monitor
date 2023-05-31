@@ -1,5 +1,4 @@
-#include <Arduino.h>
-#include <config.h>
+
 #include <configManager.h>
 
 #include <FS.h>
@@ -214,7 +213,7 @@ void logConfiguration(const Config& config) {
 }
 
 boolean loadConfiguration(Config& config) {
-  File file = LittleFS.open(CONFIG_FILENAME, "r");
+  File file = LittleFS.open(CONFIG_FILENAME, FILE_READ);
   if (!file) {
     ESP_LOGW(TAG, "Could not open config file");
     return false;
@@ -223,7 +222,7 @@ boolean loadConfiguration(Config& config) {
   // Allocate a temporary JsonDocument
   // Don't forget to change the capacity to match your requirements.
   // Use arduinojson.org/v6/assistant to compute the capacity.
-  StaticJsonDocument<CONFIG_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_SIZE);
 
   DeserializationError error = deserializeJson(doc, file);
   if (error) {
@@ -298,13 +297,13 @@ boolean saveConfiguration(const Config& config) {
   }
 
   // Open file for writing
-  File file = LittleFS.open(CONFIG_FILENAME, "w");
+  File file = LittleFS.open(CONFIG_FILENAME, FILE_WRITE);
   if (!file) {
     ESP_LOGW(TAG, "Could not create config file for writing");
     return false;
   }
 
-  StaticJsonDocument<CONFIG_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_SIZE);
 
   // Set the values in the document
   doc["deviceId"] = config.deviceId;
@@ -367,7 +366,7 @@ boolean saveConfiguration(const Config& config) {
 // Prints the content of a file to the Serial
 void printFile() {
   // Open file for reading
-  File file = LittleFS.open(CONFIG_FILENAME, "r");
+  File file = LittleFS.open(CONFIG_FILENAME, FILE_READ);
   if (!file) {
     ESP_LOGW(TAG, "Could not open config file");
     return;
