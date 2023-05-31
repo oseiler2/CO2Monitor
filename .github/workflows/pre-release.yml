@@ -39,7 +39,7 @@ jobs:
       - name: Set env
         run: echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Run PlatformIO
-        run: pio run --environment debug
+        run: pio run --environment esp32-debug
       - name: "Build & test"
         run: |
           echo "done!"
@@ -51,5 +51,5 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            .pio/build/debug/firmware.bin
-            .pio/build/debug/firmware-combined.bin
+            .pio/build/esp32-debug/firmware.bin
+            .pio/build/esp32-debug/firmware-combined.bin
