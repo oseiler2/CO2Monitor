@@ -39,10 +39,24 @@ jobs:
         run: |
           pip install --upgrade esptool
       - name: Set env
-        run: echo "GITHUB_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-      - name: Run PlatformIO
+        run: |
+          echo "GITHUB_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "GITHUB_TAG=${GITHUB_REF#refs/tags/}"
+
+      - name: Build esp32
         run: pio run --environment esp32
-      - name: "Build & test"
+
+      - name: Build esp32-s3
+        run: pio run --environment esp32-s3
+
+      - name: Rename & move files
+        run: |
+          mv .pio/build/esp32/firmware.bin firmware-esp32.bin
+          mv .pio/build/esp32/firmware-combined.bin firmware-combined-esp32.bin
+          mv .pio/build/esp32-s3/firmware.bin firmware-esp32-s3.bin
+          mv .pio/build/esp32-s3/firmware-combined.bin firmware-combined-esp32-s3.bin
+
+      - name: "Build"
         run: |
           echo "done!"
 
@@ -51,5 +65,4 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            .pio/build/esp32/firmware.bin
-            .pio/build/esp32/firmware-combined.bin
+            firmware-*.bin
