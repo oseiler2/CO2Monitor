@@ -37,7 +37,9 @@ jobs:
         run: |
           pip install --upgrade esptool
       - name: Set env
-        run: echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        run: |
+          echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "GITHUB_TAG=${GITHUB_REF#refs/*/}"
 
       - name: Build esp32-debug
         run: pio run --environment esp32-debug
@@ -63,7 +65,4 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            firmware-esp32-debug.bin
-            firmware-combined-esp32-debug.bin
-            firmware-esp32-s3-debug.bin
-            firmware-combined-esp32-s3-debug.bin
+            firmware-*.bin
