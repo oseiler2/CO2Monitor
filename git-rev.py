@@ -1,6 +1,7 @@
 import subprocess
 import time
 import os
+import re
 
 # get tag/base version
 try:
@@ -13,8 +14,11 @@ GITHUB_TAG = os.environ.get('GITHUB_TAG')
 if GITHUB_TAG is not None:
   tag = GITHUB_TAG
 
-if tag.startswith('v'):
-  tag = tag[1:]
+# Strip any leading v, and any trailing :name suffix.
+TAG_RE = re.compile(r'^v?([^-]+)(-.*)?$')
+m = TAG_RE.match(tag)
+if m:
+  tag = m.group(1)
 version = tag
 
 # get current revision hash
@@ -29,16 +33,22 @@ if GITHUB_SHA is not None:
   commit = GITHUB_SHA
 
 # get branch name
-try:
-  branch = subprocess.check_output("git rev-parse --abbrev-ref HEAD", shell=True).decode().strip()
-except:
-  branch = "unknown"
-
 if GITHUB_TAG is not None:
-  branch = "main"
+  # When running in Github actions we're in a detached head, so we need to look at the remote branches to find the one that contains the tag
+  try:
+    branch = subprocess.check_output("git branch -r --contains tags/" + GITHUB_TAG, shell=True).decode().strip()
+    if branch.startswith("origin/"):
+      branch = branch[7:]
+  except:
+    branch = "unknown"
+else:
+  try:
+    branch = subprocess.check_output("git rev-parse --abbrev-ref HEAD", shell=True).decode().strip()
+  except:
+    branch = "unknown"
 
 # if not main branch append branch name
-if branch != "main":
+if branch != "main" and branch != "HEAD":
   version += "-[" + branch + "]"
 
 # check if clean
