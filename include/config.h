@@ -15,11 +15,25 @@
 
 #elif CONFIG_IDF_TARGET_ESP32S3
 
+#ifdef ARDUINO_ADAFRUIT_FEATHER_ESP32S3_TFT
+
+#define LED_PIN               13
+#define BTN_1                  0
+#define SDA_PIN               42
+#define SCL_PIN               41
+#define SCD30_RDY_PIN         -1
+
+#else
+
+// default S3 defs
+
 #define LED_PIN                2
 #define BTN_1                  0
 #define SDA_PIN               14
 #define SCL_PIN               21
 #define SCD30_RDY_PIN         -1
+
+#endif
 
 #endif
 
