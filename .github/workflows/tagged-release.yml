@@ -38,14 +38,9 @@ jobs:
       - name: Install esptool
         run: |
           pip install --upgrade esptool
-      - name: Set env
-        run: |
-          echo "GITHUB_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          echo "GITHUB_TAG=${GITHUB_REF#refs/tags/}"
 
       - name: Build esp32
         run: pio run --environment esp32
-
       - name: Build esp32-s3
         run: pio run --environment esp32-s3
 

@@ -13,6 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -36,14 +38,9 @@ jobs:
       - name: Install esptool
         run: |
           pip install --upgrade esptool
-      - name: Set env
-        run: |
-          echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          echo "GITHUB_TAG=${GITHUB_REF#refs/*/}"
 
       - name: Build esp32-debug
         run: pio run --environment esp32-debug
-
       - name: Build esp32-s3-debug
         run: pio run --environment esp32-s3-debug
 
