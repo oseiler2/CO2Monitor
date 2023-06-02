@@ -127,11 +127,6 @@ namespace WifiManager {
 
   bool improvConnectWifi(const char* _ssid, const char* _password) {
     ESP_LOGI(TAG, "onImprovWiFiConnectedCb: %s", ssid);
-    //    strncpy(ssid, _ssid, MAX_SSID_LEN);
-    //    ssid[MAX_SSID_LEN] = 0x00;
-    //    strncpy(password, _password, MAX_PW_LEN);
-    //    password[MAX_PW_LEN] = 0x00;
-    //    xTaskNotify(wifiManagerTask, X_CMD_CONNECT, eSetBits);
     lastWifiReconnectAttempt = millis();
     if (keepCaptivePortalActive) {
       WiFi.mode(WIFI_MODE_APSTA);
@@ -246,7 +241,7 @@ namespace WifiManager {
   void handleConfig(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleConfig");
     String page = FPSTR(html::config_header);
-    char buf[6];
+    char buf[8];
     for (ConfigParameterBase* configParameter : configParameterVector) {
       String parameterHtml;
       if (configParameter->isNumber()) {
@@ -261,7 +256,7 @@ namespace WifiManager {
       } else if (configParameter->isBoolean()) {
         parameterHtml = FPSTR(html::config_parameter_checkbox);
         configParameter->print(buf);
-        snprintf(buf, 6, "%s", buf == "true" ? "checked" : "");
+        snprintf(buf, 8, "%s", strncmp(buf, "true", strlen(buf)) == 0 ? "checked" : "");
         parameterHtml.replace("{v}", buf);
       } else {
         parameterHtml = FPSTR(html::config_parameter);

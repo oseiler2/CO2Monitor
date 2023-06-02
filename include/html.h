@@ -282,7 +282,7 @@ td {text-align: left;}
 )";
 
   const char config_parameter_checkbox[] PROGMEM = R"(
-<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' type='checkbox' '{v}'><div></div></div>
+<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' type='checkbox' {v}><div></div></div>
 )";
 
   const char config_footer[] PROGMEM = R"(

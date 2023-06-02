@@ -12,7 +12,6 @@
 #include <rom/rtc.h>
 
 #include <configManager.h>
-#include <configParameter.h>
 #include <mqtt.h>
 #include <sensors.h>
 #include <scd30.h>
