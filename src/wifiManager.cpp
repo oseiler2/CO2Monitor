@@ -109,7 +109,7 @@ namespace WifiManager {
     return (String(appName) + "-" + getMac());
   }
 
-  std::vector<ConfigParameterBase*> configParameterVector;
+  std::vector<ConfigParameterBase<Config>*> configParameterVector;
 
   updateMessageCallback_t updateMessageCallback;
   setPriorityMessageCallback_t setPriorityMessageCallback;
@@ -151,7 +151,7 @@ namespace WifiManager {
 
   //TODO: protect config using auth, or only on captive portal
   //TODO: provide generic provision of config parameters
-  void setupWifiManager(const char* _appName, std::vector<ConfigParameterBase*> _configParameterVector, bool _keepCaptivePortalActive, bool _captivePortalActiveWhenNotConnected,
+  void setupWifiManager(const char* _appName, std::vector<ConfigParameterBase<Config>*> _configParameterVector, bool _keepCaptivePortalActive, bool _captivePortalActiveWhenNotConnected,
     updateMessageCallback_t _updateMessageCallback, setPriorityMessageCallback_t _setPriorityMessageCallback, clearPriorityMessageCallback_t _clearPriorityMessageCallback) {
     appName = _appName;
     configParameterVector = _configParameterVector;
@@ -242,7 +242,7 @@ namespace WifiManager {
     ESP_LOGI(TAG, "handleConfig");
     String page = FPSTR(html::config_header);
     char buf[8];
-    for (ConfigParameterBase* configParameter : configParameterVector) {
+    for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
       String parameterHtml;
       if (configParameter->isNumber()) {
         parameterHtml = FPSTR(html::config_parameter_number);
@@ -251,17 +251,17 @@ namespace WifiManager {
         configParameter->getMaximum(buf);
         parameterHtml.replace("{ma}", buf);
         char defaultValue[configParameter->getMaxStrLen()];
-        configParameter->print(defaultValue);
+        configParameter->print(config, defaultValue);
         parameterHtml.replace("{v}", defaultValue);
       } else if (configParameter->isBoolean()) {
         parameterHtml = FPSTR(html::config_parameter_checkbox);
-        configParameter->print(buf);
+        configParameter->print(config, buf);
         snprintf(buf, 8, "%s", strncmp(buf, "true", strlen(buf)) == 0 ? "checked" : "");
         parameterHtml.replace("{v}", buf);
       } else {
         parameterHtml = FPSTR(html::config_parameter);
         char defaultValue[configParameter->getMaxStrLen()];
-        configParameter->print(defaultValue);
+        configParameter->print(config, defaultValue);
         parameterHtml.replace("{v}", defaultValue);
       }
       parameterHtml.replace("{i}", configParameter->getId());
@@ -279,9 +279,8 @@ namespace WifiManager {
 
   void handleSafeConfig(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleSafeConfig");
-    for (ConfigParameterBase* configParameter : configParameterVector) {
-      ESP_LOGD(TAG, "Param %s -> %s", configParameter->getId(), request->arg(configParameter->getId()).c_str());
-      configParameter->save(request->arg(configParameter->getId()).c_str());
+    for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
+      configParameter->save(config, request->arg(configParameter->getId()).c_str());
     }
     logConfiguration(config);
     AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), FPSTR(html::config_saved));

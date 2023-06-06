@@ -10,7 +10,7 @@
 namespace WifiManager {
   extern TaskHandle_t wifiManagerTask;
 
-  void setupWifiManager(const char* appName, std::vector<ConfigParameterBase*> configParameterVector, bool keepCaptivePortalActive, bool captivePortalActiveWhenNotConnected,
+  void setupWifiManager(const char* appName, std::vector<ConfigParameterBase<Config>*> configParameterVector, bool keepCaptivePortalActive, bool captivePortalActiveWhenNotConnected,
     updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback);
   void resetSettings();
   void startCaptivePortal();
