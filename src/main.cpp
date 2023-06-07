@@ -165,12 +165,13 @@ void logCoreInfo() {
     ESP.getFlashChipSpeed());
 }
 
-
 void setup() {
   esp_task_wdt_init(20, true);
 
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  if (LED_PIN >= 0) {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
+  }
   pinMode(BTN_1, INPUT_PULLUP);
   Serial.begin(115200);
   esp_log_set_vprintf(logging::logger);
@@ -294,7 +295,7 @@ void loop() {
       uint32_t btnPressTime = millis() - lastConfirmedBtnPressedTime;
       ESP_LOGD(TAG, "lastConfirmedBtnPressedTime - millis() %u", btnPressTime);
       if (btnPressTime < 2000) {
-        digitalWrite(LED_PIN, LOW);
+        if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
         prepareOta();
         WifiManager::startCaptivePortal();
       } else if (btnPressTime > 5000) {

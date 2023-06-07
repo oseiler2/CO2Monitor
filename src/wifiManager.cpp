@@ -644,14 +644,14 @@ namespace WifiManager {
       }
       if (event_id == WIFI_EVENT_STA_CONNECTED) {
         wifiDisconnected = 0;
-        digitalWrite(LED_PIN, HIGH);
+        if (LED_PIN >= 0) digitalWrite(LED_PIN, HIGH);
         if (captivePortalActive) {
           stopCaptivePortal();
           WiFi.setAutoReconnect(true);
         }
       } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
         wifiDisconnected = 1;
-        digitalWrite(LED_PIN, LOW);
+        if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
         lastWifiDisconnect = millis();
         wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
         ESP_LOGD(TAG, "STA Disconnected: ssid: %s, reason: %s", event->ssid, reason2str(event->reason));
