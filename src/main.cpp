@@ -174,12 +174,12 @@ void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t 
       case WIFI_EVENT_STA_CONNECTED:
         ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_CONNECTED");
         wifiDisconnected = 0;
-        digitalWrite(LED_PIN, HIGH);
+        if (LED_PIN >= 0) digitalWrite(LED_PIN, HIGH);
         break;
       case WIFI_EVENT_STA_DISCONNECTED:
         ESP_LOGD(TAG, "eventHandler WIFI_EVENT WIFI_EVENT_STA_DISCONNECTED");
         wifiDisconnected = 1;
-        digitalWrite(LED_PIN, LOW);
+        if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
         break;
       default:
         ESP_LOGD(TAG, "eventHandler WIFI_EVENT %u", event_id);
@@ -193,8 +193,10 @@ void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t 
 void setup() {
   esp_task_wdt_init(20, true);
 
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  if (LED_PIN >= 0) {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
+  }
   pinMode(BTN_1, INPUT_PULLUP);
   Serial.begin(115200);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
@@ -312,7 +314,7 @@ void loop() {
       uint32_t btnPressTime = millis() - lastConfirmedBtnPressedTime;
       ESP_LOGD(TAG, "lastConfirmedBtnPressedTime - millis() %u", btnPressTime);
       if (btnPressTime < 2000) {
-        digitalWrite(LED_PIN, LOW);
+        if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
         prepareOta();
         WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
       } else if (btnPressTime > 5000) {
