@@ -138,31 +138,31 @@ void setupConfigManager() {
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqRedThreshold", "IAQ Red threshold", &Config::iaqRedThreshold, DEFAULT_IAQ_RED_THRESHOLD));
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqDarkRedThreshold", "IAQ Dark red threshold", &Config::iaqDarkRedThreshold, DEFAULT_IAQ_DARK_RED_THRESHOLD));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("brightness", "LED brightness pwm", &Config::brightness, DEFAULT_BRIGHTNESS));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("ssd1306Rows", "SSD1306 rows", &Config::ssd1306Rows, DEFAULT_SSD1306_ROWS, 32, 64));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("greenLed", "Green Led pin", &Config::greenLed, DEFAULT_GREEN_LED));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("yellowLed", "Yellow Led pin", &Config::yellowLed, DEFAULT_YELLOW_LED));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("redLed", "Red Led pin", &Config::redLed, DEFAULT_RED_LED));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelData", "Neopixel data pin", &Config::neopixelData, DEFAULT_NEOPIXEL_DATA));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelNumber", "Number of Neopixels", &Config::neopixelNumber, DEFAULT_NEOPIXEL_NUMBER));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelMatrixData", "Neopixel matrix data pin", &Config::neopixelMatrixData, DEFAULT_NEOPIXEL_MATRIX_DATA));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("featherMatrixData", "Feather matrix data pin", &Config::featherMatrixData, DEFAULT_FEATHER_MATRIX_DATA));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("featherMatrixClock", "Feather matrix clock pin", &Config::featherMatrixClock, DEFAULT_FEATHER_MATRIX_CLK));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixColumns", "Matrix columns", &Config::matrixColumns, DEFAULT_MATRIX_COLUMNS));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixRows", "Matrix rows", &Config::matrixRows, DEFAULT_MATRIX_ROWS));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixLayout", "Matrix layout", &Config::matrixLayout, DEFAULT_MATRIX_LAYOUT));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R1", "Hub75 R1 pin", &Config::hub75R1, DEFAULT_HUB75_R1));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G1", "Hub75 G1 pin", &Config::hub75G1, DEFAULT_HUB75_G1));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B1", "Hub75 B1 pin", &Config::hub75B1, DEFAULT_HUB75_B1));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R2", "Hub75 R2 pin", &Config::hub75R2, DEFAULT_HUB75_R2));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G2", "Hub75 G2 pin", &Config::hub75G2, DEFAULT_HUB75_G2));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B2", "Hub75 B2 pin", &Config::hub75B2, DEFAULT_HUB75_B2));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChA", "Hub75 Channel A pin", &Config::hub75ChA, DEFAULT_HUB75_CH_A));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChB", "Hub75 Channel B pin", &Config::hub75ChB, DEFAULT_HUB75_CH_B));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChC", "Hub75 Channel C pin", &Config::hub75ChC, DEFAULT_HUB75_CH_C));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChD", "Hub75 Channel D pin", &Config::hub75ChD, DEFAULT_HUB75_CH_D));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Clk", "Hub75 Clk pin", &Config::hub75Clk, DEFAULT_HUB75_CLK));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Lat", "Hub75 Lat pin", &Config::hub75Lat, DEFAULT_HUB75_LAT));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Oe", "Hub75 Oe pin", &Config::hub75Oe, DEFAULT_HUB75_OE));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("ssd1306Rows", "SSD1306 rows", &Config::ssd1306Rows, DEFAULT_SSD1306_ROWS, 32, 64, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("greenLed", "Green Led pin", &Config::greenLed, DEFAULT_GREEN_LED, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("yellowLed", "Yellow Led pin", &Config::yellowLed, DEFAULT_YELLOW_LED, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("redLed", "Red Led pin", &Config::redLed, DEFAULT_RED_LED, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelData", "Neopixel data pin", &Config::neopixelData, DEFAULT_NEOPIXEL_DATA, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelNumber", "Number of Neopixels", &Config::neopixelNumber, DEFAULT_NEOPIXEL_NUMBER, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelMatrixData", "Neopixel matrix data pin", &Config::neopixelMatrixData, DEFAULT_NEOPIXEL_MATRIX_DATA, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("featherMatrixData", "Feather matrix data pin", &Config::featherMatrixData, DEFAULT_FEATHER_MATRIX_DATA, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("featherMatrixClock", "Feather matrix clock pin", &Config::featherMatrixClock, DEFAULT_FEATHER_MATRIX_CLK, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixColumns", "Matrix columns", &Config::matrixColumns, DEFAULT_MATRIX_COLUMNS, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixRows", "Matrix rows", &Config::matrixRows, DEFAULT_MATRIX_ROWS, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixLayout", "Matrix layout", &Config::matrixLayout, DEFAULT_MATRIX_LAYOUT, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R1", "Hub75 R1 pin", &Config::hub75R1, DEFAULT_HUB75_R1, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G1", "Hub75 G1 pin", &Config::hub75G1, DEFAULT_HUB75_G1, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B1", "Hub75 B1 pin", &Config::hub75B1, DEFAULT_HUB75_B1, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R2", "Hub75 R2 pin", &Config::hub75R2, DEFAULT_HUB75_R2, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G2", "Hub75 G2 pin", &Config::hub75G2, DEFAULT_HUB75_G2, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B2", "Hub75 B2 pin", &Config::hub75B2, DEFAULT_HUB75_B2, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChA", "Hub75 Channel A pin", &Config::hub75ChA, DEFAULT_HUB75_CH_A, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChB", "Hub75 Channel B pin", &Config::hub75ChB, DEFAULT_HUB75_CH_B, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChC", "Hub75 Channel C pin", &Config::hub75ChC, DEFAULT_HUB75_CH_C, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChD", "Hub75 Channel D pin", &Config::hub75ChD, DEFAULT_HUB75_CH_D, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Clk", "Hub75 Clk pin", &Config::hub75Clk, DEFAULT_HUB75_CLK, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Lat", "Hub75 Lat pin", &Config::hub75Lat, DEFAULT_HUB75_LAT, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Oe", "Hub75 Oe pin", &Config::hub75Oe, DEFAULT_HUB75_OE, true));
 }
 
 std::vector<ConfigParameterBase<Config>*> getConfigParameters() {
@@ -201,7 +201,7 @@ boolean loadConfiguration(Config& _config) {
   }
 
   for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
-    configParameter->fromJson(_config, doc);
+    configParameter->fromJson(_config, doc, true);
   }
 
   file.close();

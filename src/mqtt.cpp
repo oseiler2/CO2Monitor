@@ -49,8 +49,6 @@ namespace mqtt {
   uint32_t lastReconnectAttempt = 0;
   uint16_t connectionAttempts = 0;
 
-  DynamicJsonDocument doc(CONFIG_SIZE);
-
   char* cloneStr(const char* original) {
     char* copy = (char*)malloc(strlen(original) + 1);
     strncpy(copy, original, strlen(original));
@@ -72,7 +70,7 @@ namespace mqtt {
     sprintf(topic, "%s/%u/up/sensors", config.mqttTopic, config.deviceId);
 
     char buf[8];
-    doc.clear();
+    DynamicJsonDocument doc(CONFIG_SIZE);
     if (mask & M_CO2) doc["co2"] = model->getCo2();
     if (mask & M_TEMPERATURE) {
       sprintf(buf, "%.1f", model->getTemperature());
@@ -158,24 +156,8 @@ namespace mqtt {
   boolean publishConfigurationInternal() {
     char buf[256];
     char msg[CONFIG_SIZE];
-    doc.clear();
+    DynamicJsonDocument doc(CONFIG_SIZE);
     doc["appVersion"] = APP_VERSION;
-    doc["mqttHost"] = config.mqttHost;
-    doc["mqttServerPort"] = config.mqttServerPort;
-    doc["mqttUsername"] = config.mqttUsername;
-    doc["mqttTopic"] = config.mqttTopic;
-    doc["mqttUseTls"] = config.mqttUseTls;
-    doc["mqttInsecure"] = config.mqttInsecure;
-    doc["altitude"] = config.altitude;
-    doc["co2GreenThreshold"] = config.co2GreenThreshold;
-    doc["co2YellowThreshold"] = config.co2YellowThreshold;
-    doc["co2RedThreshold"] = config.co2RedThreshold;
-    doc["co2DarkRedThreshold"] = config.co2DarkRedThreshold;
-    doc["iaqGreenThreshold"] = config.iaqGreenThreshold;
-    doc["iaqYellowThreshold"] = config.iaqYellowThreshold;
-    doc["iaqRedThreshold"] = config.iaqRedThreshold;
-    doc["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
-    doc["brightness"] = config.brightness;
     sprintf(buf, "%s", WifiManager::getMac().c_str());
     doc["mac"] = buf;
     sprintf(buf, "%s", WiFi.localIP().toString().c_str());
@@ -193,33 +175,18 @@ namespace mqtt {
       doc["sps30AutoCleanInt"] = getSPS30AutoCleanIntervalCallback();
       doc["sps30Status"] = getSPS30StatusCallback();
     }
-    doc["ssd1306Rows"] = config.ssd1306Rows;
-    doc["greenLed"] = config.greenLed;
-    doc["yellowLed"] = config.yellowLed;
-    doc["redLed"] = config.redLed;
-    doc["neopixelData"] = config.neopixelData;
-    doc["neopixelNumber"] = config.neopixelNumber;
-    doc["neopixelMatrixData"] = config.neopixelMatrixData;
-    doc["featherMatrixData"] = config.featherMatrixData;
-    doc["featherMatrixClock"] = config.featherMatrixClock;
-    doc["matrixColumns"] = config.matrixColumns;
-    doc["matrixRows"] = config.matrixRows;
-    doc["matrixLayout"] = config.matrixLayout;
-    doc["hub75R1"] = config.hub75R1;
-    doc["hub75G1"] = config.hub75G1;
-    doc["hub75B1"] = config.hub75B1;
-    doc["hub75R2"] = config.hub75R2;
-    doc["hub75G2"] = config.hub75G2;
-    doc["hub75B2"] = config.hub75B2;
-    doc["hub75ChA"] = config.hub75ChA;
-    doc["hub75ChB"] = config.hub75ChB;
-    doc["hub75ChC"] = config.hub75ChC;
-    doc["hub75ChD"] = config.hub75ChD;
-    doc["hub75Clk"] = config.hub75Clk;
-    doc["hub75Lat"] = config.hub75Lat;
-    doc["hub75Oe"] = config.hub75Oe;
-    sprintf(buf, "%.1f", getTemperatureOffsetCallback());
-    doc["tempOffset"] = buf;
+
+    for (ConfigParameterBase<Config>* configParameter : getConfigParameters()) {
+      if (!(strncmp(configParameter->getId(), "deviceId", strlen(buf)) == 0)
+        && !(strncmp(configParameter->getId(), "mqttPassword", strlen(buf)) == 0))
+        configParameter->toJson(config, &doc);
+    }
+
+    float tempOffset = getTemperatureOffsetCallback();
+    if (tempOffset != NaN) {
+      sprintf(buf, "%.1f", getTemperatureOffsetCallback());
+      doc["tempOffset"] = buf;
+    }
     if (serializeJson(doc, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
       return true; // pretend to have been successful to prevent queue from clogging up
@@ -255,7 +222,7 @@ namespace mqtt {
     char topic[256];
     sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
     char msg[256];
-    doc.clear();
+    DynamicJsonDocument doc(CONFIG_SIZE);
     doc["msg"] = statusMessage;
     if (serializeJson(doc, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
@@ -316,7 +283,7 @@ namespace mqtt {
       }
     } else if (strncmp(buf, "setTemperatureOffset", strlen(buf)) == 0) {
       float tempOffset = atof(msg);
-      if (0 <= tempOffset && tempOffset <= 10.0) {
+      if (0.0 <= tempOffset && tempOffset <= 10.0) {
         setTemperatureOffsetCallback(tempOffset);
       }
     } else if (strncmp(buf, "setSPS30AutoCleanInterval", strlen(buf)) == 0) {
@@ -328,59 +295,35 @@ namespace mqtt {
     } else if (strncmp(buf, "getConfig", strlen(buf)) == 0) {
       publishConfiguration();
     } else if (strncmp(buf, "setConfig", strlen(buf)) == 0) {
-      doc.clear();
+      DynamicJsonDocument doc(CONFIG_SIZE);
       DeserializationError error = deserializeJson(doc, msg);
       if (error) {
         ESP_LOGW(TAG, "Failed to parse message: %s", error.f_str());
         return;
       }
-      bool rebootRequired = false;
-      if (doc.containsKey("altitude")) config.altitude = doc["altitude"].as<int>();
-      if (doc.containsKey("co2GreenThreshold")) config.co2GreenThreshold = doc["co2GreenThreshold"].as<uint16_t>();
-      if (doc.containsKey("co2YellowThreshold")) config.co2YellowThreshold = doc["co2YellowThreshold"].as<uint16_t>();
-      if (doc.containsKey("co2RedThreshold")) config.co2RedThreshold = doc["co2RedThreshold"].as<uint16_t>();
-      if (doc.containsKey("co2DarkRedThreshold")) config.co2DarkRedThreshold = doc["co2DarkRedThreshold"].as<uint16_t>();
-      if (doc.containsKey("iaqGreenThreshold")) config.iaqGreenThreshold = doc["iaqGreenThreshold"].as<uint16_t>();
-      if (doc.containsKey("iaqYellowThreshold")) config.iaqYellowThreshold = doc["iaqYellowThreshold"].as<uint16_t>();
-      if (doc.containsKey("iaqRedThreshold")) config.iaqRedThreshold = doc["iaqRedThreshold"].as<uint16_t>();
-      if (doc.containsKey("iaqDarkRedThreshold")) config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"].as<uint16_t>();
-      if (doc.containsKey("brightness")) config.brightness = doc["brightness"].as<uint8_t>();
-      if (doc.containsKey("ssd1306Rows")) { config.ssd1306Rows = doc["ssd1306Rows"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("greenLed")) { config.greenLed = doc["greenLed"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("yellowLed")) { config.yellowLed = doc["yellowLed"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("redLed")) { config.redLed = doc["redLed"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("neopixelData")) { config.neopixelData = doc["neopixelData"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("neopixelNumber")) { config.neopixelNumber = doc["neopixelNumber"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("neopixelMatrixData")) { config.neopixelMatrixData = doc["neopixelMatrixData"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("featherMatrixData")) { config.featherMatrixData = doc["featherMatrixData"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("featherMatrixClock")) { config.featherMatrixClock = doc["featherMatrixClock"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("matrixColumns")) { config.matrixColumns = doc["matrixColumns"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("matrixRows")) { config.matrixRows = doc["matrixRows"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("matrixLayout")) { config.matrixLayout = doc["matrixLayout"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75R1")) { config.hub75R1 = doc["hub75R1"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75G1")) { config.hub75G1 = doc["hub75G1"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75B1")) { config.hub75B1 = doc["hub75B1"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75R2")) { config.hub75R2 = doc["hub75R2"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75G2")) { config.hub75G2 = doc["hub75G2"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75B2")) { config.hub75B2 = doc["hub75B2"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75ChA")) { config.hub75ChA = doc["hub75ChA"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75ChB")) { config.hub75ChB = doc["hub75ChB"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75ChC")) { config.hub75ChC = doc["hub75ChC"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75ChD")) { config.hub75ChD = doc["hub75ChD"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75Clk")) { config.hub75Clk = doc["hub75Clk"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75Lat")) { config.hub75Lat = doc["hub75Lat"].as<uint8_t>(); rebootRequired = true; }
-      if (doc.containsKey("hub75Oe")) { config.hub75Oe = doc["hub75Oe"].as<uint8_t>(); rebootRequired = true; }
 
+      bool rebootRequired = false;
       Config mqttConfig = config;
       bool mqttConfigUpdated = false;
+      for (ConfigParameterBase<Config>* configParameter : getConfigParameters()) {
+        if (strncmp(configParameter->getId(), "mqttHost", strlen(buf)) == 0
+          || strncmp(configParameter->getId(), "mqttServerPort", strlen(buf)) == 0
+          || strncmp(configParameter->getId(), "deviceId", strlen(buf)) == 0
+          || strncmp(configParameter->getId(), "mqttUsername", strlen(buf)) == 0
+          || strncmp(configParameter->getId(), "mqttPassword", strlen(buf)) == 0
+          || strncmp(configParameter->getId(), "mqttTopic", strlen(buf)) == 0
+          || strncmp(configParameter->getId(), "mqttUseTls", strlen(buf)) == 0
+          || strncmp(configParameter->getId(), "mqttInsecure", strlen(buf)) == 0) {
+          mqttConfigUpdated |= configParameter->fromJson(mqttConfig, &doc, false);
+          if (configParameter->fromJson(mqttConfig, &doc, false))
+            ESP_LOGI(TAG, "MQTT Config %s updated to %s", configParameter->getId(), configParameter->toString(mqttConfig).c_str());
+        } else {
+          rebootRequired |= (configParameter->fromJson(config, &doc, false) && configParameter->isRebootRequiredOnChange());
+          if (configParameter->fromJson(config, &doc, false))
+            ESP_LOGI(TAG, "Config %s updated to %s. Reboot needed? %s", configParameter->getId(), configParameter->toString(config).c_str(), configParameter->isRebootRequiredOnChange() ? "true" : "false");
+        }
+      }
       bool mqttTestSuccess = true;
-      if (doc.containsKey("mqttHost")) { strlcpy(mqttConfig.mqttHost, doc["mqttHost"], sizeof(config.mqttHost)); mqttConfigUpdated = true; }
-      if (doc.containsKey("mqttServerPort")) { mqttConfig.mqttServerPort = doc["mqttServerPort"].as<uint16_t>(); mqttConfigUpdated = true; }
-      if (doc.containsKey("mqttUsername")) { strlcpy(mqttConfig.mqttUsername, doc["mqttUsername"], sizeof(config.mqttUsername)); mqttConfigUpdated = true; }
-      if (doc.containsKey("mqttPassword")) { strlcpy(mqttConfig.mqttPassword, doc["mqttPassword"], sizeof(config.mqttPassword)); mqttConfigUpdated = true; }
-      if (doc.containsKey("mqttTopic")) { strlcpy(mqttConfig.mqttTopic, doc["mqttTopic"], sizeof(config.mqttTopic)); mqttConfigUpdated = true; }
-      if (doc.containsKey("mqttUseTls")) { mqttConfig.mqttUseTls = doc["mqttUseTls"].as<boolean>(); mqttConfigUpdated = true; }
-      if (doc.containsKey("mqttInsecure")) { mqttConfig.mqttInsecure = doc["mqttInsecure"].as<boolean>(); mqttConfigUpdated = true; }
 
       if (mqttConfigUpdated) {
         WiFiClient* testWifiClient;
@@ -482,7 +425,7 @@ namespace mqtt {
       mqtt_client->subscribe(topic);
       sprintf(topic, "%s/%u/up/status", config.mqttTopic, config.deviceId);
       char msg[256];
-      doc.clear();
+      DynamicJsonDocument doc(CONFIG_SIZE);
       doc["online"] = true;
       doc["connectionAttempts"] = connectionAttempts;
       if (serializeJson(doc, msg) == 0) {

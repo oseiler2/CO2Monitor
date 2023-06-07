@@ -5,11 +5,12 @@ static const char TAG[] = __FILE__;
 
 // -------------------- generic -------------------
 template <typename C, typename T>
-ConfigParameter<C, T>::ConfigParameter(const char* _id, const char* _label, T C::* _valuePtr, uint8_t _maxStrLen) {
+ConfigParameter<C, T>::ConfigParameter(const char* _id, const char* _label, T C::* _valuePtr, uint8_t _maxStrLen, bool _rebootRequiredOnChange) {
   this->id = _id;
   this->label = _label;
   this->valuePtr = _valuePtr;
   this->maxStrLen = _maxStrLen;
+  this->rebootRequiredOnChange = _rebootRequiredOnChange;
 }
 
 template <typename C, typename T>
@@ -60,10 +61,15 @@ String ConfigParameter<C, T>::toString(const C config) {
   return String(buffer);
 }
 
+template <typename C, typename T>
+bool ConfigParameter<C, T>::isRebootRequiredOnChange() {
+  return this->rebootRequiredOnChange;
+}
+
 // -------------------- number -------------------
 template <typename C, typename T>
-NumberConfigParameter<C, T>::NumberConfigParameter(const char* _id, const char* _label, T C::* _valuePtr, T _defaultValue, uint8_t _maxStrLen, T _min, T _max) :
-  ConfigParameter<C, T>(_id, _label, _valuePtr, _maxStrLen) {
+NumberConfigParameter<C, T>::NumberConfigParameter(const char* _id, const char* _label, T C::* _valuePtr, T _defaultValue, uint8_t _maxStrLen, T _min, T _max, bool _rebootRequiredOnChange) :
+  ConfigParameter<C, T>(_id, _label, _valuePtr, _maxStrLen, _rebootRequiredOnChange) {
   this->minValue = _min;
   this->maxValue = _max;
   _ASSERT(_min <= _defaultValue);
@@ -100,14 +106,30 @@ void NumberConfigParameter<C, T>::toJson(const C config, DynamicJsonDocument* do
 };
 
 template <typename C, typename T>
-void NumberConfigParameter<C, T>::fromJson(C& config, DynamicJsonDocument* doc) {
-  config.*(this->valuePtr) = (*doc)[this->getId()] | this->defaultValue;
+bool NumberConfigParameter<C, T>::fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent) {
+  if ((*doc).containsKey(this->getId()) && (*doc)[(const char*)this->getId()].is<T>()) {
+    T value = (*doc)[(const char*)this->getId()].as<T>();
+    if (value < this->minValue || value > this->maxValue) {
+      ESP_LOGI(TAG, "Ignoring JSON value %d for %s outside range [%i,%i]", value, this->getId(), this->minValue, this->maxValue);
+      return false;
+    }
+    config.*(this->valuePtr) = value;
+    return true;
+  } else if (useDefaultIfNotPresent) {
+    this->setToDefault(config);
+    return true;
+  }
+  return false;
 };
 
 // -------------------- uint8_t -------------------
 template <typename C>
-Uint8ConfigParameter<C>::Uint8ConfigParameter(const char* _id, const char* _label, uint8_t C::* _valuePtr, uint8_t _defaultValue, uint8_t min, uint8_t max) :
-  NumberConfigParameter<C, uint8_t>(_id, _label, _valuePtr, _defaultValue, 4, min, max) {}
+Uint8ConfigParameter<C>::Uint8ConfigParameter(const char* _id, const char* _label, uint8_t C::* _valuePtr, uint8_t _defaultValue, uint8_t min, uint8_t max, bool _rebootRequiredOnChange) :
+  NumberConfigParameter<C, uint8_t>(_id, _label, _valuePtr, _defaultValue, 4, min, max, _rebootRequiredOnChange) {}
+
+template <typename C>
+Uint8ConfigParameter<C>::Uint8ConfigParameter(const char* _id, const char* _label, uint8_t C::* _valuePtr, uint8_t _defaultValue, bool _rebootRequiredOnChange) :
+  NumberConfigParameter<C, uint8_t>(_id, _label, _valuePtr, _defaultValue, 4, 0, 255, _rebootRequiredOnChange) {}
 
 template <typename C>
 Uint8ConfigParameter<C>::~Uint8ConfigParameter() {};
@@ -119,13 +141,22 @@ void Uint8ConfigParameter<C>::print(const C config, char* str) {
 
 template <typename C>
 void Uint8ConfigParameter<C>::parse(C& config, uint8_t C::* valuePtr, const char* str) {
-  config.*(this->valuePtr) = (uint8_t)atoi(str);
+  uint8_t value = (uint8_t)atoi(str);
+  if (value < this->minValue || value > this->maxValue) {
+    ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
+    return;
+  }
+  config.*(this->valuePtr) = value;
 }
 
 // -------------------- uint16_t -------------------
 template <typename C>
-Uint16ConfigParameter<C>::Uint16ConfigParameter(const char* _id, const char* _label, uint16_t C::* _valuePtr, uint16_t _defaultValue, uint16_t min, uint16_t max) :
-  NumberConfigParameter<C, uint16_t>(_id, _label, _valuePtr, _defaultValue, 6, min, max) {}
+Uint16ConfigParameter<C>::Uint16ConfigParameter(const char* _id, const char* _label, uint16_t C::* _valuePtr, uint16_t _defaultValue, uint16_t min, uint16_t max, bool _rebootRequiredOnChange) :
+  NumberConfigParameter<C, uint16_t>(_id, _label, _valuePtr, _defaultValue, 6, min, max, _rebootRequiredOnChange) {}
+
+template <typename C>
+Uint16ConfigParameter<C>::Uint16ConfigParameter(const char* _id, const char* _label, uint16_t C::* _valuePtr, uint16_t _defaultValue, bool _rebootRequiredOnChange) :
+  NumberConfigParameter<C, uint16_t>(_id, _label, _valuePtr, _defaultValue, 6, 0, 65535, _rebootRequiredOnChange) {}
 
 template <typename C>
 Uint16ConfigParameter<C>::~Uint16ConfigParameter() {}
@@ -137,13 +168,18 @@ void Uint16ConfigParameter<C>::print(const C config, char* str) {
 
 template <typename C>
 void Uint16ConfigParameter<C>::parse(C& config, uint16_t C::* valuePtr, const char* str) {
-  config.*(this->valuePtr) = (uint16_t)atoi(str);
+  uint16_t value = (uint16_t)atoi(str);
+  if (value < this->minValue || value > this->maxValue) {
+    ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
+    return;
+  }
+  config.*(this->valuePtr) = value;
 }
 
 // -------------------- bool -------------------
 template <typename C>
-BooleanConfigParameter<C>::BooleanConfigParameter(const char* _id, const char* _label, bool C::* _valuePtr, bool _defaultValue)
-  :ConfigParameter<C, bool>(_id, _label, _valuePtr, 6) {
+BooleanConfigParameter<C>::BooleanConfigParameter(const char* _id, const char* _label, bool C::* _valuePtr, bool _defaultValue, bool _rebootRequiredOnChange)
+  :ConfigParameter<C, bool>(_id, _label, _valuePtr, 6, _rebootRequiredOnChange) {
   this->defaultValue = _defaultValue;
 }
 
@@ -176,14 +212,21 @@ void BooleanConfigParameter<C>::toJson(const C config, DynamicJsonDocument* doc)
 };
 
 template <typename C>
-void BooleanConfigParameter<C>::fromJson(C& config, DynamicJsonDocument* doc) {
-  config.*(this->valuePtr) = (*doc)[this->getId()] | this->defaultValue;
+bool BooleanConfigParameter<C>::fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent) {
+  if ((*doc).containsKey(this->getId()) && (*doc)[(const char*)this->getId()].is<bool>()) {
+    config.*(this->valuePtr) = (*doc)[(const char*)this->getId()].as<bool>();
+    return true;
+  } else if (useDefaultIfNotPresent) {
+    this->setToDefault(config);
+    return true;
+  }
+  return false;
 };
 
 // -------------------- char* -------------------
 template <typename C>
-CharArrayConfigParameter<C>::CharArrayConfigParameter(const char* _id, const char* _label, char C::* _valuePtr, const char* _defaultValue, uint8_t _maxLen)
-  :ConfigParameter<C, char>(_id, _label, _valuePtr, _maxLen) {
+CharArrayConfigParameter<C>::CharArrayConfigParameter(const char* _id, const char* _label, char C::* _valuePtr, const char* _defaultValue, uint8_t _maxLen, bool _rebootRequiredOnChange)
+  :ConfigParameter<C, char>(_id, _label, _valuePtr, _maxLen, _rebootRequiredOnChange) {
   _ASSERT(strlen(_defaultValue) <= _maxLen);
   this->defaultValue = _defaultValue;
 }
@@ -212,10 +255,17 @@ void CharArrayConfigParameter<C>::toJson(const C config, DynamicJsonDocument* do
 };
 
 template <typename C>
-void CharArrayConfigParameter<C>::fromJson(C& config, DynamicJsonDocument* doc) {
-  const char* fromJson = (*doc)[this->getId()] | this->defaultValue;
-  strncpy((char*)&(config.*(this->valuePtr)), fromJson, min(strlen(fromJson), (size_t)(this->maxStrLen - 1)));
-  ((char*)&(config.*(this->valuePtr)))[min(strlen(fromJson), (size_t)(this->maxStrLen - 1))] = 0x00;
+bool CharArrayConfigParameter<C>::fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent) {
+  if ((*doc).containsKey(this->getId()) && (*doc)[(const char*)this->getId()].is<const char*>()) {
+    const char* fromJson = (*doc)[(const char*)this->getId()].as<const char*>();
+    strncpy((char*)&(config.*(this->valuePtr)), fromJson, min(strlen(fromJson), (size_t)(this->maxStrLen - 1)));
+    ((char*)&(config.*(this->valuePtr)))[min(strlen(fromJson), (size_t)(this->maxStrLen - 1))] = 0x00;
+    return true;
+  } else if (useDefaultIfNotPresent) {
+    this->setToDefault(config);
+    return true;
+  }
+  return false;
 };
 
 template class Uint8ConfigParameter<Config>;
