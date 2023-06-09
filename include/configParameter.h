@@ -22,6 +22,9 @@ public:
   virtual void toJson(const C config, DynamicJsonDocument* doc) = 0;
   virtual bool fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent) = 0;
   virtual bool isRebootRequiredOnChange() = 0;
+  virtual bool isEnum() = 0;
+  virtual const char** getEnumLabels(void) = 0;
+  virtual u_int16_t getValueOrdinal(const C config) = 0;
 };
 
 template <typename C, typename T>
@@ -40,6 +43,8 @@ public:
   void getMaximum(char* str) override;
   String toString(const C config) override;
   bool isRebootRequiredOnChange() override;
+  bool isEnum() override;
+  const char** getEnumLabels(void) override;
 
 protected:
   virtual void parse(C& config, T C::* valuePtr, const char* str) = 0;
@@ -61,6 +66,7 @@ public:
   void setToDefault(C& config) override;
   void toJson(const C config, DynamicJsonDocument* doc) override;
   bool fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent = false) override;
+  u_int16_t getValueOrdinal(const C config) override;
 protected:
   T defaultValue;
   T minValue;
@@ -101,6 +107,7 @@ public:
   void setToDefault(C& config) override;
   void toJson(const C config, DynamicJsonDocument* doc) override;
   bool fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent = false) override;
+  u_int16_t getValueOrdinal(const C config) override;
 
 protected:
   void parse(C& config, bool C::* valuePtr, const char* str) override;
@@ -116,10 +123,35 @@ public:
   void setToDefault(C& config) override;
   void toJson(const C config, DynamicJsonDocument* doc) override;
   bool fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent = false) override;
+  u_int16_t getValueOrdinal(const C config) override;
 
 protected:
   void parse(C& config, char C::* valuePtr, const char* str) override;
   const char* defaultValue;
+};
+
+/*
+template<typename E>
+using enumToString_t = const char* (*)(E value);
+
+template<typename E>
+using stringToEnum_t = E(*)(const char*);
+*/
+
+template <typename C, typename B, typename E>
+class EnumConfigParameter :public NumberConfigParameter<C, B> {
+public:
+  EnumConfigParameter(const char* id, const char* label, E C::* valuePtr, E defaultValue, const char* enumLabels[], E min, E max, bool rebootRequiredOnChange = false);
+  ~EnumConfigParameter();
+  void print(const C config, char* str) override;
+  const char** getEnumLabels(void) override;
+  bool isEnum() override;
+  bool isNumber() override;
+  u_int16_t getValueOrdinal(const C config) override;
+
+protected:
+  void parse(C& config, B C::* valuePtr, const char* str) override;
+  const char** enumLabels;
 };
 
 #endif

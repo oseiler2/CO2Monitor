@@ -258,6 +258,23 @@ namespace WifiManager {
         configParameter->print(config, buf);
         snprintf(buf, 8, "%s", strncmp(buf, "true", strlen(buf)) == 0 ? "checked" : "");
         parameterHtml.replace("{v}", buf);
+      } else if (configParameter->isEnum()) {
+        parameterHtml = FPSTR(html::config_parameter_select_start);
+        configParameter->getMinimum(buf);
+        uint16_t min = atoi(buf);
+        configParameter->getMaximum(buf);
+        uint16_t max = atoi(buf);
+        for (uint16_t i = min; i <= max; i++) {
+          parameterHtml += FPSTR(html::config_parameter_select_option);
+          parameterHtml.replace("{v}", String(i).c_str());
+          parameterHtml.replace("{lbl}", configParameter->getEnumLabels()[i]);
+          if (i == configParameter->getValueOrdinal(config)) {
+            parameterHtml.replace("{s}", "selected");
+          } else {
+            parameterHtml.replace("{s}", "");
+          }
+        }
+        parameterHtml += FPSTR(html::config_parameter_select_end);
       } else {
         parameterHtml = FPSTR(html::config_parameter);
         char defaultValue[configParameter->getMaxStrLen()];

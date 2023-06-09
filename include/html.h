@@ -274,15 +274,27 @@ td {text-align: left;}
 )";
 
   const char config_parameter[] PROGMEM = R"(
-<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' maxlength={l} value='{v}'><div></div></div>
+<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' maxlength={l} value='{v}'></div>
 )";
 
   const char config_parameter_number[] PROGMEM = R"(
-<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' type='number' maxlength={l} value='{v}' min='{mi}' max='{ma}'><div></div></div>
+<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' type='number' maxlength={l} value='{v}' min='{mi}' max='{ma}'></div>
 )";
 
   const char config_parameter_checkbox[] PROGMEM = R"(
-<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' type='checkbox' {v}><div></div></div>
+<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' type='checkbox' {v}></div>
+)";
+
+  const char config_parameter_select_start[] PROGMEM = R"(
+<div><label for='{i}'>{p}</label><select name='{n}' id='{i}'>
+)";
+
+  const char config_parameter_select_option[] PROGMEM = R"(
+<option value='{v}' {s}>{lbl}</option>
+)";
+
+  const char config_parameter_select_end[] PROGMEM = R"(
+</select></div>
 )";
 
   const char config_footer[] PROGMEM = R"(

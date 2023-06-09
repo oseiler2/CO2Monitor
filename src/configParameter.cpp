@@ -66,6 +66,15 @@ bool ConfigParameter<C, T>::isRebootRequiredOnChange() {
   return this->rebootRequiredOnChange;
 }
 
+template <typename C, typename T>
+bool ConfigParameter<C, T>::isEnum() {
+  return false;
+}
+
+template <typename C, typename T>
+const char** ConfigParameter<C, T>::getEnumLabels(void) { return nullptr; };
+
+
 // -------------------- number -------------------
 template <typename C, typename T>
 NumberConfigParameter<C, T>::NumberConfigParameter(const char* _id, const char* _label, T C::* _valuePtr, T _defaultValue, uint8_t _maxStrLen, T _min, T _max, bool _rebootRequiredOnChange) :
@@ -122,10 +131,15 @@ bool NumberConfigParameter<C, T>::fromJson(C& config, DynamicJsonDocument* doc, 
   return false;
 };
 
+template <typename C, typename T>
+u_int16_t NumberConfigParameter<C, T>::getValueOrdinal(const C config) {
+  return config.*(this->valuePtr) - minValue;
+};
+
 // -------------------- uint8_t -------------------
 template <typename C>
-Uint8ConfigParameter<C>::Uint8ConfigParameter(const char* _id, const char* _label, uint8_t C::* _valuePtr, uint8_t _defaultValue, uint8_t min, uint8_t max, bool _rebootRequiredOnChange) :
-  NumberConfigParameter<C, uint8_t>(_id, _label, _valuePtr, _defaultValue, 4, min, max, _rebootRequiredOnChange) {}
+Uint8ConfigParameter<C>::Uint8ConfigParameter(const char* _id, const char* _label, uint8_t C::* _valuePtr, uint8_t _defaultValue, uint8_t _min, uint8_t _max, bool _rebootRequiredOnChange) :
+  NumberConfigParameter<C, uint8_t>(_id, _label, _valuePtr, _defaultValue, 4, _min, _max, _rebootRequiredOnChange) {}
 
 template <typename C>
 Uint8ConfigParameter<C>::Uint8ConfigParameter(const char* _id, const char* _label, uint8_t C::* _valuePtr, uint8_t _defaultValue, bool _rebootRequiredOnChange) :
@@ -146,13 +160,13 @@ void Uint8ConfigParameter<C>::parse(C& config, uint8_t C::* valuePtr, const char
     ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
     return;
   }
-  config.*(this->valuePtr) = value;
+  config.*valuePtr = value;
 }
 
 // -------------------- uint16_t -------------------
 template <typename C>
-Uint16ConfigParameter<C>::Uint16ConfigParameter(const char* _id, const char* _label, uint16_t C::* _valuePtr, uint16_t _defaultValue, uint16_t min, uint16_t max, bool _rebootRequiredOnChange) :
-  NumberConfigParameter<C, uint16_t>(_id, _label, _valuePtr, _defaultValue, 6, min, max, _rebootRequiredOnChange) {}
+Uint16ConfigParameter<C>::Uint16ConfigParameter(const char* _id, const char* _label, uint16_t C::* _valuePtr, uint16_t _defaultValue, uint16_t _min, uint16_t _max, bool _rebootRequiredOnChange) :
+  NumberConfigParameter<C, uint16_t>(_id, _label, _valuePtr, _defaultValue, 6, _min, _max, _rebootRequiredOnChange) {}
 
 template <typename C>
 Uint16ConfigParameter<C>::Uint16ConfigParameter(const char* _id, const char* _label, uint16_t C::* _valuePtr, uint16_t _defaultValue, bool _rebootRequiredOnChange) :
@@ -173,7 +187,7 @@ void Uint16ConfigParameter<C>::parse(C& config, uint16_t C::* valuePtr, const ch
     ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
     return;
   }
-  config.*(this->valuePtr) = value;
+  config.*valuePtr = value;
 }
 
 // -------------------- bool -------------------
@@ -198,7 +212,7 @@ void BooleanConfigParameter<C>::print(const C config, char* str) {
 
 template <typename C>
 void BooleanConfigParameter<C>::parse(C& config, bool C::* valuePtr, const char* str) {
-  config.*(this->valuePtr) = strcmp("true", str) == 0 || strcmp("on", str) == 0;
+  config.*valuePtr = strcmp("true", str) == 0 || strcmp("on", str) == 0;
 }
 
 template <typename C>
@@ -223,6 +237,11 @@ bool BooleanConfigParameter<C>::fromJson(C& config, DynamicJsonDocument* doc, bo
   return false;
 };
 
+template <typename C>
+u_int16_t BooleanConfigParameter<C>::getValueOrdinal(const C config) {
+  return config.*(this->valuePtr);
+};
+
 // -------------------- char* -------------------
 template <typename C>
 CharArrayConfigParameter<C>::CharArrayConfigParameter(const char* _id, const char* _label, char C::* _valuePtr, const char* _defaultValue, uint8_t _maxLen, bool _rebootRequiredOnChange)
@@ -240,8 +259,8 @@ void CharArrayConfigParameter<C>::print(const C config, char* str) {
 
 template <typename C>
 void CharArrayConfigParameter<C>::parse(C& config, char C::* valuePtr, const char* str) {
-  strncpy((char*)&(config.*(this->valuePtr)), str, min(strlen(str), (size_t)(this->maxStrLen - 1)));
-  ((char*)&(config.*(this->valuePtr)))[min(strlen(str), (size_t)(this->maxStrLen - 1))] = 0x00;
+  strncpy((char*)&(config.*valuePtr), str, min(strlen(str), (size_t)(this->maxStrLen - 1)));
+  ((char*)&(config.*valuePtr))[min(strlen(str), (size_t)(this->maxStrLen - 1))] = 0x00;
 }
 
 template <typename C>
@@ -267,6 +286,72 @@ bool CharArrayConfigParameter<C>::fromJson(C& config, DynamicJsonDocument* doc, 
   }
   return false;
 };
+
+template <typename C>
+u_int16_t CharArrayConfigParameter<C>::getValueOrdinal(const C config) {
+  _ASSERT(false);
+};
+
+// -------------------- enum -------------------
+
+template <typename C, typename B, typename E>
+EnumConfigParameter<C, B, E>::EnumConfigParameter(const char* _id, const char* _label, E C::* _valuePtr, E _defaultValue, const char* _enumLabels[], E _min, E _max, bool _rebootRequiredOnChange) :
+  NumberConfigParameter<C, B>(_id, _label, (B C::*)_valuePtr, (B)_defaultValue, 0, (B)_min, (B)_max, _rebootRequiredOnChange) {
+  size_t maxLen = 0;
+  for (B i = _min; i < _max;i++) {
+    maxLen = max(maxLen, strlen(_enumLabels[i]));
+  }
+  this->maxStrLen = (uint8_t)maxLen;
+  this->enumLabels = _enumLabels;
+}
+
+template <typename C, typename B, typename E>
+EnumConfigParameter<C, B, E>::~EnumConfigParameter() {};
+
+template <typename C, typename B, typename E>
+void EnumConfigParameter<C, B, E>::print(const C config, char* str) {
+  sprintf(str, "%s", this->enumLabels[(B)(config.*(this->valuePtr))]);
+}
+
+template <typename C, typename B, typename E>
+void EnumConfigParameter<C, B, E>::parse(C& config, B C::* valuePtr, const char* str) {
+  ESP_LOGD(TAG, "EnumConfigParameter.parse %s, ", str);
+  for (B i = (B)this->minValue; i <= (B)this->maxValue; i++) {
+    ESP_LOGD(TAG, "%u %s ? %s", i, this->enumLabels[i], strcmp(this->enumLabels[i], str) == 0 ? "true" : "false");
+    if (strcmp(this->enumLabels[i], str) == 0) {
+      config.*valuePtr = (E)i;
+      return;
+    }
+  }
+  uint16_t value = (uint16_t)atoi(str);
+  if (value < this->minValue || value > this->maxValue) {
+    ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
+    return;
+  }
+  config.*valuePtr = value;
+}
+
+template <typename C, typename B, typename E>
+bool EnumConfigParameter<C, B, E>::isEnum() {
+  return true;
+}
+
+template <typename C, typename B, typename E>
+bool EnumConfigParameter<C, B, E>::isNumber() {
+  return false;
+}
+
+template <typename C, typename B, typename E>
+const char** EnumConfigParameter<C, B, E>::getEnumLabels(void) {
+  return this->enumLabels;
+};
+
+template <typename C, typename B, typename E>
+u_int16_t EnumConfigParameter<C, B, E>::getValueOrdinal(const C config) {
+  return (B)(config.*(this->valuePtr)) - (B)(this->minValue);
+};
+
+// -------------------- template instantiations -------------------
 
 template class Uint8ConfigParameter<Config>;
 template class Uint16ConfigParameter<Config>;
