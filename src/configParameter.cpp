@@ -351,9 +351,4 @@ u_int16_t EnumConfigParameter<C, B, E>::getValueOrdinal(const C config) {
   return (B)(config.*(this->valuePtr)) - (B)(this->minValue);
 };
 
-// -------------------- template instantiations -------------------
-
-template class Uint8ConfigParameter<Config>;
-template class Uint16ConfigParameter<Config>;
-template class BooleanConfigParameter<Config>;
-template class CharArrayConfigParameter<Config>;
+#include <configParameter.tpp>
