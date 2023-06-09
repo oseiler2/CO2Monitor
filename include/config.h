@@ -2,6 +2,7 @@
 #define _CONFIG_H
 
 #include <logging.h>
+#include <sdkconfig.h>
 
 #define OTA_URL               "https://otahost/co2monitor/firmware.json"
 #define OTA_APP               "co2monitor"
