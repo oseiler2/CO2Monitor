@@ -46,13 +46,13 @@ static const char* ROOT_CA_FILENAME = "/root_ca.pem";
 #define MQTT_USERNAME_LEN 20
 #define MQTT_PASSWORD_LEN 20
 #define MQTT_HOSTNAME_LEN 30
-#define MQTT_TOPIC_ID_LEN 30
+#define MQTT_TOPIC_LEN 30
 #define SSID_LEN 32
 #define WIFI_PASSWORD_LEN 64
 
 struct Config {
   uint16_t deviceId;
-  char mqttTopic[MQTT_TOPIC_ID_LEN + 1];
+  char mqttTopic[MQTT_TOPIC_LEN + 1];
   char mqttUsername[MQTT_USERNAME_LEN + 1];
   char mqttPassword[MQTT_PASSWORD_LEN + 1];
   char mqttHost[MQTT_HOSTNAME_LEN + 1];

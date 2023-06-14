@@ -121,13 +121,13 @@ void setupConfigManager() {
   }
   //  configParameterVector.clear();
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("deviceId", "Device ID", &Config::deviceId, DEFAULT_DEVICE_ID));
-  configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttTopic", "MQTT topic", (char Config::*) & Config::mqttTopic, DEFAULT_MQTT_TOPIC, MQTT_TOPIC_ID_LEN));
+  configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttTopic", "MQTT topic", (char Config::*) & Config::mqttTopic, DEFAULT_MQTT_TOPIC, MQTT_TOPIC_LEN));
   configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttUsername", "MQTT username", (char Config::*) & Config::mqttUsername, DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LEN));
   configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttPassword", "MQTT password", (char Config::*) & Config::mqttPassword, DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LEN));
   configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttHost", "MQTT host", (char Config::*) & Config::mqttHost, DEFAULT_MQTT_HOST, MQTT_HOSTNAME_LEN));
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("mqttServerPort", "MQTT port", &Config::mqttServerPort, DEFAULT_MQTT_PORT));
   configParameterVector.push_back(new BooleanConfigParameter<Config>("mqttUseTls", "MQTT use TLS", &Config::mqttUseTls, DEFAULT_MQTT_USE_TLS));
-  configParameterVector.push_back(new BooleanConfigParameter<Config>("mqttInsecure", "MQTT Ignore certificate errors", &Config::mqttInsecure, DEFAULT_MQTT_INSECURE));
+  configParameterVector.push_back(new BooleanConfigParameter<Config>("mqttInsecure", "MQTT ignore certificate errors", &Config::mqttInsecure, DEFAULT_MQTT_INSECURE));
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("altitude", "Altitude", &Config::altitude, DEFAULT_ALTITUDE, 0, 8000));
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("co2GreenThreshold", "CO2 Green threshold ", &Config::co2GreenThreshold, DEFAULT_CO2_GREEN_THRESHOLD));
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("co2YellowThreshold", "CO2 Yellow threshold ", &Config::co2YellowThreshold, DEFAULT_CO2_YELLOW_THRESHOLD));

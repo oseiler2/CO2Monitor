@@ -29,11 +29,6 @@ const char* ConfigParameter<C, T>::getLabel() {
 }
 
 template <typename C, typename T>
-void ConfigParameter<C, T>::save(C& config, const char* str) {
-  this->parse(config, this->valuePtr, str);
-}
-
-template <typename C, typename T>
 bool ConfigParameter<C, T>::isNumber() {
   return false;
 }
@@ -154,13 +149,15 @@ void Uint8ConfigParameter<C>::print(const C config, char* str) {
 }
 
 template <typename C>
-void Uint8ConfigParameter<C>::parse(C& config, uint8_t C::* valuePtr, const char* str) {
+bool Uint8ConfigParameter<C>::save(C& config, const char* str) {
   uint8_t value = (uint8_t)atoi(str);
+  if (config.*(this->valuePtr) == value) return false;
   if (value < this->minValue || value > this->maxValue) {
     ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
-    return;
+    return false;
   }
-  config.*valuePtr = value;
+  config.*(this->valuePtr) = value;
+  return true;
 }
 
 // -------------------- uint16_t -------------------
@@ -181,13 +178,15 @@ void Uint16ConfigParameter<C>::print(const C config, char* str) {
 }
 
 template <typename C>
-void Uint16ConfigParameter<C>::parse(C& config, uint16_t C::* valuePtr, const char* str) {
+bool Uint16ConfigParameter<C>::save(C& config, const char* str) {
   uint16_t value = (uint16_t)atoi(str);
+  if (config.*(this->valuePtr) == value) return false;
   if (value < this->minValue || value > this->maxValue) {
     ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
-    return;
+    return false;
   }
-  config.*valuePtr = value;
+  config.*(this->valuePtr) = value;
+  return true;
 }
 
 // -------------------- bool -------------------
@@ -211,8 +210,11 @@ void BooleanConfigParameter<C>::print(const C config, char* str) {
 }
 
 template <typename C>
-void BooleanConfigParameter<C>::parse(C& config, bool C::* valuePtr, const char* str) {
-  config.*valuePtr = strcmp("true", str) == 0 || strcmp("on", str) == 0;
+bool BooleanConfigParameter<C>::save(C& config, const char* str) {
+  bool value = strcmp("true", str) == 0 || strcmp("on", str) == 0;
+  if (config.*(this->valuePtr) == value) return false;
+  config.*(this->valuePtr) = value;
+  return true;
 }
 
 template <typename C>
@@ -258,9 +260,12 @@ void CharArrayConfigParameter<C>::print(const C config, char* str) {
 }
 
 template <typename C>
-void CharArrayConfigParameter<C>::parse(C& config, char C::* valuePtr, const char* str) {
-  strncpy((char*)&(config.*valuePtr), str, min(strlen(str), (size_t)(this->maxStrLen - 1)));
-  ((char*)&(config.*valuePtr))[min(strlen(str), (size_t)(this->maxStrLen - 1))] = 0x00;
+bool CharArrayConfigParameter<C>::save(C& config, const char* str) {
+  bool isSame = strcmp((char*)&(config.*(this->valuePtr)), str) == 0;
+  if (isSame) return false;
+  strncpy((char*)&(config.*(this->valuePtr)), str, min(strlen(str), (size_t)(this->maxStrLen - 1)));
+  ((char*)&(config.*(this->valuePtr)))[min(strlen(str), (size_t)(this->maxStrLen - 1))] = 0x00;
+  return true;
 }
 
 template <typename C>
@@ -314,21 +319,23 @@ void EnumConfigParameter<C, B, E>::print(const C config, char* str) {
 }
 
 template <typename C, typename B, typename E>
-void EnumConfigParameter<C, B, E>::parse(C& config, B C::* valuePtr, const char* str) {
-  ESP_LOGD(TAG, "EnumConfigParameter.parse %s, ", str);
+bool EnumConfigParameter<C, B, E>::save(C& config, const char* str) {
   for (B i = (B)this->minValue; i <= (B)this->maxValue; i++) {
     ESP_LOGD(TAG, "%u %s ? %s", i, this->enumLabels[i], strcmp(this->enumLabels[i], str) == 0 ? "true" : "false");
     if (strcmp(this->enumLabels[i], str) == 0) {
-      config.*valuePtr = (E)i;
-      return;
+      if (config.*(this->valuePtr) == (E)i) return false;
+      config.*(this->valuePtr) = (E)i;
+      return true;
     }
   }
   uint16_t value = (uint16_t)atoi(str);
   if (value < this->minValue || value > this->maxValue) {
     ESP_LOGI(TAG, "Ignoring parsed value %d outside range [%u,%u]", value, this->minValue, this->maxValue);
-    return;
+    return false;
   }
-  config.*valuePtr = value;
+  if (config.*(this->valuePtr) == value) return false;
+  config.*(this->valuePtr) = value;
+  return true;
 }
 
 template <typename C, typename B, typename E>

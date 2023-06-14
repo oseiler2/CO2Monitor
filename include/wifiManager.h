@@ -6,6 +6,9 @@
 #include <messageSupport.h>
 #include <ESPAsyncWebServer.h>
 #include <configParameter.h>
+#include <model.h>
+
+extern Model* model;
 
 namespace WifiManager {
   extern TaskHandle_t wifiManagerTask;

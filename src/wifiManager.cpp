@@ -16,6 +16,14 @@
 #define AP_PW ""
 #endif
 
+#ifndef PORTAL_USER
+#define PORTAL_USER ""
+#endif
+
+#ifndef PORTAL_PW
+#define PORTAL_PW ""
+#endif
+
 // Local logging tag
 static const char TAG[] = __FILE__;
 
@@ -32,7 +40,8 @@ namespace WifiManager {
 
   const uint8_t X_CMD_CONNECT = bit(0);
   const uint8_t X_CMD_SAVE_CONFIG = bit(1);
-  const uint8_t X_CMD_WIFI_SCAN_DONE = bit(2);
+  const uint8_t X_CMD_SAVE_CONFIG_AND_REBOOT = bit(2);
+  const uint8_t X_CMD_WIFI_SCAN_DONE = bit(3);
 
   bool keepCaptivePortalActive;
   bool captivePortalActiveWhenNotConnected;
@@ -53,7 +62,7 @@ namespace WifiManager {
   void handleWifi(AsyncWebServerRequest* request);
   void handleSafeWifi(AsyncWebServerRequest* request);
   void handleScan(AsyncWebServerRequest* request);
-  bool handleReboot(AsyncWebServerRequest* request);
+  void handleReboot(AsyncWebServerRequest* request);
   void handleNotFound(AsyncWebServerRequest* request);
   bool handleCaptivePortal(AsyncWebServerRequest* request);
   String getStoredWiFiPass();
@@ -172,6 +181,7 @@ namespace WifiManager {
     // TODO: filebrowser for portable monitor? https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
     // TODO: OTA, plus OTA status updates => https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
     events.onConnect(eventsOnConnect);
+    if (strlen(PORTAL_USER) > 0 && strlen(PORTAL_PW) > 0) events.setAuthentication(PORTAL_USER, PORTAL_PW);
     server.addHandler(&events);
     server.on("/", HTTP_GET, handleRoot);
     server.on("/styles.css", HTTP_GET, handleStyle);
@@ -191,6 +201,15 @@ namespace WifiManager {
     improvSerial.onImprovError(onImprovWiFiErrorCb);
     improvSerial.onImprovConnected(onImprovWiFiConnectedCb);
     improvSerial.setCustomConnectWiFi(improvConnectWifi);
+  }
+
+  bool authenticate(AsyncWebServerRequest* request) {
+    if (strlen(PORTAL_USER) == 0 || strlen(PORTAL_PW) == 0) return true;
+    if (!request->authenticate(PORTAL_USER, PORTAL_PW)) {
+      request->requestAuthentication();
+      return false;
+    }
+    return true;
   }
 
   void logCallback(int level, const char* tag, const char* message) {
@@ -226,6 +245,7 @@ namespace WifiManager {
 
   void handleStyle(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleStyle");
+    if (!authenticate(request)) return;
     AsyncWebServerResponse* response = request->beginResponse(200, FPSTR("text/css"), FPSTR(html::style));
     response->addHeader(FPSTR(html::header_cache_control), "max-age=604800"); // max-age=604800 = 1 week
     request->send(response);
@@ -233,6 +253,7 @@ namespace WifiManager {
 
   void handleLogs(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleLogs");
+    if (!authenticate(request)) return;
     AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), FPSTR(html::logs));
     response->addHeader(FPSTR(html::header_access_control_allow_origin), FPSTR(html::cors_asterix));
     request->send(response);
@@ -240,6 +261,7 @@ namespace WifiManager {
 
   void handleConfig(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleConfig");
+    if (!authenticate(request)) return;
     String page = FPSTR(html::config_header);
     char buf[8];
     for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
@@ -296,20 +318,27 @@ namespace WifiManager {
 
   void handleSafeConfig(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleSafeConfig");
+    if (!authenticate(request)) return;
+    bool rebootRequired = false;
     for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
-      configParameter->save(config, request->arg(configParameter->getId()).c_str());
+      rebootRequired |= configParameter->save(config, request->arg(configParameter->getId()).c_str()) && configParameter->isRebootRequiredOnChange();
     }
     logConfiguration(config);
     AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), FPSTR(html::config_saved));
     response->addHeader(FPSTR(html::header_cache_control), FPSTR(html::cache_control_no_cache));
     request->send(response);
 
-    if (wifiManagerTask)
-      xTaskNotify(wifiManagerTask, X_CMD_SAVE_CONFIG, eSetBits);
+    if (wifiManagerTask) {
+      if (rebootRequired)
+        xTaskNotify(wifiManagerTask, X_CMD_SAVE_CONFIG_AND_REBOOT, eSetBits);
+      else
+        xTaskNotify(wifiManagerTask, X_CMD_SAVE_CONFIG, eSetBits);
+    }
   }
 
   void handleWifi(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleWifi");
+    if (!authenticate(request)) return;
     if (numberOfFoundWiFis > 0 && (millis() - lastWifiScan < WIFI_SCAN_REUSE)) {
       // recent scan - use existing results
     } else {
@@ -326,6 +355,7 @@ namespace WifiManager {
 
   void handleSafeWifi(AsyncWebServerRequest* request) {
     ESP_LOGD(TAG, "Save Wifi: %s", request->arg("s").c_str());
+    if (!authenticate(request)) return;
 
     strncpy(ssid, request->arg("s").c_str(), MAX_SSID_LEN);
     ssid[MAX_SSID_LEN] = 0x00;
@@ -492,6 +522,7 @@ namespace WifiManager {
 
   void handleScan(AsyncWebServerRequest* request) {
     ESP_LOGD(TAG, "handleScan()");
+    if (!authenticate(request)) return;
     bool force = (request->arg("f") == "1");
     uint32_t now = millis();
     if (wifiScanActive) {
@@ -681,8 +712,8 @@ namespace WifiManager {
         wifi_event_sta_scan_done_t* event = (wifi_event_sta_scan_done_t*)event_data;
         ESP_LOGD(TAG, "Scan done: id: %u, status: %u, results: %u", event->scan_id, event->status, event->number);
         numberOfFoundWiFis = event->number;
-        //if (wifiManagerTask)
-        xTaskNotify(wifiManagerTask, X_CMD_WIFI_SCAN_DONE, eSetBits);
+        if (wifiManagerTask)
+          xTaskNotify(wifiManagerTask, X_CMD_WIFI_SCAN_DONE, eSetBits);
       } else {
         //          ESP_LOGD(TAG, "eventHandler WIFI_EVENT %u", event_id);
       }
@@ -715,7 +746,8 @@ namespace WifiManager {
     WiFi.mode(WIFI_MODE_STA);
   }
 
-  bool handleReboot(AsyncWebServerRequest* request) {
+  void handleReboot(AsyncWebServerRequest* request) {
+    if (!authenticate(request)) return;
     AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), FPSTR(html::reboot));
     request->send(response);
     delay(1000);
@@ -744,8 +776,13 @@ namespace WifiManager {
         }
         if (taskNotification & X_CMD_SAVE_CONFIG) {
           saveConfiguration(config);
-          delay(1000);
-          esp_restart();
+          model->configurationChanged();
+        }
+        if (taskNotification & X_CMD_SAVE_CONFIG_AND_REBOOT) {
+          if (saveConfiguration(config)) {
+            delay(1000);
+            esp_restart();
+          }
         }
         if (taskNotification & X_CMD_WIFI_SCAN_DONE) {
           scanWifiDone();

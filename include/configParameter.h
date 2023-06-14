@@ -12,7 +12,7 @@ public:
   virtual const char* getId() = 0;
   virtual const char* getLabel() = 0;
   virtual void print(const C config, char* str) = 0;
-  virtual void save(C& config, const char* str) = 0;
+  virtual bool save(C& config, const char* str) = 0;
   virtual bool isNumber() = 0;
   virtual bool isBoolean() = 0;
   virtual void getMinimum(char* str) = 0;
@@ -35,7 +35,6 @@ public:
   uint8_t getMaxStrLen(void) override;
   const char* getId() override;
   const char* getLabel() override;
-  void save(C& config, const char* str) override;
   bool isNumber() override;
   bool isBoolean() override;
   T* getValuePtr();
@@ -47,7 +46,6 @@ public:
   const char** getEnumLabels(void) override;
 
 protected:
-  virtual void parse(C& config, T C::* valuePtr, const char* str) = 0;
   const char* id;
   const char* label;
   T C::* valuePtr;
@@ -67,6 +65,7 @@ public:
   void toJson(const C config, DynamicJsonDocument* doc) override;
   bool fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent = false) override;
   u_int16_t getValueOrdinal(const C config) override;
+
 protected:
   T defaultValue;
   T minValue;
@@ -80,9 +79,7 @@ public:
   Uint8ConfigParameter(const char* id, const char* label, uint8_t C::* valuePtr, uint8_t defaultValue, bool rebootRequiredOnChange);
   ~Uint8ConfigParameter();
   void print(const C config, char* str) override;
-
-protected:
-  void parse(C& config, uint8_t C::* valuePtr, const char* str) override;
+  bool save(C& config, const char* str) override;
 };
 
 template <typename C>
@@ -92,9 +89,7 @@ public:
   Uint16ConfigParameter(const char* id, const char* label, uint16_t C::* valuePtr, uint16_t defaultValue, bool rebootRequiredOnChange);
   ~Uint16ConfigParameter();
   void print(const C config, char* str) override;
-
-protected:
-  void parse(C& config, uint16_t C::* valuePtr, const char* str) override;
+  bool save(C& config, const char* str) override;
 };
 
 template <typename C>
@@ -108,9 +103,9 @@ public:
   void toJson(const C config, DynamicJsonDocument* doc) override;
   bool fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent = false) override;
   u_int16_t getValueOrdinal(const C config) override;
+  bool save(C& config, const char* str) override;
 
 protected:
-  void parse(C& config, bool C::* valuePtr, const char* str) override;
   bool defaultValue;
 };
 
@@ -124,9 +119,9 @@ public:
   void toJson(const C config, DynamicJsonDocument* doc) override;
   bool fromJson(C& config, DynamicJsonDocument* doc, bool useDefaultIfNotPresent = false) override;
   u_int16_t getValueOrdinal(const C config) override;
+  bool save(C& config, const char* str) override;
 
 protected:
-  void parse(C& config, char C::* valuePtr, const char* str) override;
   const char* defaultValue;
 };
 
@@ -148,9 +143,9 @@ public:
   bool isEnum() override;
   bool isNumber() override;
   u_int16_t getValueOrdinal(const C config) override;
+  bool save(C& config, const char* str) override;
 
 protected:
-  void parse(C& config, B C::* valuePtr, const char* str) override;
   const char** enumLabels;
 };
 
