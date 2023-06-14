@@ -8,10 +8,11 @@
 #include <configParameter.h>
 #include <model.h>
 
-typedef void (*configChangedCallback_t)();
 
 namespace WifiManager {
   extern TaskHandle_t wifiManagerTask;
+
+  typedef void (*configChangedCallback_t)();
 
   void setupWifiManager(const char* appName, std::vector<ConfigParameterBase<Config>*> configParameterVector, bool keepCaptivePortalActive, bool captivePortalActiveWhenNotConnected,
     updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback,

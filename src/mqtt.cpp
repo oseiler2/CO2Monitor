@@ -3,18 +3,14 @@
 #include <config.h>
 
 #include <PubSubClient.h>
-#include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <i2c.h>
 #include <configManager.h>
-#include <model.h>
 #include <wifiManager.h>
 #include <ota.h>
 
 #include <LittleFS.h>
-
-#include <ArduinoJson.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -23,7 +19,7 @@ namespace mqtt {
 
   struct MqttMessage {
     uint8_t cmd;
-    uint16_t mask;
+    DynamicJsonDocument* payload;
     char* statusMessage;
   };
 
@@ -36,7 +32,6 @@ namespace mqtt {
 
   WiFiClient* wifiClient;
   PubSubClient* mqtt_client;
-  Model* model;
 
   calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
   setTemperatureOffsetCallback_t setTemperatureOffsetCallback;
@@ -45,6 +40,7 @@ namespace mqtt {
   setSPS30AutoCleanIntervalCallback_t setSPS30AutoCleanIntervalCallback;
   cleanSPS30Callback_t cleanSPS30Callback;
   getSPS30StatusCallback_t getSPS30StatusCallback;
+  configChangedCallback_t configChangedCallback;
 
   uint32_t lastReconnectAttempt = 0;
   uint16_t connectionAttempts = 0;
@@ -56,45 +52,30 @@ namespace mqtt {
     return copy;
   }
 
-  void publishSensors(uint16_t mask) {
+  void publishSensors(DynamicJsonDocument* _payload) {
     if (!WiFi.isConnected() || !mqtt_client->connected()) return;
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_SENSORS;
-    msg.mask = mask;
-    if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+    msg.payload = _payload;
+    if (!mqttQueue || !xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100))) {
+      delete msg.payload;
+    }
   }
 
-  boolean publishSensorsInternal(uint16_t mask) {
+  boolean publishSensorsInternal(MqttMessage queueMsg) {
     char topic[256];
     char msg[256];
     sprintf(topic, "%s/%u/up/sensors", config.mqttTopic, config.deviceId);
 
-    char buf[8];
-    DynamicJsonDocument doc(CONFIG_SIZE);
-    if (mask & M_CO2) doc["co2"] = model->getCo2();
-    if (mask & M_TEMPERATURE) {
-      sprintf(buf, "%.1f", model->getTemperature());
-      doc["temperature"] = buf;
-    }
-    if (mask & M_HUMIDITY) {
-      sprintf(buf, "%.1f", model->getHumidity());
-      doc["humidity"] = buf;
-    }
-    if (mask & M_PRESSURE) doc["pressure"] = model->getPressure();
-    if (mask & M_IAQ) doc["iaq"] = model->getIAQ();
-    if (mask & M_PM0_5) doc["pm0.5"] = model->getPM0_5();
-    if (mask & M_PM1_0) doc["pm1"] = model->getPM1();
-    if (mask & M_PM2_5) doc["pm2.5"] = model->getPM2_5();
-    if (mask & M_PM4) doc["pm4"] = model->getPM4();
-    if (mask & M_PM10) doc["pm10"] = model->getPM10();
-
     // Serialize JSON to file
-    if (serializeJson(doc, msg) == 0) {
+    if (serializeJson(*queueMsg.payload, msg) == 0) {
       ESP_LOGW(TAG, "Failed to serialise payload");
+      delete queueMsg.payload;
       return true; // pretend to have been successful to prevent queue from clogging up
     }
     if (strncmp(msg, "null", 4) == 0) {
-      ESP_LOGD(TAG, "Nothing to publish - mask: %x", mask);
+      ESP_LOGD(TAG, "Nothing to publish");
+      delete queueMsg.payload;
       return true; // pretend to have been successful to prevent queue from clogging up
     }
     ESP_LOGD(TAG, "Publishing sensor values: %s:%s", topic, msg);
@@ -102,13 +83,13 @@ namespace mqtt {
       ESP_LOGI(TAG, "publish sensors failed!");
       return false;
     }
+    delete queueMsg.payload;
     return true;
   }
 
   void publishConfiguration() {
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_CONFIGURATION;
-    msg.mask = 0;
     msg.statusMessage = nullptr;
     if (mqttQueue) xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
   }
@@ -139,7 +120,7 @@ namespace mqtt {
     boolean mqttTestSuccess;
     PubSubClient* testMqttClient = new PubSubClient(*wifiClient);
     testMqttClient->setServer(testConfig.mqttHost, testConfig.mqttServerPort);
-    sprintf(buf, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+    sprintf(buf, "CO2Monitor-%u-%s", testConfig.deviceId, WifiManager::getMac().c_str());
     // disconnect current connection if not enough heap avalable to initiate another tls session.
     if (testConfig.mqttUseTls && ESP.getFreeHeap() < 75000) mqtt_client->disconnect();
     mqttTestSuccess = testMqttClient->connect(buf, testConfig.mqttUsername, testConfig.mqttPassword);
@@ -207,7 +188,6 @@ namespace mqtt {
     }
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_STATUS_MSG;
-    msg.mask = 0;
     msg.statusMessage = cloneStr(statusMessage);
     if (!mqttQueue || !xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100))) {
       free(msg.statusMessage);
@@ -348,7 +328,7 @@ namespace mqtt {
         delay(2000);
         esp_restart();
       }
-      model->configurationChanged();
+      configChangedCallback();
     } else if (strncmp(buf, "installMqttRootCa", strlen(buf)) == 0) {
       ESP_LOGD(TAG, "installMqttRootCa");
       if (!writeFile(TEMP_MQTT_ROOT_CA_FILENAME, (unsigned char*)&msg[0])) {
@@ -447,21 +427,20 @@ namespace mqtt {
   }
 
   void setupMqtt(
-    Model* _model,
     calibrateCo2SensorCallback_t _calibrateCo2SensorCallback,
     setTemperatureOffsetCallback_t _setTemperatureOffsetCallback,
     getTemperatureOffsetCallback_t _getTemperatureOffsetCallback,
     getSPS30AutoCleanIntervalCallback_t _getSPS30AutoCleanIntervalCallback,
     setSPS30AutoCleanIntervalCallback_t _setSPS30AutoCleanIntervalCallback,
     cleanSPS30Callback_t _cleanSPS30Callback,
-    getSPS30StatusCallback_t _getSPS30StatusCallback
+    getSPS30StatusCallback_t _getSPS30StatusCallback,
+    configChangedCallback_t _configChangedCallback
   ) {
     mqttQueue = xQueueCreate(MQTT_QUEUE_LENGTH, sizeof(struct MqttMessage));
     if (mqttQueue == NULL) {
       ESP_LOGE(TAG, "Queue creation failed!");
     }
 
-    model = _model;
     calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
     setTemperatureOffsetCallback = _setTemperatureOffsetCallback;
     getTemperatureOffsetCallback = _getTemperatureOffsetCallback;
@@ -469,6 +448,7 @@ namespace mqtt {
     setSPS30AutoCleanIntervalCallback = _setSPS30AutoCleanIntervalCallback;
     cleanSPS30Callback = _cleanSPS30Callback;
     getSPS30StatusCallback = _getSPS30StatusCallback;
+    configChangedCallback = _configChangedCallback;
 
     if (config.mqttUseTls) {
       wifiClient = new WiFiClientSecure();
@@ -503,7 +483,7 @@ namespace mqtt {
             }
           } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
             // don't keep measurements in the queue should they fail to be published
-            publishSensorsInternal(msg.mask);
+            publishSensorsInternal(msg);
             xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
           } else if (msg.cmd == X_CMD_PUBLISH_STATUS_MSG) {
             // keep status messages in the queue should they fail to be published

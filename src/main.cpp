@@ -98,7 +98,27 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if (hasHub75 && hub75) hub75->update(mask, oldStatus, newStatus);
   if ((mask & M_PRESSURE) && I2C::scd40Present() && scd40) scd40->setAmbientPressure(model->getPressure());
   if ((mask & M_PRESSURE) && I2C::scd30Present() && scd30) scd30->setAmbientPressure(model->getPressure());
-  if ((mask & ~M_CONFIG_CHANGED) != M_NONE) mqtt::publishSensors(mask);
+  if ((mask & ~M_CONFIG_CHANGED) != M_NONE) {
+    char buf[8];
+    DynamicJsonDocument* doc = new DynamicJsonDocument(512);
+    if (mask & M_CO2) (*doc)["co2"] = model->getCo2();
+    if (mask & M_TEMPERATURE) {
+      sprintf(buf, "%.1f", model->getTemperature());
+      (*doc)["temperature"] = buf;
+    }
+    if (mask & M_HUMIDITY) {
+      sprintf(buf, "%.1f", model->getHumidity());
+      (*doc)["humidity"] = buf;
+    }
+    if (mask & M_PRESSURE) (*doc)["pressure"] = model->getPressure();
+    if (mask & M_IAQ) (*doc)["iaq"] = model->getIAQ();
+    if (mask & M_PM0_5) (*doc)["pm0.5"] = model->getPM0_5();
+    if (mask & M_PM1_0) (*doc)["pm1"] = model->getPM1();
+    if (mask & M_PM2_5) (*doc)["pm2.5"] = model->getPM2_5();
+    if (mask & M_PM4) (*doc)["pm4"] = model->getPM4();
+    if (mask & M_PM10) (*doc)["pm10"] = model->getPM10();
+    mqtt::publishSensors(doc);
+  }
 }
 
 void configChanged() {
@@ -226,14 +246,14 @@ void setup() {
   if (hasHub75) hub75 = new HUB75(model);
 
   mqtt::setupMqtt(
-    model,
     calibrateCo2SensorCallback,
     setTemperatureOffsetCallback,
     getTemperatureOffsetCallback,
     getSPS30AutoCleanInterval,
     setSPS30AutoCleanInterval,
     cleanSPS30,
-    getSPS30Status);
+    getSPS30Status,
+    configChanged);
 
   char msg[128];
   sprintf(msg, "Reset reason: %u", resetReason);
