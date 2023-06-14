@@ -123,6 +123,7 @@ namespace WifiManager {
   updateMessageCallback_t updateMessageCallback;
   setPriorityMessageCallback_t setPriorityMessageCallback;
   clearPriorityMessageCallback_t clearPriorityMessageCallback;
+  configChangedCallback_t configChangedCallback;
 
   ImprovWiFi improvSerial(&Serial);
 
@@ -158,10 +159,9 @@ namespace WifiManager {
     };
   */
 
-  //TODO: protect config using auth, or only on captive portal
-  //TODO: provide generic provision of config parameters
   void setupWifiManager(const char* _appName, std::vector<ConfigParameterBase<Config>*> _configParameterVector, bool _keepCaptivePortalActive, bool _captivePortalActiveWhenNotConnected,
-    updateMessageCallback_t _updateMessageCallback, setPriorityMessageCallback_t _setPriorityMessageCallback, clearPriorityMessageCallback_t _clearPriorityMessageCallback) {
+    updateMessageCallback_t _updateMessageCallback, setPriorityMessageCallback_t _setPriorityMessageCallback, clearPriorityMessageCallback_t _clearPriorityMessageCallback,
+    configChangedCallback_t _configChangedCallback) {
     appName = _appName;
     configParameterVector = _configParameterVector;
     keepCaptivePortalActive = _keepCaptivePortalActive;
@@ -169,6 +169,7 @@ namespace WifiManager {
     updateMessageCallback = _updateMessageCallback;
     setPriorityMessageCallback = _setPriorityMessageCallback;
     clearPriorityMessageCallback = _clearPriorityMessageCallback;
+    configChangedCallback = _configChangedCallback;
 
     // TODO: only if Wifi is configured
     WiFi.mode(WIFI_MODE_STA);
@@ -776,7 +777,7 @@ namespace WifiManager {
         }
         if (taskNotification & X_CMD_SAVE_CONFIG) {
           saveConfiguration(config);
-          model->configurationChanged();
+          configChangedCallback();
         }
         if (taskNotification & X_CMD_SAVE_CONFIG_AND_REBOOT) {
           if (saveConfiguration(config)) {
@@ -793,7 +794,6 @@ namespace WifiManager {
           dnsServer->processNextRequest();
         }
         if (!keepCaptivePortalActive && (!wifiDisconnected || !captivePortalActiveWhenNotConnected || !(lastWifiDisconnect - millis() > WIFI_DISCONNECT_TIMEOUT))) {
-          // TODO: only if not configured to be always on
           if (millis() - captivePortalTimeout > (uint32_t)(CAPTIVE_PORTAL_TIMEOUT_S * 1000)) {
             ESP_LOGD(TAG, "Captive portal timed out - stopping");
             stopCaptivePortal();

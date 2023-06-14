@@ -8,13 +8,14 @@
 #include <configParameter.h>
 #include <model.h>
 
-extern Model* model;
+typedef void (*configChangedCallback_t)();
 
 namespace WifiManager {
   extern TaskHandle_t wifiManagerTask;
 
   void setupWifiManager(const char* appName, std::vector<ConfigParameterBase<Config>*> configParameterVector, bool keepCaptivePortalActive, bool captivePortalActiveWhenNotConnected,
-    updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback);
+    updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback,
+    configChangedCallback_t configChangedCallback);
   void resetSettings();
   void startCaptivePortal();
   String getMac();

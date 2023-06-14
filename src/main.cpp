@@ -101,6 +101,10 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if ((mask & ~M_CONFIG_CHANGED) != M_NONE) mqtt::publishSensors(mask);
 }
 
+void configChanged() {
+  model->configurationChanged();
+}
+
 void calibrateCo2SensorCallback(uint16_t co2Reference) {
   ESP_LOGI(TAG, "Starting calibration");
   if (lcd) lcd->setPriorityMessage("Starting calibration");
@@ -196,7 +200,7 @@ void setup() {
   logConfiguration(config);
 
   WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, true,
-    updateMessage, setPriorityMessage, clearPriorityMessage);
+    updateMessage, setPriorityMessage, clearPriorityMessage, configChanged);
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
