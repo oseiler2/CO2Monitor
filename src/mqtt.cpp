@@ -53,7 +53,10 @@ namespace mqtt {
   }
 
   void publishSensors(DynamicJsonDocument* _payload) {
-    if (!WiFi.isConnected() || !mqtt_client->connected()) return;
+    if (!WiFi.isConnected() || !mqtt_client->connected()) {
+      delete _payload;
+      return;
+    }
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_SENSORS;
     msg.payload = _payload;
