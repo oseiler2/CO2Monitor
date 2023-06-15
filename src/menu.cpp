@@ -80,7 +80,7 @@ namespace Menu {
     if (Power::getPowerMode() == USB) {
       digitalWrite(LED_PIN, LOW);
       prepareOta();
-      WifiManager::startConfigPortal(updateMessage, setPriorityMessage, clearPriorityMessage);
+      WifiManager::startCaptivePortal();
     }
   }
 

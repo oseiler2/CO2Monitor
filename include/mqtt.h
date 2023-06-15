@@ -2,7 +2,8 @@
 #define _MQTT_H
 
 #include <globals.h>
-#include <model.h>
+#include <ArduinoJson.h>
+#include <messageSupport.h>
 
 // If you issue really large certs (e.g. long CN, extra options) this value may need to be
 // increased, but 1600 is plenty for a typical CN and standard option openSSL issued cert.
@@ -22,18 +23,18 @@ namespace mqtt {
   typedef uint8_t(*getSPS30StatusCallback_t)(void);
 
   void setupMqtt(
-    Model* model,
     calibrateCo2SensorCallback_t calibrateCo2SensorCallback,
     setTemperatureOffsetCallback_t setTemperatureOffsetCallback,
     getTemperatureOffsetCallback_t getTemperatureOffsetCallback,
     getSPS30AutoCleanIntervalCallback_t getSPS30AutoCleanIntervalCallback,
     setSPS30AutoCleanIntervalCallback_t setSPS30AutoCleanIntervalCallback,
     cleanSPS30Callback_t cleanSPS30Callback,
-    getSPS30StatusCallback_t getSPS30StatusCallback
+    getSPS30StatusCallback_t getSPS30StatusCallback,
+    configChangedCallback_t configChangedCallback
   );
   void shutDownMqtt();
 
-  void publishSensors(uint16_t mask);
+  void publishSensors(DynamicJsonDocument* _payload);
   void publishConfiguration();
   void publishStatusMsg(const char* statusMessage);
 

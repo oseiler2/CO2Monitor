@@ -13,6 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -36,11 +38,20 @@ jobs:
       - name: Install esptool
         run: |
           pip install --upgrade esptool
-      - name: Set env
-        run: echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Run PlatformIO
+
+      - name: Build esp32-debug
         run: pio run --environment esp32-debug
-      - name: "Build & test"
+      - name: Build esp32-s3-debug
+        run: pio run --environment esp32-s3-debug
+
+      - name: Rename & move files
+        run: |
+          mv .pio/build/esp32-debug/firmware.bin firmware-esp32-debug.bin
+          mv .pio/build/esp32-debug/firmware-combined.bin firmware-combined-esp32-debug.bin
+          mv .pio/build/esp32-s3-debug/firmware.bin firmware-esp32-s3-debug.bin
+          mv .pio/build/esp32-s3-debug/firmware-combined.bin firmware-combined-esp32-s3-debug.bin
+
+      - name: "Build"
         run: |
           echo "done!"
 
@@ -51,5 +62,4 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            .pio/build/esp32-debug/firmware.bin
-            .pio/build/esp32-debug/firmware-combined.bin
+            firmware-*.bin

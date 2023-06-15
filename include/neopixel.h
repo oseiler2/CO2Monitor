@@ -23,7 +23,7 @@ private:
 
   Adafruit_NeoPixel* strip;
   Model* model;
-  Ticker* cyclicTimer;
+  Ticker* ticker;
   boolean toggle;
 
   uint32_t colourRed;

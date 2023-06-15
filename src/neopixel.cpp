@@ -12,7 +12,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
   this->model = _model;
   strip = new Adafruit_NeoPixel(numPixel, _pin, NEO_GRB + NEO_KHZ800);
   toggle = false;
-  cyclicTimer = new Ticker();
+  ticker = new Ticker();
 
   this->colourRed = this->strip->Color(255, 0, 0);
   this->colourYellow = this->strip->Color(255, 70, 0);
@@ -24,7 +24,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
   this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
   if (!reinitFromSleep) {
     // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
-    cyclicTimer->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
+    ticker->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
 
     this->strip->show(); // Initialize all pixels to 'off'
     fill(colourPurple);
@@ -40,7 +40,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
 }
 
 Neopixel::~Neopixel() {
-  if (this->cyclicTimer) delete cyclicTimer;
+  if (this->ticker) delete ticker;
   if (this->strip) delete strip;
 }
 
@@ -61,7 +61,7 @@ void Neopixel::off() {
 }
 
 void Neopixel::prepareToSleep() {
-  cyclicTimer->detach();
+  ticker->detach();
   if (model->getStatus() == DARK_RED) {
     fill(colourPurple); // Red
   }

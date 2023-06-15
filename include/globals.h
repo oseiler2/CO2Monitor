@@ -1,6 +1,7 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+#include <logging.h>
 #include <Arduino.h>
 
 #ifndef _ASSERT

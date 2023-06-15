@@ -4,6 +4,7 @@
 #include <sensors.h>
 #include <power.h>
 #include <battery.h>
+#include <wifiManager.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -21,6 +22,8 @@ namespace housekeeping {
       uxTaskGetStackHighWaterMark(mqtt::mqttTask), eTaskGetState(mqtt::mqttTask), xTaskGetAffinity(mqtt::mqttTask));
     ESP_LOGI(TAG, "OtaLoop %d bytes left | Taskstate = %d | core = %u",
       uxTaskGetStackHighWaterMark(OTA::otaTask), eTaskGetState(OTA::otaTask), xTaskGetAffinity(OTA::otaTask));
+    ESP_LOGI(TAG, "WifiLoop %d bytes left | Taskstate = %d | core = %u",
+      uxTaskGetStackHighWaterMark(WifiManager::wifiManagerTask), eTaskGetState(WifiManager::wifiManagerTask), xTaskGetAffinity(WifiManager::wifiManagerTask));
     if (sensorsTask) {
       ESP_LOGI(TAG, "SensorsLoop %d bytes left | Taskstate = %d | core = %u",
         uxTaskGetStackHighWaterMark(sensorsTask), eTaskGetState(sensorsTask), xTaskGetAffinity(sensorsTask));
