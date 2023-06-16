@@ -2,6 +2,7 @@
 #include <config.h>
 #include <configManager.h>
 #include <battery.h>
+#include <driver/adc.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -12,6 +13,7 @@ namespace Battery {
 
   void init(Model* _model) {
     model = _model;
+    adcAttachPin(config.vBatAdc);
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);
   }
@@ -40,19 +42,22 @@ namespace Battery {
 
   uint16_t getBatteryLevelInmV() {
     digitalWrite(config.vBatEn, HIGH);
-    uint16_t maxValue = 0;
+    adc_power_acquire();
+    uint32_t maxValue = 0;
     uint32_t minValue = 0xffffffff;
     uint32_t sumValue = 0;
     uint32_t reading;
-    for (uint8_t i = 0; i < 8; i++) {
+#define NUMBER_OF_READINGS         10
+    for (uint8_t i = 0; i < NUMBER_OF_READINGS; i++) {
       reading = analogReadMilliVolts(config.vBatAdc);
       sumValue += reading;
       if (reading > maxValue) maxValue = reading;
       if (reading < minValue) minValue = reading;
     }
-    uint16_t mV_raw = (sumValue - maxValue - minValue) / 6;
+    uint16_t mV_raw = (sumValue - maxValue - minValue) / (NUMBER_OF_READINGS - 2);
     digitalWrite(config.vBatEn, LOW);
-    uint16_t mV = mV_raw * 2.17f;
+    uint16_t mV = mV_raw * 1.353f;
+    adc_power_release();
     ESP_LOGI(TAG, "Battery: %u mV (raw: %u mV)", mV, mV_raw);
     return mV;
   }

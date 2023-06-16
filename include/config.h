@@ -61,7 +61,7 @@ static const char* ROOT_CA_FILENAME = "/root_ca.pem";
 #define PWM_CHANNEL_BUZZER      1
 
 // ----------------------------  Config struct ------------------------------------- 
-#define CONFIG_SIZE 1280
+#define CONFIG_SIZE 1536
 
 #define MQTT_USERNAME_LEN 20
 #define MQTT_PASSWORD_LEN 20

@@ -12,6 +12,8 @@
 
 #include <ImprovWiFiLibrary.h>
 
+#include <timekeeper.h>
+
 #ifndef AP_PW
 #define AP_PW ""
 #endif
@@ -685,6 +687,7 @@ namespace WifiManager {
       ESP_LOGD(TAG, "eventHandler IP_EVENT IP_EVENT_STA_GOT_IP");
       ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
       ESP_LOGD(TAG, "STA Got %sIP:" IPSTR, event->ip_changed ? "New " : "Same ", IP2STR(&event->ip_info.ip));
+      Timekeeper::initSntp();
     } else if (event_base == WIFI_EVENT) {
       if (event_id > 0 && event_id < WIFI_EVENT_MAX) {
         ESP_LOGD(TAG, "eventHandler %s", WIFI_EVENT_STRINGS[event_id]);
