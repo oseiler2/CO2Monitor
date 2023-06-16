@@ -17,7 +17,7 @@ namespace housekeeping {
       uxTaskGetStackHighWaterMark(mqtt::mqttTask), eTaskGetState(mqtt::mqttTask), xTaskGetAffinity(mqtt::mqttTask));
     ESP_LOGI(TAG, "OtaLoop %u bytes left | Taskstate = %d | core = %u",
       uxTaskGetStackHighWaterMark(OTA::otaTask), eTaskGetState(OTA::otaTask), xTaskGetAffinity(OTA::otaTask));
-    ESP_LOGI(TAG, "WifiLoop %d bytes left | Taskstate = %d | core = %u",
+    ESP_LOGI(TAG, "WifiLoop %u bytes left | Taskstate = %d | core = %u",
       uxTaskGetStackHighWaterMark(WifiManager::wifiManagerTask), eTaskGetState(WifiManager::wifiManagerTask), xTaskGetAffinity(WifiManager::wifiManagerTask));
     if (sensorsTask) {
       ESP_LOGI(TAG, "SensorsLoop %u bytes left | Taskstate = %d | core = %u",
