@@ -5,6 +5,7 @@
 
 #include <i2c.h>
 #include <configManager.h>
+#include <power.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -34,11 +35,12 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   if (!I2C::takeMutex(portMAX_DELAY)) return;
 
   scd40->begin(*wire);
-  if (reinitFromSleep) {
+  if (Power::getPowerMode() == BATTERY) {
     this->sampleRate = LP_PERIODIC;
   } else {
     this->sampleRate = PERIODIC;
-
+  }
+  if (!reinitFromSleep || Power::getPowerMode() == USB) {
     // stop potentially previously started measurement
     checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
 
@@ -173,13 +175,13 @@ boolean SCD40::readScd40() {
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("");
 #endif
-  model->updateModel(co2, temperature, humidity);
   if (co2 == 0) {
     ESP_LOGW(TAG, "Invalid sample detected, skipping.");
 #ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("Invalid sample");
 #endif
   } else {
+    model->updateModel(co2, temperature, humidity);
     return true;
   }
   return false;

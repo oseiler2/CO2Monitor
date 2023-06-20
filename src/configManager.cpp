@@ -86,7 +86,7 @@ Config config;
 #define DEFAULT_YELLOW_LED                26
 #define DEFAULT_RED_LED                   25
 // 16
-#define DEFAULT_NEOPIXEL_DATA              0
+#define DEFAULT_NEOPIXEL_DATA              NEO_DATA
 #define DEFAULT_NEOPIXEL_NUMBER            3
 // 14
 #define DEFAULT_NEOPIXEL_MATRIX_DATA       0
@@ -122,10 +122,10 @@ const char* BUZZER_MODE_STRINGS[] = {
 };
 
 const char* SLEEP_MODE_OLED_LED_STRINGS[] = {
-    "OLED on, LED on",
-    "OLED on, LED off",
-    "OLED off, LED on",
-    "OLED off, LED off"
+    "Display on, LED on",
+    "Display on, LED off",
+    "Display off, LED on",
+    "Display off, LED off"
 };
 
 void setupConfigManager() {
@@ -156,7 +156,7 @@ void setupConfigManager() {
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqDarkRedThreshold", "IAQ Dark red threshold", &Config::iaqDarkRedThreshold, DEFAULT_IAQ_DARK_RED_THRESHOLD));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("brightness", "LED brightness pwm", &Config::brightness, DEFAULT_BRIGHTNESS));
   configParameterVector.push_back(new EnumConfigParameter<Config, uint8_t, BuzzerMode>("buzzerMode", "Buzzer mode", &Config::buzzerMode, DEFAULT_BUZZER_MODE, BUZZER_MODE_STRINGS, BUZ_OFF, BUZ_ALWAYS));
-  configParameterVector.push_back(new EnumConfigParameter<Config, uint8_t, SleepModeOledLed>("sleepModeOledLed", "OLED/LEDs sleep mode", &Config::sleepModeOledLed, SLEEP_OLED_ON_LED_ON, SLEEP_MODE_OLED_LED_STRINGS, SLEEP_OLED_ON_LED_ON, SLEEP_OLED_OFF_LED_OFF));
+  configParameterVector.push_back(new EnumConfigParameter<Config, uint8_t, SleepModeOledLed>("sleepModeOledLed", "Display/LEDs sleep mode", &Config::sleepModeOledLed, SLEEP_OLED_ON_LED_ON, SLEEP_MODE_OLED_LED_STRINGS, SLEEP_OLED_ON_LED_ON, SLEEP_OLED_OFF_LED_OFF));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("ssd1306Rows", "SSD1306 rows", &Config::ssd1306Rows, DEFAULT_SSD1306_ROWS, 32, 64, true));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("greenLed", "Green Led pin", &Config::greenLed, DEFAULT_GREEN_LED, true));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("yellowLed", "Yellow Led pin", &Config::yellowLed, DEFAULT_YELLOW_LED, true));

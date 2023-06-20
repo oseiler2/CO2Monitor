@@ -75,51 +75,12 @@ namespace Power {
     //rtc_gpio_force_hold_dis_all
   }
 
+  void setGpioSleepPullMode(gpio_num_t pin, gpio_pull_mode_t pullMode) {
+    if (gpio_sleep_set_pull_mode(pin, pullMode) != ESP_OK) ESP_LOGE(TAG, "error in gpio_sleep_set_pull_mode: %i, %i", pin, pullMode);
+  }
+
   ResetReason afterReset() {
-    rtc_gpio_deinit((gpio_num_t)BTN_1);
-    if (config.neopixelData > 0) disableRtcHold((gpio_num_t)config.neopixelData);
-    if (config.oledEn > 0) disableRtcHold((gpio_num_t)config.oledEn);
-    if (config.buzzerPin > 0) disableRtcHold((gpio_num_t)config.buzzerPin);
-    disableRtcHold((gpio_num_t)LED_PIN);
-    //  disableRtcHold((gpio_num_t)VBAT_EN); // 46 - bootstrap
-
-    enableGpioPullDn(GPIO_NUM_35);    // GPIO SUBSPID
-    enableGpioPullDn(GPIO_NUM_36);    // GPIO SUBSPICLK
-    enableGpioPullDn(GPIO_NUM_37);    // GPIO SUBSPIQ
-    enableGpioPullDn(GPIO_NUM_38);    // GPIO SUBSPIWP
-    enableGpioPullDn(GPIO_NUM_39);    // TCK (1.4V ???)
-#if CONFIG_IDF_TARGET_ESP32S3    
-    enableGpioPullDn(GPIO_NUM_40);    // TDO
-    enableGpioPullDn(GPIO_NUM_41);    // TDI
-    enableGpioPullDn(GPIO_NUM_42);    // TMS
-    enableGpioPullDn(GPIO_NUM_44);    // U0RxD (1.4V ???)
-    enableGpioPullDn(GPIO_NUM_47);    // GPIO SUBSPICLK_P_DIFF
-    enableGpioPullDn(GPIO_NUM_48);    // GPIO SUBSPICLK_N_DIFF
-#endif
-
     ResetReason reason = RR_UNDEFINED;
-
-    //    ESP_LOGD(TAG, "=========================== esp_sleep_get_wakeup_cause: %u", esp_sleep_get_wakeup_cause());
-    /*
-        switch (esp_sleep_get_wakeup_cause()) {
-          case ESP_SLEEP_WAKEUP_UNDEFINED: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_UNDEFINED"); break;
-          case ESP_SLEEP_WAKEUP_ALL: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_ALL"); break;
-          case ESP_SLEEP_WAKEUP_EXT0: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_EXT0"); break;
-          case ESP_SLEEP_WAKEUP_EXT1: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_EXT1"); break;
-          case ESP_SLEEP_WAKEUP_TIMER: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_TIMER"); break;
-          case ESP_SLEEP_WAKEUP_TOUCHPAD: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_TOUCHPAD"); break;
-          case ESP_SLEEP_WAKEUP_ULP: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_ULP"); break;
-          case ESP_SLEEP_WAKEUP_GPIO: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_GPIO"); break;
-          case ESP_SLEEP_WAKEUP_UART: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_UART"); break;
-          case ESP_SLEEP_WAKEUP_WIFI: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_WIFI"); break;
-          case ESP_SLEEP_WAKEUP_COCPU: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_COCPU"); break;
-          case ESP_SLEEP_WAKEUP_COCPU_TRAP_TRIG: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_COCPU_TRAP_TRIG"); break;
-          case ESP_SLEEP_WAKEUP_BT: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: ESP_SLEEP_WAKEUP_BT"); break;
-          default: ESP_LOGD(TAG, "esp_sleep_get_wakeup_cause: UNKNOWN (%u)", esp_sleep_get_wakeup_cause()); break;
-        }
-    */
-
-    //    ESP_LOGD(TAG, "Reset reason: %u, wakeup cause: %x, time: %u", rtc_get_reset_reason(0), rtc_get_wakeup_cause(), millis());
 
     struct timeval sleep_stop_time;
     uint64_t sleep_time_ms;
@@ -139,7 +100,6 @@ namespace Power {
       case NO_MEAN:
       case POWERON_RESET:           /**<1, Vbat power on reset*/
       case RTCWDT_BROWN_OUT_RESET:  /**<15, Reset when the vdd voltage is not stable*/
-
       case TG1WDT_SYS_RESET:        /**<8, Timer Group1 Watch dog reset digital core*/
       case RTCWDT_SYS_RESET:        /**<9, RTC Watch dog Reset digital core*/
       case RTCWDT_CPU_RESET:        /**<13, RTC Watch dog Reset CPU*/
@@ -209,15 +169,94 @@ namespace Power {
       case WAKE_FROM_BUTTON: ESP_LOGI(TAG, "Reset reason: WAKE_FROM_BUTTON"); break;
       default: ESP_LOGI(TAG, "Reset reason: UNKNOWN (%u)", reason); break;
     }
+    if (powermode == PM_UNDEFINED || reason == WAKE_FROM_BUTTON) {
+      powermode = USB;
+      ESP_LOGI(TAG, "Power mode: USB");
+    }
+
+    rtc_gpio_deinit((gpio_num_t)BTN_1);
+    if (config.neopixelData > 0 && (powermode == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON))) {
+      pinMode(config.neopixelData, OUTPUT);
+      disableRtcHold((gpio_num_t)config.neopixelData);
+#ifdef NEO_1_EN
+      pinMode(NEO_1_EN, OUTPUT);
+      digitalWrite(NEO_1_EN, HIGH);
+#endif
+      if (powermode == USB) {
+#ifdef NEO_23_EN
+        pinMode(NEO_23_EN, OUTPUT);
+        digitalWrite(NEO_23_EN, HIGH);
+#endif
+      } else {
+#ifdef NEO_23_EN
+        pinMode(NEO_23_EN, OUTPUT);
+        digitalWrite(NEO_23_EN, LOW);
+#endif
+      }
+    } else {
+#ifdef NEO_1_EN
+      pinMode(NEO_1_EN, OUTPUT);
+      digitalWrite(NEO_1_EN, LOW);
+#endif
+#ifdef NEO_23_EN
+      pinMode(NEO_23_EN, OUTPUT);
+      digitalWrite(NEO_23_EN, LOW);
+#endif
+    }
+
+    if (config.oledEn > 0) {
+      pinMode(config.oledEn, OUTPUT);
+      if (powermode == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF)) {
+        digitalWrite(config.oledEn, HIGH);
+      } else {
+        digitalWrite(config.oledEn, LOW);
+      }
+      disableRtcHold((gpio_num_t)config.oledEn);
+    }
+    if (config.buzzerPin > 0) disableRtcHold((gpio_num_t)config.buzzerPin);
+    disableRtcHold((gpio_num_t)LED_PIN);
+
+    enableGpioPullDn(GPIO_NUM_35);    // GPIO SUBSPID
+    enableGpioPullDn(GPIO_NUM_36);    // GPIO SUBSPICLK
+    enableGpioPullDn(GPIO_NUM_37);    // GPIO SUBSPIQ
+    enableGpioPullDn(GPIO_NUM_38);    // GPIO SUBSPIWP
+    enableGpioPullDn(GPIO_NUM_39);    // TCK (1.4V ???)
+#if CONFIG_IDF_TARGET_ESP32S3    
+    enableGpioPullDn(GPIO_NUM_40);    // TDO
+    enableGpioPullDn(GPIO_NUM_41);    // TDI
+    enableGpioPullDn(GPIO_NUM_42);    // TMS
+    enableGpioPullDn(GPIO_NUM_44);    // U0RxD (1.4V ???)
+    //    enableGpioPullDn(GPIO_NUM_47);    // GPIO SUBSPICLK_P_DIFF
+    //    enableGpioPullDn(GPIO_NUM_48);    // GPIO SUBSPICLK_N_DIFF
+#endif
 
     return reason;
   }
 
-  void prepareForDeepSleep() {
-    if (config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) digitalWrite(config.oledEn, LOW);
-    if (config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) ;
+  void prepareForDeepSleep(bool powerDown) {
+    ESP_LOGI(TAG, "prepareForDeepSleep(%s)", powerDown ? "true" : "false");
+
+    if (powerDown || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) digitalWrite(config.oledEn, LOW);
+    if (powerDown || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) {
+#ifdef NEO_1_EN
+      digitalWrite(NEO_1_EN, LOW);
+      setGpioSleepPullMode((gpio_num_t)NEO_1_EN, GPIO_PULLDOWN_ONLY);
+#endif
+      digitalWrite(config.neopixelData, HIGH);
+      setGpioSleepPullMode((gpio_num_t)config.neopixelData, GPIO_PULLUP_ONLY);
+    } else {
+#ifdef NEO_1_EN
+      digitalWrite(NEO_1_EN, HIGH);
+      setGpioSleepPullMode((gpio_num_t)NEO_1_EN, GPIO_PULLUP_ONLY);
+#endif
+      digitalWrite(config.neopixelData, LOW);
+      setGpioSleepPullMode((gpio_num_t)config.neopixelData, GPIO_PULLDOWN_ONLY);
+    }
+#ifdef NEO_23_EN
+    digitalWrite(NEO_23_EN, LOW);
+    setGpioSleepPullMode((gpio_num_t)NEO_23_EN, GPIO_PULLDOWN_ONLY);
+#endif
     digitalWrite(LED_PIN, LOW);
-    digitalWrite(config.neopixelData, LOW);
     digitalWrite(config.buzzerPin, LOW);
     digitalWrite(config.vBatEn, LOW);
 
@@ -237,13 +276,16 @@ namespace Power {
 
     enableRtcHold((gpio_num_t)config.neopixelData);
     enableRtcHold((gpio_num_t)config.oledEn);
-    enableRtcHold((gpio_num_t)config.buzzerPin);
+    setGpioSleepPullMode((gpio_num_t)config.buzzerPin, GPIO_PULLDOWN_ONLY);
     enableRtcHold((gpio_num_t)LED_PIN);
-    //    enableRtcHold((gpio_num_t)VBAT_EN); // 46 - bootstrap
+    setGpioSleepPullMode((gpio_num_t)VBAT_EN, GPIO_PULLDOWN_ONLY);
+
+    // don't - it increases power consumption. Use pullup/downn instead.
+    //gpio_deep_sleep_hold_en();
   }
 
   void deepSleep(uint64_t durationInSeconds) {
-    prepareForDeepSleep();
+    prepareForDeepSleep(false);
 
     int result = esp_sleep_enable_timer_wakeup(durationInSeconds * 1000000UL);
     if (result != ESP_OK) ESP_LOGE(TAG, "error in esp_sleep_enable_timer_wakeup: %i", result);
@@ -266,9 +308,9 @@ namespace Power {
   }
 
   void powerDown() {
-    digitalWrite(config.oledEn, LOW);
-    prepareForDeepSleep();
-    // @TODO: turn odd all periphals possible!
+    prepareForDeepSleep(true);
+
+    // @TODO: turn off all periphals possible!
     // disable Neopixels, turn off all sensors
     // check if RTC hold is required to pin down outputs
 

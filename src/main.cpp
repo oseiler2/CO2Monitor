@@ -267,9 +267,6 @@ void setup() {
 
   ResetReason resetReason = Power::afterReset();
   boolean reinitFromSleep = (resetReason == WAKE_FROM_SLEEPTIMER || resetReason == WAKE_FROM_BUTTON);
-  if (Power::getPowerMode() == PM_UNDEFINED) {
-    Power::setPowerMode(USB);
-  }
 
   if (!reinitFromSleep) logConfiguration(config);
 
@@ -442,13 +439,12 @@ void loop() {
 
       }
     }
-    if ((config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) && hasNeoPixel && neopixel) neopixel->off();
+    if (hasNeoPixel && neopixel) neopixel->prepareToSleep();
     Power::deepSleep(30);
   }
   if (button1State != oldConfirmedButton1State && (millis() - lastBtn1DebounceTime) > debounceDelay) {
     oldConfirmedButton1State = button1State;
     if (oldConfirmedButton1State == 1) {
-      ESP_LOGI(TAG, "Button 1 pressed!");
       Menu::button1Pressed();
     }
   }
@@ -456,21 +452,18 @@ void loop() {
   if (hasBtn2 && button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
     oldConfirmedButton2State = button2State;
     if (oldConfirmedButton2State == 1) {
-      ESP_LOGI(TAG, "Button 2 pressed!");
       Menu::button2Pressed();
     }
   }
   if (hasBtn3 && button3State != oldConfirmedButton3State && (millis() - lastBtn3DebounceTime) > debounceDelay) {
     oldConfirmedButton3State = button3State;
     if (oldConfirmedButton3State == 1) {
-      ESP_LOGI(TAG, "Button 3 pressed!");
       Menu::button3Pressed();
     }
   }
   if (hasBtn4 && button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
     oldConfirmedButton4State = button4State;
     if (oldConfirmedButton4State == 1) {
-      ESP_LOGI(TAG, "Button 4 pressed!");
       Menu::button4Pressed();
     }
   }

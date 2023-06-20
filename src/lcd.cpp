@@ -211,12 +211,8 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   this->display->setTextSize(1);
   this->display->setCursor(0, temp_hum_y);
   if (hasBattery) {
-    uint16_t mV = model->getVoltageInMv();
-    if (mV > 0) {
-      this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
-    } else {
-      this->display->printf("%3.1fC %2.0f%%rH %u.%uV %s", model->getTemperature(), model->getHumidity(), mV / 1000, (mV % 1000) / 100, Battery::usbPowerPresent() ? "U" : "B");
-    }
+    uint8_t bat = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
+    this->display->printf("%3.1fC %2.0f%%rH %u%% %s", model->getTemperature(), model->getHumidity(), bat, Battery::usbPowerPresent() ? "USB" : "Bat");
   } else {
     this->display->printf("Temp:%3.1fC Hum:%2.0f%%rH", model->getTemperature(), model->getHumidity());
   }

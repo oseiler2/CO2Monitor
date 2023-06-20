@@ -38,10 +38,10 @@ namespace Menu {
   };
 
   const char* const miSleepLabels[] = {
-    "OLED on\nLED on",
-    "OLED on\nLED off",
-    "OLED off\nLED on",
-    "OLED off\nLED off"
+    "Display on\nLED on",
+    "Display on\nLED off",
+    "Display off\nLED on",
+    "Display off\nLED off"
   };
 
   const char* const miCalibrationLabels[] = { "Perform\ncalibration" };
@@ -85,11 +85,12 @@ namespace Menu {
   }
 
   void goToSleepAction(uint8_t selection) {
+    ESP_LOGI(TAG, "goToSleepAction()");
     if (neopixel) neopixel->prepareToSleep();
     Power::setPowerMode(BATTERY);
     if (scd40) scd40->setSampleRate(LP_PERIODIC);
     if (bme680) bme680->setSampleRate(ULP);
-    if ((config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) && hasNeoPixel && neopixel) neopixel->off();
+    Power::deepSleep(30);
   }
 
   void powerDownAction(uint8_t selection) {
@@ -156,29 +157,31 @@ namespace Menu {
     if (menuLevel > -1) {
       menuLevel--;
       ESP_LOGI(TAG, "<<< Back!");
+      showMenu();
     }
-    showMenu();
   }
 
   void button3Pressed() {
     if (menuLevel == 0) {
       currentMenuItem = (currentMenuItem + 1) % menuItemSize;
+      showMenu();
     } else {
       if (menuLevel == 1) {
         menuItems[currentMenuItem]->selectNext();
+        showMenu();
       }
     }
-    showMenu();
   }
 
   void button4Pressed() {
     if (menuLevel == 0) {
       currentMenuItem = (currentMenuItem + menuItemSize - 1) % menuItemSize;
+      showMenu();
     } else {
       if (menuLevel == 1) {
         menuItems[currentMenuItem]->selectPrev();
+        showMenu();
       }
     }
-    showMenu();
   }
 }

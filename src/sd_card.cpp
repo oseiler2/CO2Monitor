@@ -9,7 +9,7 @@
 
 #include <model.h>
 #include <configManager.h>
-
+#include <battery.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -103,7 +103,7 @@ namespace SdCard {
   //    ESP_LOGD(TAG, "File doesn't exist - creating");
       f = fopen(fileName, "w");
       // write headers
-      fprintf(f, "time,co2,temperature,humidity,iaq,pressure,trafficlight,bat\n");
+      fprintf(f, "time,co2,temperature,humidity,iaq,pressure,trafficlight,battery(%%),battery(mV)\n");
     }
     if (f == NULL) {
       ESP_LOGE(TAG, "Failed to open file %s for writing", fileName);
@@ -134,6 +134,10 @@ namespace SdCard {
       fprintf(f, ",");
     if (status != OFF)
       fprintf(f, "%u,", status);
+    else
+      fprintf(f, ",");
+    if (batInMV > 1000)
+      fprintf(f, "%u,", Battery::getBatteryLevelInPercent(batInMV));
     else
       fprintf(f, ",");
     if (batInMV > 1000)

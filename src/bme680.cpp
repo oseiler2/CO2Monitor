@@ -6,6 +6,7 @@
 #include <i2c.h>
 #include <configManager.h>
 #include <EEPROM.h>
+#include <power.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -125,18 +126,18 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 
   loadState();
 
-  if (reinitFromSleep) {
+  if (Power::getPowerMode() == BATTERY) {
     this->sampleRate = BSEC_SAMPLE_RATE_ULP;
     bme680->setConfig(bsec_config_iaq_ULP);
-    checkIaqSensorStatus();
   } else {
     this->sampleRate = BSEC_SAMPLE_RATE_LP;
+    bme680->setConfig(bsec_config_iaq_LP);
+  }
+  checkIaqSensorStatus();
 
+  if (!reinitFromSleep || Power::getPowerMode() == USB) {
     bme680->setTemperatureOffset(7.0);
 
-    checkIaqSensorStatus();
-
-    bme680->setConfig(bsec_config_iaq_LP);
     checkIaqSensorStatus();
 
     bme680->updateSubscription(sensorList, 6, this->sampleRate);

@@ -7,6 +7,7 @@ namespace Timekeeper {
   void init();
   void initSntp();
   void printTime();
+  boolean isSynchronised();
 }
 
 #endif

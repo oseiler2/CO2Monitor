@@ -13,6 +13,8 @@ static const char TAG[] = __FILE__;
 
 namespace Timekeeper {
 
+  boolean synchronised = false;
+
   void printTime() {
     time_t now;
     char strftime_buf[64];
@@ -28,8 +30,12 @@ namespace Timekeeper {
     tzset();
   }
 
-  void initSntp() {
+  void syncNotificationCallback(timeval* tv) {
+    synchronised = true;
     printTime();
+  }
+
+  void initSntp() {
     if (sntp_enabled()) return;
 
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -40,7 +46,9 @@ namespace Timekeeper {
 #if SNTP_MAX_SERVERS > 2
     sntp_setservername(2, "time.cloudflare.com");
 #endif
-    sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
+    sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
+    sntp_set_time_sync_notification_cb(syncNotificationCallback);
+
     sntp_init();
     ESP_LOGI(TAG, "List of configured NTP servers:");
 
@@ -67,4 +75,8 @@ printTime();
     */
   }
 
+  boolean isSynchronised() {
+    return synchronised;
+    //    return (sntp_get_sync_status() != SNTP_SYNC_STATUS_IN_PROGRESS);
+  }
 }

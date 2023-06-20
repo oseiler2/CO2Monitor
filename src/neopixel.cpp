@@ -6,7 +6,7 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
-#define BAT_BRIGHTNESS (uint8_t)30
+#define BAT_BRIGHTNESS (uint8_t)15
 
 Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinitFromSleep) {
   this->model = _model;
@@ -22,10 +22,15 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
 
   this->strip->begin();
   this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
-  if (!reinitFromSleep) {
+  if (Power::getPowerMode() == USB || !reinitFromSleep) {
     // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
     ticker->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
-
+  }
+  if (reinitFromSleep && Power::getPowerMode() == USB) {
+    // woke up from sleep, flush all 3 LEDs
+    update(M_CONFIG_CHANGED, model->getStatus(), model->getStatus());
+  }
+  if (!reinitFromSleep) {
     this->strip->show(); // Initialize all pixels to 'off'
     fill(colourPurple);
     delay(250);
@@ -61,29 +66,45 @@ void Neopixel::off() {
 }
 
 void Neopixel::prepareToSleep() {
-  ticker->detach();
-  if (model->getStatus() == DARK_RED) {
-    fill(colourPurple); // Red
+  this->strip->setBrightness(0);
+  for (uint16_t i = 0; i < this->strip->numPixels(); i++) {
+    this->strip->setPixelColor(i, colourOff);
   }
+  this->strip->show();
+  if (config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON) {
+    this->strip->setBrightness(min(BAT_BRIGHTNESS, config.brightness));
+    uint32_t c;
+    switch (model->getStatus()) {
+      case GREEN:
+        c = colourGreen;
+        break;
+      case YELLOW:
+        c = colourYellow;
+        break;
+      case RED:
+        c = colourRed;
+        break;
+      case DARK_RED:
+        c = colourPurple;
+        break;
+      default:
+        c = colourOff;
+        break;
+    }
+    this->strip->setPixelColor(0, c);
+    this->strip->show();
+  }
+  ticker->detach();
+#ifdef NEO_23_EN
+  digitalWrite(NEO_23_EN, LOW);
+#endif
 }
 
 void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (mask && M_POWER_MODE) {
-    switch (Power::getPowerMode()) {
-      case USB:
-        this->strip->setBrightness(config.brightness);
-        break;
-      case BATTERY:
-        off();
-        this->strip->setBrightness(min(BAT_BRIGHTNESS, config.brightness));
-        break;
-      default: break;
-    }
-  }
-  if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED) && !(mask && M_POWER_MODE)) return;
+  if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
   if (mask & M_CONFIG_CHANGED) this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
   if (newStatus == OFF) {
-    fill(colourOff);
+    fill(colourGreen);
   } else if (newStatus == GREEN) {
     fill(colourGreen);
   } else if (newStatus == YELLOW) {
@@ -100,7 +121,7 @@ void Neopixel::timer() {
   this->toggle = !(this->toggle);
   if (model->getStatus() == DARK_RED) {
     if (toggle)
-      fill(colourPurple); // Red
+      fill(colourPurple);
     else
       fill(colourOff);
   }

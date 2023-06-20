@@ -42,6 +42,8 @@
 #define SDA_PIN               14
 #define SCL_PIN               21
 #define SCD30_RDY_PIN         -1
+#define NEO_1_EN              48
+#define NEO_23_EN             47
 
 #endif
 

@@ -56,7 +56,7 @@ namespace Battery {
     }
     uint16_t mV_raw = (sumValue - maxValue - minValue) / (NUMBER_OF_READINGS - 2);
     digitalWrite(config.vBatEn, LOW);
-    uint16_t mV = mV_raw * 1.353f;
+    uint16_t mV = mV_raw * 1.496f; //* 1.365f;  //1.496f;  (1k vs 1k5)
     adc_power_release();
     ESP_LOGI(TAG, "Battery: %u mV (raw: %u mV)", mV, mV_raw);
     return mV;
