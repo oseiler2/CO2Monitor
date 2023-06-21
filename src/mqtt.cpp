@@ -392,7 +392,9 @@ namespace mqtt {
 
   void reconnect() {
     if (!WiFi.isConnected() || mqtt_client->connected()) return;
-    if (millis() - lastReconnectAttempt < 5000) return;
+    if (millis() - lastReconnectAttempt < 60000) return;
+    if (strncmp(config.mqttHost, "127.0.0.1", MQTT_HOSTNAME_LEN) == 0 ||
+      strncmp(config.mqttHost, "localhost", MQTT_HOSTNAME_LEN) == 0) return;
     char topic[256];
     char id[64];
     sprintf(id, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
