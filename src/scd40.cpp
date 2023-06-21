@@ -121,13 +121,13 @@ boolean SCD40::readScd40() {
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("");
 #endif
-  model->updateModel(co2, temperature, humidity);
   if (co2 == 0) {
     ESP_LOGW(TAG, "Invalid sample detected, skipping.");
 #ifdef SHOW_DEBUG_MSGS
     this->updateMessageCallback("Invalid sample");
 #endif
   } else {
+    model->updateModel(co2, temperature, humidity);
     return true;
   }
   return false;
