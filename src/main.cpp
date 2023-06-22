@@ -246,6 +246,7 @@ void setup() {
   if (hasHub75) hub75 = new HUB75(model);
 
   mqtt::setupMqtt(
+    "CO2Monitor",
     calibrateCo2SensorCallback,
     setTemperatureOffsetCallback,
     getTemperatureOffsetCallback,
@@ -306,7 +307,7 @@ void setup() {
 #ifdef SHOW_DEBUG_MSGS
   if (lcd) {
     lcd->updateMessage("Setup done.");
-  }
+}
 #endif
 }
 

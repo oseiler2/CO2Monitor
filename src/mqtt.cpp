@@ -33,6 +33,8 @@ namespace mqtt {
   WiFiClient* wifiClient;
   PubSubClient* mqtt_client;
 
+  const char* appName;
+
   calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
   setTemperatureOffsetCallback_t setTemperatureOffsetCallback;
   getTemperatureOffsetCallback_t getTemperatureOffsetCallback;
@@ -123,7 +125,7 @@ namespace mqtt {
     boolean mqttTestSuccess;
     PubSubClient* testMqttClient = new PubSubClient(*wifiClient);
     testMqttClient->setServer(testConfig.mqttHost, testConfig.mqttServerPort);
-    sprintf(buf, "CO2Monitor-%u-%s", testConfig.deviceId, WifiManager::getMac().c_str());
+    sprintf(buf, "%s-%u-%s", appName, testConfig.deviceId, WifiManager::getMac().c_str());
     // disconnect current connection if not enough heap avalable to initiate another tls session.
     if (testConfig.mqttUseTls && ESP.getFreeHeap() < 75000) mqtt_client->disconnect();
     mqttTestSuccess = testMqttClient->connect(buf, testConfig.mqttUsername, testConfig.mqttPassword);
@@ -397,7 +399,7 @@ namespace mqtt {
       strncmp(config.mqttHost, "localhost", MQTT_HOSTNAME_LEN) == 0) return;
     char topic[256];
     char id[64];
-    sprintf(id, "CO2Monitor-%u-%s", config.deviceId, WifiManager::getMac().c_str());
+    sprintf(id, "%s-%u-%s", appName, config.deviceId, WifiManager::getMac().c_str());
     lastReconnectAttempt = millis();
     ESP_LOGD(TAG, "Attempting MQTT connection...");
     connectionAttempts++;
@@ -432,6 +434,7 @@ namespace mqtt {
   }
 
   void setupMqtt(
+    const char* _appName,
     calibrateCo2SensorCallback_t _calibrateCo2SensorCallback,
     setTemperatureOffsetCallback_t _setTemperatureOffsetCallback,
     getTemperatureOffsetCallback_t _getTemperatureOffsetCallback,
@@ -441,6 +444,7 @@ namespace mqtt {
     getSPS30StatusCallback_t _getSPS30StatusCallback,
     configChangedCallback_t _configChangedCallback
   ) {
+    appName = _appName;
     mqttQueue = xQueueCreate(MQTT_QUEUE_LENGTH, sizeof(struct MqttMessage));
     if (mqttQueue == NULL) {
       ESP_LOGE(TAG, "Queue creation failed!");
