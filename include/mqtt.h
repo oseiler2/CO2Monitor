@@ -23,6 +23,7 @@ namespace mqtt {
   typedef uint8_t(*getSPS30StatusCallback_t)(void);
 
   void setupMqtt(
+    const char* appName,
     calibrateCo2SensorCallback_t calibrateCo2SensorCallback,
     setTemperatureOffsetCallback_t setTemperatureOffsetCallback,
     getTemperatureOffsetCallback_t getTemperatureOffsetCallback,

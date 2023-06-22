@@ -350,6 +350,7 @@ void setup() {
 
   if (Power::getPowerMode() == USB) {
     mqtt::setupMqtt(
+      "CO2Monitor",
       calibrateCo2SensorCallback,
       setTemperatureOffsetCallback,
       getTemperatureOffsetCallback,
@@ -418,7 +419,7 @@ void setup() {
 #ifdef SHOW_DEBUG_MSGS
   if (lcd) {
     lcd->updateMessage("Setup done.");
-  }
+}
 #endif
 }
 
