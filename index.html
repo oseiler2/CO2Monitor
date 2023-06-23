@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>CO2 Monitor installer</title>
+    <meta
+      name="description"
+      content="Easily allow users to install CO2 Monitor firmware on the web."
+    />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="color-scheme" content="dark light" />
+    <style>
+      body {
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Ubuntu, sans-serif;
+        padding: 0;
+        margin: 0;
+        line-height: 1.4;
+      }
+      .content {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 12px;
+      }
+      h2 {
+        margin-top: 2em;
+      }
+      h3 {
+        margin-top: 1.5em;
+      }
+      a {
+        color: #03a9f4;
+      }
+      .invisible {
+        visibility: hidden;
+      }
+      .hidden {
+        display: none;
+      }
+      esp-web-install-button[install-unsupported] {
+        visibility: inherit;
+      }
+      .content pre {
+        max-width: 100%;
+        overflow-y: scroll;
+      }
+      .footer {
+        margin-top: 24px;
+        border-top: 1px solid #ccc;
+        padding-top: 24px;
+        text-align: center;
+      }
+      .footer .initiative {
+        font-style: italic;
+        margin-top: 16px;
+      }
+      table {
+        border-spacing: 0;
+      }
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #ccc;
+      }
+      .radios li {
+        list-style: none;
+        line-height: 2em;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #333;
+          color: #fff;
+        }
+        a {
+          color: #58a6ff;
+        }
+      }
+    </style>
+    <script type="module" src="https://unpkg.com/esp-web-tools@9/dist/web/install-button.js?module"></script>
+  </head>
+  <body>
+    <div class="content">
+      <div class="container">
+        <h1>CO2 Monitor installer</h1>
+        <br>
+        <p>Please connect your device via USB, select a firmware below and click the connect button.</p>
+        <br>
+        <esp-web-install-button id="esp-install-btn" manifest="" onclick="b()"></esp-web-install-button>
+        <br>
+        <br>
+        <label for="release">latest release</label>
+        <input type="radio" id="release" name="fw-version" checked manifest="manifest-latest-release.json">
+        <br>
+        <label for="latest-dev">latest development version</label>
+        <input type="radio" id="latest-dev" name="fw-version"manifest="manifest-latest-dev.json">
+        <br>
+      </div>
+
+
+      <div class="footer">
+        <a href="https://github.com/oseiler2/CO2Monitor">CO2 Monitor</a
+        > &mdash;
+        Installer powered by <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a>.
+    </div>
+    <script>
+      function b() {
+        const manifest = document.querySelector('input[name="fw-version"]:checked').getAttribute('manifest');
+        document.getElementById('esp-install-btn').setAttribute('manifest', manifest);
+        console.log(manifest);
+      }
+    </script>
+  </body>
+</html>
