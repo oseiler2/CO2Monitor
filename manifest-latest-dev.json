@@ -6,6 +6,10 @@
     {
       "chipFamily": "ESP32",
       "parts": [{ "path": "build/firmware-combined-esp32-debug.bin", "offset": 0 }]
+    },
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [{ "path": "build/firmware-combined-esp32-s3-debug.bin", "offset": 0 }]
     }
   ]
 }
