@@ -81,3 +81,4 @@ jobs:
           folder: build
           branch: docs
           target-folder: build
+          clean: false
