@@ -6,5 +6,6 @@ typedef void (*updateMessageCallback_t)(char const*);
 typedef void (*setPriorityMessageCallback_t)(char const*);
 typedef void (*clearPriorityMessageCallback_t)(void);
 typedef void (*publishMessageCallback_t)(char const*);
+typedef void (*configChangedCallback_t)();
 
 #endif

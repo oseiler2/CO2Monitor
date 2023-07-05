@@ -1,4 +1,3 @@
-
 #include <configManager.h>
 
 #include <FS.h>
@@ -61,16 +60,7 @@ Config config;
 }
 */
 
-void setupConfigManager() {
-  if (!LittleFS.begin(true)) {
-    ESP_LOGW(TAG, "LittleFS failed! Already tried formatting.");
-    if (!LittleFS.begin()) {
-      delay(100);
-      ESP_LOGW(TAG, "LittleFS failed second time!");
-    }
-  }
-}
-
+#define DEFAULT_DEVICE_ID                  0
 #define DEFAULT_MQTT_TOPIC      "co2monitor"
 #define DEFAULT_MQTT_HOST        "127.0.0.1"
 #define DEFAULT_MQTT_PORT               1883
@@ -78,7 +68,6 @@ void setupConfigManager() {
 #define DEFAULT_MQTT_PASSWORD   "co2monitor"
 #define DEFAULT_MQTT_USE_TLS           false
 #define DEFAULT_MQTT_INSECURE          false
-#define DEFAULT_DEVICE_ID                  0
 #define DEFAULT_ALTITUDE                   5
 #define DEFAULT_CO2_GREEN_THRESHOLD        0
 #define DEFAULT_CO2_YELLOW_THRESHOLD     700
@@ -120,99 +109,79 @@ void setupConfigManager() {
 #define DEFAULT_HUB75_LAT                 26
 #define DEFAULT_HUB75_OE                  25
 
-void getDefaultConfiguration(Config& config) {
-  config.deviceId = DEFAULT_DEVICE_ID;
-  strlcpy(config.mqttTopic, DEFAULT_MQTT_TOPIC, sizeof(DEFAULT_MQTT_TOPIC));
-  strlcpy(config.mqttUsername, DEFAULT_MQTT_USERNAME, sizeof(DEFAULT_MQTT_USERNAME));
-  strlcpy(config.mqttPassword, DEFAULT_MQTT_PASSWORD, sizeof(DEFAULT_MQTT_PASSWORD));
-  strlcpy(config.mqttHost, DEFAULT_MQTT_HOST, sizeof(DEFAULT_MQTT_HOST));
-  config.mqttUseTls = DEFAULT_MQTT_USE_TLS;
-  config.mqttInsecure = DEFAULT_MQTT_INSECURE;
-  config.mqttServerPort = DEFAULT_MQTT_PORT;
-  config.altitude = DEFAULT_ALTITUDE;
-  config.co2GreenThreshold = DEFAULT_CO2_GREEN_THRESHOLD;
-  config.co2YellowThreshold = DEFAULT_CO2_YELLOW_THRESHOLD;
-  config.co2RedThreshold = DEFAULT_CO2_RED_THRESHOLD;
-  config.co2DarkRedThreshold = DEFAULT_CO2_DARK_RED_THRESHOLD;
-  config.iaqGreenThreshold = DEFAULT_IAQ_GREEN_THRESHOLD;
-  config.iaqYellowThreshold = DEFAULT_IAQ_YELLOW_THRESHOLD;
-  config.iaqRedThreshold = DEFAULT_IAQ_RED_THRESHOLD;
-  config.iaqDarkRedThreshold = DEFAULT_IAQ_DARK_RED_THRESHOLD;
-  config.brightness = DEFAULT_BRIGHTNESS;
-  config.ssd1306Rows = DEFAULT_SSD1306_ROWS;
-  config.greenLed = DEFAULT_GREEN_LED;
-  config.yellowLed = DEFAULT_YELLOW_LED;
-  config.redLed = DEFAULT_RED_LED;
-  config.neopixelData = DEFAULT_NEOPIXEL_DATA;
-  config.neopixelNumber = DEFAULT_NEOPIXEL_NUMBER;
-  config.neopixelMatrixData = DEFAULT_NEOPIXEL_MATRIX_DATA;
-  config.featherMatrixData = DEFAULT_FEATHER_MATRIX_DATA;
-  config.featherMatrixClock = DEFAULT_FEATHER_MATRIX_CLK;
-  config.matrixColumns = DEFAULT_MATRIX_COLUMNS;
-  config.matrixRows = DEFAULT_MATRIX_ROWS;
-  config.matrixLayout = DEFAULT_MATRIX_LAYOUT;
-  config.hub75R1 = DEFAULT_HUB75_R1;
-  config.hub75G1 = DEFAULT_HUB75_G1;
-  config.hub75B1 = DEFAULT_HUB75_B1;
-  config.hub75R2 = DEFAULT_HUB75_R2;
-  config.hub75G2 = DEFAULT_HUB75_G2;
-  config.hub75B2 = DEFAULT_HUB75_B2;
-  config.hub75ChA = DEFAULT_HUB75_CH_A;
-  config.hub75ChB = DEFAULT_HUB75_CH_B;
-  config.hub75ChC = DEFAULT_HUB75_CH_C;
-  config.hub75ChD = DEFAULT_HUB75_CH_D;
-  config.hub75Clk = DEFAULT_HUB75_CLK;
-  config.hub75Lat = DEFAULT_HUB75_LAT;
-  config.hub75Oe = DEFAULT_HUB75_OE;
+std::vector<ConfigParameterBase<Config>*> configParameterVector;
+
+void setupConfigManager() {
+  if (!LittleFS.begin(true)) {
+    ESP_LOGW(TAG, "LittleFS failed! Already tried formatting.");
+    if (!LittleFS.begin()) {
+      delay(100);
+      ESP_LOGW(TAG, "LittleFS failed second time!");
+    }
+  }
+  //  configParameterVector.clear();
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("deviceId", "Device ID", &Config::deviceId, DEFAULT_DEVICE_ID));
+  configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttTopic", "MQTT topic", (char Config::*) & Config::mqttTopic, DEFAULT_MQTT_TOPIC, MQTT_TOPIC_LEN));
+  configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttUsername", "MQTT username", (char Config::*) & Config::mqttUsername, DEFAULT_MQTT_USERNAME, MQTT_USERNAME_LEN));
+  configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttPassword", "MQTT password", (char Config::*) & Config::mqttPassword, DEFAULT_MQTT_PASSWORD, MQTT_PASSWORD_LEN));
+  configParameterVector.push_back(new CharArrayConfigParameter<Config>("mqttHost", "MQTT host", (char Config::*) & Config::mqttHost, DEFAULT_MQTT_HOST, MQTT_HOSTNAME_LEN));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("mqttServerPort", "MQTT port", &Config::mqttServerPort, DEFAULT_MQTT_PORT));
+  configParameterVector.push_back(new BooleanConfigParameter<Config>("mqttUseTls", "MQTT use TLS", &Config::mqttUseTls, DEFAULT_MQTT_USE_TLS));
+  configParameterVector.push_back(new BooleanConfigParameter<Config>("mqttInsecure", "MQTT ignore certificate errors", &Config::mqttInsecure, DEFAULT_MQTT_INSECURE));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("altitude", "Altitude", &Config::altitude, DEFAULT_ALTITUDE, 0, 8000));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("co2GreenThreshold", "CO2 Green threshold ", &Config::co2GreenThreshold, DEFAULT_CO2_GREEN_THRESHOLD));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("co2YellowThreshold", "CO2 Yellow threshold ", &Config::co2YellowThreshold, DEFAULT_CO2_YELLOW_THRESHOLD));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("co2RedThreshold", "CO2 Red threshold", &Config::co2RedThreshold, DEFAULT_CO2_RED_THRESHOLD));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("co2DarkRedThreshold", "CO2 Dark red threshold", &Config::co2DarkRedThreshold, DEFAULT_CO2_DARK_RED_THRESHOLD));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqGreenThreshold", "IAQ Green threshold ", &Config::iaqGreenThreshold, DEFAULT_IAQ_GREEN_THRESHOLD));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqYellowThreshold", "IAQ Yellow threshold ", &Config::iaqYellowThreshold, DEFAULT_IAQ_YELLOW_THRESHOLD));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqRedThreshold", "IAQ Red threshold", &Config::iaqRedThreshold, DEFAULT_IAQ_RED_THRESHOLD));
+  configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqDarkRedThreshold", "IAQ Dark red threshold", &Config::iaqDarkRedThreshold, DEFAULT_IAQ_DARK_RED_THRESHOLD));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("brightness", "LED brightness pwm", &Config::brightness, DEFAULT_BRIGHTNESS));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("ssd1306Rows", "SSD1306 rows", &Config::ssd1306Rows, DEFAULT_SSD1306_ROWS, 32, 64, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("greenLed", "Green Led pin", &Config::greenLed, DEFAULT_GREEN_LED, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("yellowLed", "Yellow Led pin", &Config::yellowLed, DEFAULT_YELLOW_LED, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("redLed", "Red Led pin", &Config::redLed, DEFAULT_RED_LED, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelData", "Neopixel data pin", &Config::neopixelData, DEFAULT_NEOPIXEL_DATA, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelNumber", "Number of Neopixels", &Config::neopixelNumber, DEFAULT_NEOPIXEL_NUMBER, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("neopixelMatrixData", "Neopixel matrix data pin", &Config::neopixelMatrixData, DEFAULT_NEOPIXEL_MATRIX_DATA, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("featherMatrixData", "Feather matrix data pin", &Config::featherMatrixData, DEFAULT_FEATHER_MATRIX_DATA, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("featherMatrixClock", "Feather matrix clock pin", &Config::featherMatrixClock, DEFAULT_FEATHER_MATRIX_CLK, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixColumns", "Matrix columns", &Config::matrixColumns, DEFAULT_MATRIX_COLUMNS, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixRows", "Matrix rows", &Config::matrixRows, DEFAULT_MATRIX_ROWS, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixLayout", "Matrix layout", &Config::matrixLayout, DEFAULT_MATRIX_LAYOUT, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R1", "Hub75 R1 pin", &Config::hub75R1, DEFAULT_HUB75_R1, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G1", "Hub75 G1 pin", &Config::hub75G1, DEFAULT_HUB75_G1, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B1", "Hub75 B1 pin", &Config::hub75B1, DEFAULT_HUB75_B1, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R2", "Hub75 R2 pin", &Config::hub75R2, DEFAULT_HUB75_R2, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G2", "Hub75 G2 pin", &Config::hub75G2, DEFAULT_HUB75_G2, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B2", "Hub75 B2 pin", &Config::hub75B2, DEFAULT_HUB75_B2, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChA", "Hub75 Channel A pin", &Config::hub75ChA, DEFAULT_HUB75_CH_A, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChB", "Hub75 Channel B pin", &Config::hub75ChB, DEFAULT_HUB75_CH_B, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChC", "Hub75 Channel C pin", &Config::hub75ChC, DEFAULT_HUB75_CH_C, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChD", "Hub75 Channel D pin", &Config::hub75ChD, DEFAULT_HUB75_CH_D, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Clk", "Hub75 Clk pin", &Config::hub75Clk, DEFAULT_HUB75_CLK, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Lat", "Hub75 Lat pin", &Config::hub75Lat, DEFAULT_HUB75_LAT, true));
+  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Oe", "Hub75 Oe pin", &Config::hub75Oe, DEFAULT_HUB75_OE, true));
 }
 
-void logConfiguration(const Config& config) {
-  ESP_LOGD(TAG, "deviceId: %u", config.deviceId);
-  ESP_LOGD(TAG, "mqttTopic: %s", config.mqttTopic);
-  ESP_LOGD(TAG, "mqttUsername: %s", config.mqttUsername);
-  ESP_LOGD(TAG, "mqttPassword: %s", config.mqttPassword);
-  ESP_LOGD(TAG, "mqttHost: %s", config.mqttHost);
-  ESP_LOGD(TAG, "mqttUseTls: %s", config.mqttUseTls ? "true" : "false");
-  ESP_LOGD(TAG, "mqttInsecure: %s", config.mqttInsecure ? "true" : "false");
-  ESP_LOGD(TAG, "mqttPort: %u", config.mqttServerPort);
-  ESP_LOGD(TAG, "altitude: %u", config.altitude);
-  ESP_LOGD(TAG, "co2GreenThreshold: %u", config.co2GreenThreshold);
-  ESP_LOGD(TAG, "co2YellowThreshold: %u", config.co2YellowThreshold);
-  ESP_LOGD(TAG, "co2RedThreshold: %u", config.co2RedThreshold);
-  ESP_LOGD(TAG, "co2DarkRedThreshold: %u", config.co2DarkRedThreshold);
-  ESP_LOGD(TAG, "iaqGreenThreshold: %u", config.iaqGreenThreshold);
-  ESP_LOGD(TAG, "iaqYellowThreshold: %u", config.iaqYellowThreshold);
-  ESP_LOGD(TAG, "iaqRedThreshold: %u", config.iaqRedThreshold);
-  ESP_LOGD(TAG, "iaqDarkRedThreshold: %u", config.iaqDarkRedThreshold);
-  ESP_LOGD(TAG, "brightness: %u", config.brightness);
-  ESP_LOGD(TAG, "ssd1306Rows: %u", config.ssd1306Rows);
-  ESP_LOGD(TAG, "greenLed: %u", config.greenLed);
-  ESP_LOGD(TAG, "yellowLed: %u", config.yellowLed);
-  ESP_LOGD(TAG, "redLed: %u", config.redLed);
-  ESP_LOGD(TAG, "neopixelData: %u", config.neopixelData);
-  ESP_LOGD(TAG, "neopixelNumber: %u", config.neopixelNumber);
-  ESP_LOGD(TAG, "neopixelMatrixData: %u", config.neopixelMatrixData);
-  ESP_LOGD(TAG, "featherMatrixData: %u", config.featherMatrixData);
-  ESP_LOGD(TAG, "featherMatrixClock: %u", config.featherMatrixClock);
-  ESP_LOGD(TAG, "matrixColumns: %u", config.matrixColumns);
-  ESP_LOGD(TAG, "matrixRows: %u", config.matrixRows);
-  ESP_LOGD(TAG, "matrixLayout: %u", config.matrixLayout);
-  ESP_LOGD(TAG, "hub75R1: %u", config.hub75R1);
-  ESP_LOGD(TAG, "hub75G1: %u", config.hub75G1);
-  ESP_LOGD(TAG, "hub75B1: %u", config.hub75B1);
-  ESP_LOGD(TAG, "hub75R2: %u", config.hub75R2);
-  ESP_LOGD(TAG, "hub75G2: %u", config.hub75G2);
-  ESP_LOGD(TAG, "hub75B2: %u", config.hub75B2);
-  ESP_LOGD(TAG, "hub75ChA: %u", config.hub75ChA);
-  ESP_LOGD(TAG, "hub75ChB: %u", config.hub75ChB);
-  ESP_LOGD(TAG, "hub75ChC: %u", config.hub75ChC);
-  ESP_LOGD(TAG, "hub75ChD: %u", config.hub75ChD);
-  ESP_LOGD(TAG, "hub75Clk: %u", config.hub75Clk);
-  ESP_LOGD(TAG, "hub75Lat: %u", config.hub75Lat);
-  ESP_LOGD(TAG, "hub75Oe: %u", config.hub75Oe);
+std::vector<ConfigParameterBase<Config>*> getConfigParameters() {
+  return configParameterVector;
 }
 
-boolean loadConfiguration(Config& config) {
+void getDefaultConfiguration(Config& _config) {
+  for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
+    configParameter->setToDefault(_config);
+  }
+}
+
+void logConfiguration(const Config _config) {
+  for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
+    ESP_LOGD(TAG, "%s: %s", configParameter->getId(), configParameter->toString(_config).c_str());
+  }
+}
+
+boolean loadConfiguration(Config& _config) {
   File file = LittleFS.open(CONFIG_FILENAME, FILE_READ);
   if (!file) {
     ESP_LOGW(TAG, "Could not open config file");
@@ -222,75 +191,26 @@ boolean loadConfiguration(Config& config) {
   // Allocate a temporary JsonDocument
   // Don't forget to change the capacity to match your requirements.
   // Use arduinojson.org/v6/assistant to compute the capacity.
-  DynamicJsonDocument doc(CONFIG_SIZE);
+  DynamicJsonDocument* doc = new DynamicJsonDocument(CONFIG_SIZE);
 
-  DeserializationError error = deserializeJson(doc, file);
+  DeserializationError error = deserializeJson(*doc, file);
   if (error) {
     ESP_LOGW(TAG, "Failed to parse config file: %s", error.f_str());
     file.close();
     return false;
   }
 
-  // Copy values from the JsonDocument to the Config
-  config.deviceId = doc["deviceId"] | DEFAULT_DEVICE_ID;
-  strlcpy(config.mqttTopic,
-    doc["mqttTopic"] | DEFAULT_MQTT_TOPIC,
-    sizeof(config.mqttTopic));
-  strlcpy(config.mqttUsername,
-    doc["mqttUsername"] | DEFAULT_MQTT_USERNAME,
-    sizeof(config.mqttUsername));
-  strlcpy(config.mqttPassword,
-    doc["mqttPassword"] | DEFAULT_MQTT_PASSWORD,
-    sizeof(config.mqttPassword));
-  strlcpy(config.mqttHost,
-    doc["mqttHost"] | DEFAULT_MQTT_HOST,
-    sizeof(config.mqttHost));
-  config.mqttServerPort = doc["mqttServerPort"] | DEFAULT_MQTT_PORT;
-  config.mqttUseTls = doc["mqttUseTls"] | DEFAULT_MQTT_USE_TLS;
-  config.mqttInsecure = doc["mqttInsecure"] | DEFAULT_MQTT_INSECURE;
-  config.altitude = doc["altitude"] | DEFAULT_ALTITUDE;
-  config.co2GreenThreshold = doc["co2GreenThreshold"] | DEFAULT_CO2_GREEN_THRESHOLD;
-  config.co2YellowThreshold = doc["co2YellowThreshold"] | DEFAULT_CO2_YELLOW_THRESHOLD;
-  config.co2RedThreshold = doc["co2RedThreshold"] | DEFAULT_CO2_RED_THRESHOLD;
-  config.co2DarkRedThreshold = doc["co2DarkRedThreshold"] | DEFAULT_CO2_DARK_RED_THRESHOLD;
-  config.iaqGreenThreshold = doc["iaqGreenThreshold"] | DEFAULT_IAQ_GREEN_THRESHOLD;
-  config.iaqYellowThreshold = doc["iaqYellowThreshold"] | DEFAULT_IAQ_YELLOW_THRESHOLD;
-  config.iaqRedThreshold = doc["iaqRedThreshold"] | DEFAULT_IAQ_RED_THRESHOLD;
-  config.iaqDarkRedThreshold = doc["iaqDarkRedThreshold"] | DEFAULT_IAQ_DARK_RED_THRESHOLD;
-  config.brightness = doc["brightness"] | DEFAULT_BRIGHTNESS;
-  config.ssd1306Rows = doc["ssd1306Rows"] | DEFAULT_SSD1306_ROWS;
-  config.greenLed = doc["greenLed"] | DEFAULT_GREEN_LED;
-  config.yellowLed = doc["yellowLed"] | DEFAULT_YELLOW_LED;
-  config.redLed = doc["redLed"] | DEFAULT_RED_LED;
-  config.neopixelData = doc["neopixelData"] | DEFAULT_NEOPIXEL_DATA;
-  config.neopixelNumber = doc["neopixelNumber"] | DEFAULT_NEOPIXEL_NUMBER;
-  config.neopixelMatrixData = doc["neopixelMatrixData"] | DEFAULT_NEOPIXEL_MATRIX_DATA;
-  config.featherMatrixData = doc["featherMatrixData"] | DEFAULT_FEATHER_MATRIX_DATA;
-  config.featherMatrixClock = doc["featherMatrixClock"] | DEFAULT_FEATHER_MATRIX_CLK;
-  config.matrixColumns = doc["matrixColumns"] | DEFAULT_MATRIX_COLUMNS;
-  config.matrixRows = doc["matrixRows"] | DEFAULT_MATRIX_ROWS;
-  config.matrixLayout = doc["matrixLayout"] | DEFAULT_MATRIX_LAYOUT;
-  config.hub75R1 = doc["hub75R1"] | DEFAULT_HUB75_R1;
-  config.hub75G1 = doc["hub75G1"] | DEFAULT_HUB75_G1;
-  config.hub75B1 = doc["hub75B1"] | DEFAULT_HUB75_B1;
-  config.hub75R2 = doc["hub75R2"] | DEFAULT_HUB75_R2;
-  config.hub75G2 = doc["hub75G2"] | DEFAULT_HUB75_G2;
-  config.hub75B2 = doc["hub75B2"] | DEFAULT_HUB75_B2;
-  config.hub75ChA = doc["hub75ChA"] | DEFAULT_HUB75_CH_A;
-  config.hub75ChB = doc["hub75ChB"] | DEFAULT_HUB75_CH_B;
-  config.hub75ChC = doc["hub75ChC"] | DEFAULT_HUB75_CH_C;
-  config.hub75ChD = doc["hub75ChD"] | DEFAULT_HUB75_CH_D;
-  config.hub75Clk = doc["hub75Clk"] | DEFAULT_HUB75_CLK;
-  config.hub75Lat = doc["hub75Lat"] | DEFAULT_HUB75_LAT;
-  config.hub75Oe = doc["hub75Oe"] | DEFAULT_HUB75_OE;
+  for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
+    configParameter->fromJson(_config, doc, true);
+  }
 
   file.close();
   return true;
 }
 
-boolean saveConfiguration(const Config& config) {
+boolean saveConfiguration(const Config _config) {
   ESP_LOGD(TAG, "###################### saveConfiguration");
-  logConfiguration(config);
+  logConfiguration(_config);
   // Delete existing file, otherwise the configuration is appended to the file
   if (LittleFS.exists(CONFIG_FILENAME)) {
     LittleFS.remove(CONFIG_FILENAME);
@@ -303,55 +223,13 @@ boolean saveConfiguration(const Config& config) {
     return false;
   }
 
-  DynamicJsonDocument doc(CONFIG_SIZE);
-
-  // Set the values in the document
-  doc["deviceId"] = config.deviceId;
-  doc["mqttTopic"] = config.mqttTopic;
-  doc["mqttUsername"] = config.mqttUsername;
-  doc["mqttPassword"] = config.mqttPassword;
-  doc["mqttHost"] = config.mqttHost;
-  doc["mqttServerPort"] = config.mqttServerPort;
-  doc["mqttUseTls"] = config.mqttUseTls;
-  doc["mqttInsecure"] = config.mqttInsecure;
-  doc["altitude"] = config.altitude;
-  doc["co2GreenThreshold"] = config.co2GreenThreshold;
-  doc["co2YellowThreshold"] = config.co2YellowThreshold;
-  doc["co2RedThreshold"] = config.co2RedThreshold;
-  doc["co2DarkRedThreshold"] = config.co2DarkRedThreshold;
-  doc["iaqGreenThreshold"] = config.iaqGreenThreshold;
-  doc["iaqYellowThreshold"] = config.iaqYellowThreshold;
-  doc["iaqRedThreshold"] = config.iaqRedThreshold;
-  doc["iaqDarkRedThreshold"] = config.iaqDarkRedThreshold;
-  doc["brightness"] = config.brightness;
-  doc["ssd1306Rows"] = config.ssd1306Rows;
-  doc["greenLed"] = config.greenLed;
-  doc["yellowLed"] = config.yellowLed;
-  doc["redLed"] = config.redLed;
-  doc["neopixelData"] = config.neopixelData;
-  doc["neopixelNumber"] = config.neopixelNumber;
-  doc["neopixelMatrixData"] = config.neopixelMatrixData;
-  doc["featherMatrixData"] = config.featherMatrixData;
-  doc["featherMatrixClock"] = config.featherMatrixClock;
-  doc["matrixColumns"] = config.matrixColumns;
-  doc["matrixRows"] = config.matrixRows;
-  doc["matrixLayout"] = config.matrixLayout;
-  doc["hub75R1"] = config.hub75R1;
-  doc["hub75G1"] = config.hub75G1;
-  doc["hub75B1"] = config.hub75B1;
-  doc["hub75R2"] = config.hub75R2;
-  doc["hub75G2"] = config.hub75G2;
-  doc["hub75B2"] = config.hub75B2;
-  doc["hub75ChA"] = config.hub75ChA;
-  doc["hub75ChB"] = config.hub75ChB;
-  doc["hub75ChC"] = config.hub75ChC;
-  doc["hub75ChD"] = config.hub75ChD;
-  doc["hub75Clk"] = config.hub75Clk;
-  doc["hub75Lat"] = config.hub75Lat;
-  doc["hub75Oe"] = config.hub75Oe;
+  DynamicJsonDocument* doc = new DynamicJsonDocument(CONFIG_SIZE);
+  for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
+    configParameter->toJson(_config, doc);
+  }
 
   // Serialize JSON to file
-  if (serializeJson(doc, file) == 0) {
+  if (serializeJson(*doc, file) == 0) {
     ESP_LOGW(TAG, "Failed to write to file");
     file.close();
     return false;
