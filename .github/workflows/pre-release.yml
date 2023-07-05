@@ -13,6 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -36,23 +38,24 @@ jobs:
       - name: Install esptool
         run: |
           pip install --upgrade esptool
-      - name: Set env
-        run: |
-          echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          echo "GITHUB_TAG=${GITHUB_REF#refs/*/}"
 
       - name: Build esp32-debug
-        run: pio run --environment esp32-debug
+        run: |
+          echo "building esp32-debug"
+          pio run --environment esp32-debug
 
       - name: Build esp32-s3-debug
-        run: pio run --environment esp32-s3-debug
+        run: |
+          echo "building esp32-s3-debug"
+          pio run --environment esp32-s3-debug
 
       - name: Rename & move files
         run: |
-          mv .pio/build/esp32-debug/firmware.bin firmware-esp32-debug.bin
-          mv .pio/build/esp32-debug/firmware-combined.bin firmware-combined-esp32-debug.bin
-          mv .pio/build/esp32-s3-debug/firmware.bin firmware-esp32-s3-debug.bin
-          mv .pio/build/esp32-s3-debug/firmware-combined.bin firmware-combined-esp32-s3-debug.bin
+          mkdir -p build
+          mv .pio/build/esp32-debug/firmware.bin build/firmware-esp32-debug.bin
+          mv .pio/build/esp32-debug/firmware-combined.bin build/firmware-combined-esp32-debug.bin
+          mv .pio/build/esp32-s3-debug/firmware.bin build/firmware-esp32-s3-debug.bin
+          mv .pio/build/esp32-s3-debug/firmware-combined.bin build/firmware-combined-esp32-s3-debug.bin
 
       - name: "Build"
         run: |
@@ -65,4 +68,17 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            firmware-*.bin
+            build/firmware-*.bin
+
+      - name: Remove non-combined binaries
+        run: |
+          rm build/firmware-esp32-debug.bin
+          rm build/firmware-esp32-s3-debug.bin
+
+      - name: Publish to doc/pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
+          branch: docs
+          target-folder: build
+          clean: false

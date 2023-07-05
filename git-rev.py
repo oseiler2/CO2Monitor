@@ -27,11 +27,6 @@ if GITHUB_REF is not None:
       branch = m.group(2)
       tag = "latest"
 
-  # get current revision hash
-  GITHUB_SHA = os.environ.get('GITHUB_SHA')
-  if GITHUB_SHA is not None:
-    commit = GITHUB_SHA
-
 else:
   # running locally
 
@@ -49,13 +44,13 @@ else:
   except:
     branch = "unknown"
 
-  # get current revision hash
-  try:
-    commit = subprocess.check_output("git log --pretty=format:%h -n 1", shell=True).decode().strip()
-  except:
-    commit = "?"
-
 version = tag
+
+# get current revision hash
+try:
+  commit = subprocess.check_output("git log --pretty=format:%h -n 1", shell=True).decode().strip()
+except:
+  commit = "?"
 
 # if not main branch append branch name
 if branch != "main" and branch != "HEAD":
