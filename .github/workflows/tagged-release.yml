@@ -40,16 +40,21 @@ jobs:
           pip install --upgrade esptool
 
       - name: Build esp32
-        run: pio run --environment esp32
+        run: |
+          echo "building esp32"
+          pio run --environment esp32
       - name: Build esp32-s3
-        run: pio run --environment esp32-s3
+        run: |
+          echo "building esp32-s3"
+          pio run --environment esp32-s3
 
       - name: Rename & move files
         run: |
-          mv .pio/build/esp32/firmware.bin firmware-esp32.bin
-          mv .pio/build/esp32/firmware-combined.bin firmware-combined-esp32.bin
-          mv .pio/build/esp32-s3/firmware.bin firmware-esp32-s3.bin
-          mv .pio/build/esp32-s3/firmware-combined.bin firmware-combined-esp32-s3.bin
+          mkdir -p build
+          mv .pio/build/esp32/firmware.bin build/firmware-esp32.bin
+          mv .pio/build/esp32/firmware-combined.bin build/firmware-combined-esp32.bin
+          mv .pio/build/esp32-s3/firmware.bin build/firmware-esp32-s3.bin
+          mv .pio/build/esp32-s3/firmware-combined.bin build/firmware-combined-esp32-s3.bin
 
       - name: "Build"
         run: |
@@ -60,4 +65,17 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            firmware-*.bin
+            build/firmware-*.bin
+
+      - name: Remove non-combined binaries
+        run: |
+          rm build/firmware-esp32.bin
+          rm build/firmware-esp32-s3.bin
+
+      - name: Publish to doc/pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
+          branch: docs
+          target-folder: build
+          clean: false
