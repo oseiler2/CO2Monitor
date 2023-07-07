@@ -18,7 +18,7 @@ HUB75::HUB75(Model* _model) {
     HUB75_I2S_CFG::i2s_pins hub75Pins = { static_cast<int8_t>(config.hub75R1), static_cast<int8_t>(config.hub75G1), static_cast<int8_t>(config.hub75B1), static_cast<int8_t>(config.hub75R2),
       static_cast<int8_t>(config.hub75G2), static_cast<int8_t>(config.hub75B2), static_cast<int8_t>(config.hub75ChA), static_cast<int8_t>(config.hub75ChB), static_cast<int8_t>(config.hub75ChC),
       static_cast<int8_t>(config.hub75ChD), -1, static_cast<int8_t>(config.hub75Lat), static_cast<int8_t>(config.hub75Oe), static_cast<int8_t>(config.hub75Clk) };
-    HUB75_I2S_CFG mxconfig(64, 32, 1, hub75Pins, HUB75_I2S_CFG::FM6126A, false, HUB75_I2S_CFG::HZ_10M, 1, true, 50);
+    HUB75_I2S_CFG mxconfig(64, 32, 1, hub75Pins, HUB75_I2S_CFG::FM6126A, false, HUB75_I2S_CFG::HZ_15M, 1, true, 50, 6);
     this->matrix = new MatrixPanel_I2S_DMA(mxconfig);
   }
   matrix->begin();
@@ -44,7 +44,7 @@ void HUB75::stopDMA() {
 }
 
 void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  matrix->setBrightness8(config.brightness);
+  if (mask & M_CONFIG_CHANGED) matrix->setBrightness8(config.brightness);
   //  ESP_LOGD(TAG, "HUB75 update: %i => %i, co2: %u, mask:%x", oldStatus, newStatus, model->getCo2(), mask);
   if (oldStatus != newStatus) {
     // only redraw smiley on status change
@@ -52,11 +52,16 @@ void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStat
     if (newStatus > 0 && newStatus <= 4) {
       matrix->drawRGBBitmap(0, 0, smileys[newStatus - 1], 32, 32);
     }
+    // show message
+    if (newStatus > 0 && newStatus <= 4) {
+      matrix->fillRect(48, 0, 16, 32, 0);
+      matrix->drawBitmap(48, 0, messages[newStatus - 1], 16, 32, matrix->color565(255, 255, 255));
+    }
   }
 
   if (mask & M_CO2) {
     // clear co2 reading and message
-    matrix->fillRect(33, 0, 32, 32, 0);
+    matrix->fillRect(33, 0, 16, 32, 0);
     // show co2 reading
     if (model->getCo2() > 9999) {
       matrix->drawBitmap(35, 24, digits[9], 10, 8, matrix->color565(255, 255, 255));
@@ -73,10 +78,6 @@ void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStat
       if (model->getCo2() > 0)
         matrix->drawBitmap(35, 0, digits[model->getCo2() % 10], 10, 8, matrix->color565(255, 255, 255));
     }
-  }
-  // show message
-  if (newStatus > 0 && newStatus <= 4) {
-    matrix->drawBitmap(48, 0, messages[newStatus - 1], 16, 32, matrix->color565(255, 255, 255));
   }
 }
 
