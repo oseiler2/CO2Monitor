@@ -77,7 +77,7 @@ namespace WifiManager {
   AsyncWebServer server(HTTP_PORT);
   AsyncEventSource events("/events");
 
-  volatile uint8_t wifiDisconnected = 0;
+  volatile uint8_t wifiDisconnected = 1;
   uint32_t lastWifiReconnectAttempt = 0;
   uint32_t lastWifiDisconnect = 0;
 
