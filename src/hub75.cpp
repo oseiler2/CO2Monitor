@@ -18,7 +18,7 @@ HUB75::HUB75(Model* _model) {
     HUB75_I2S_CFG::i2s_pins hub75Pins = { static_cast<int8_t>(config.hub75R1), static_cast<int8_t>(config.hub75G1), static_cast<int8_t>(config.hub75B1), static_cast<int8_t>(config.hub75R2),
       static_cast<int8_t>(config.hub75G2), static_cast<int8_t>(config.hub75B2), static_cast<int8_t>(config.hub75ChA), static_cast<int8_t>(config.hub75ChB), static_cast<int8_t>(config.hub75ChC),
       static_cast<int8_t>(config.hub75ChD), -1, static_cast<int8_t>(config.hub75Lat), static_cast<int8_t>(config.hub75Oe), static_cast<int8_t>(config.hub75Clk) };
-    HUB75_I2S_CFG mxconfig(64, 32, 1, hub75Pins, HUB75_I2S_CFG::FM6126A, false, HUB75_I2S_CFG::HZ_15M, 1, true, 50, 6);
+    HUB75_I2S_CFG mxconfig(128, 64, 1, hub75Pins, HUB75_I2S_CFG::DP3246_SM5368, false, HUB75_I2S_CFG::HZ_15M, 1, true, 50, 6);
     this->matrix = new MatrixPanel_I2S_DMA(mxconfig);
   }
   matrix->begin();
@@ -49,35 +49,35 @@ void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStat
   //  ESP_LOGD(TAG, "HUB75 update: %i => %i, co2: %u, mask:%x", oldStatus, newStatus, model->getCo2(), mask);
   if (oldStatus != newStatus) {
     // only redraw smiley on status change
-    matrix->fillRect(0, 0, 32, 32, 0);
+    matrix->fillRect(0, 0, 64, 64, 0);
     if (newStatus > 0 && newStatus <= 4) {
-      matrix->drawRGBBitmap(0, 0, smileys[newStatus - 1], 32, 32);
+      matrix->drawRGBBitmap(0, 0, smileys_64[newStatus - 1], 64, 64);
     }
     // show message
     if (newStatus > 0 && newStatus <= 4) {
-      matrix->fillRect(0, 48, 32, 16, 0);
-      matrix->drawBitmap(0, 48, messages[newStatus - 1], 32, 16, matrix->color565(255, 255, 255));
+      matrix->fillRect(0, 96, 64, 32, 0);
+      matrix->drawBitmap(0, 96, messages_64[newStatus - 1], 64, 32, matrix->color565(255, 255, 255));
     }
   }
 
   if (mask & M_CO2) {
     // clear co2 reading and message
-    matrix->fillRect(0, 33, 32, 16, 0);
+    matrix->fillRect(0, 65, 64, 32, 0);
     // show co2 reading
     if (model->getCo2() > 9999) {
-      matrix->drawBitmap(0, 35, digits[9], 8, 10, matrix->color565(255, 255, 255));
-      matrix->drawBitmap(8, 35, digits[9], 8, 10, matrix->color565(255, 255, 255));
-      matrix->drawBitmap(16, 35, digits[9], 8, 10, matrix->color565(255, 255, 255));
-      matrix->drawBitmap(24, 35, digits[9], 8, 10, matrix->color565(255, 255, 255));
+      matrix->drawBitmap(0, 70, digits_16[9], 16, 20, matrix->color565(255, 255, 255));
+      matrix->drawBitmap(16, 70, digits_16[9], 16, 20, matrix->color565(255, 255, 255));
+      matrix->drawBitmap(32, 70, digits_16[9], 16, 20, matrix->color565(255, 255, 255));
+      matrix->drawBitmap(48, 70, digits_16[9], 16, 20, matrix->color565(255, 255, 255));
     } else {
       if (model->getCo2() > 999)
-        matrix->drawBitmap(0, 35, digits[(uint16_t)(model->getCo2() / 1000) % 10], 8, 10, matrix->color565(255, 255, 255));
+        matrix->drawBitmap(0, 70, digits_16[(uint16_t)(model->getCo2() / 1000) % 10], 16, 20, matrix->color565(255, 255, 255));
       if (model->getCo2() > 99)
-        matrix->drawBitmap(8, 35, digits[(uint16_t)(model->getCo2() / 100) % 10], 8, 10, matrix->color565(255, 255, 255));
+        matrix->drawBitmap(16, 70, digits_16[(uint16_t)(model->getCo2() / 100) % 10], 16, 20, matrix->color565(255, 255, 255));
       if (model->getCo2() > 9)
-        matrix->drawBitmap(16, 35, digits[(uint16_t)(model->getCo2() / 10) % 10], 8, 10, matrix->color565(255, 255, 255));
+        matrix->drawBitmap(32, 70, digits_16[(uint16_t)(model->getCo2() / 10) % 10], 16, 20, matrix->color565(255, 255, 255));
       if (model->getCo2() > 0)
-        matrix->drawBitmap(24, 35, digits[model->getCo2() % 10], 8, 10, matrix->color565(255, 255, 255));
+        matrix->drawBitmap(48, 70, digits_16[model->getCo2() % 10], 16, 20, matrix->color565(255, 255, 255));
     }
   }
 }
@@ -85,9 +85,9 @@ void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStat
 void HUB75::timer() {
   if (model->getStatus() == DARK_RED) {
     if (toggle)
-      matrix->drawRGBBitmap(0, 0, smileys[model->getStatus() - 1], 32, 32);
+      matrix->drawRGBBitmap(0, 0, smileys_64[model->getStatus() - 1], 64, 64);
     else
-      matrix->fillRect(0, 0, 32, 32, 0);
+      matrix->fillRect(0, 0, 64, 64, 0);
     toggle = !toggle;
   }
 }
