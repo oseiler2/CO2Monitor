@@ -51,7 +51,7 @@ void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStat
     // only redraw smiley on status change
     matrix->fillRect(0, 0, 32, 32, 0);
     if (newStatus > 0 && newStatus <= 4) {
-      matrix->drawRGBBitmap(0, 0, smileys[newStatus - 1], 32, 32);
+      matrix->drawBitmap(0, 0, smileys_bitmap[newStatus - 1], 32, 32, smileys_colours[newStatus - 1]);
     }
     // show message
     if (newStatus > 0 && newStatus <= 4) {
@@ -85,7 +85,7 @@ void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStat
 void HUB75::timer() {
   if (model->getStatus() == DARK_RED) {
     if (toggle)
-      matrix->drawRGBBitmap(0, 0, smileys[model->getStatus() - 1], 32, 32);
+      matrix->drawBitmap(0, 0, smileys_bitmap[model->getStatus() - 1], 32, 32, smileys_colours[model->getStatus() - 1]);
     else
       matrix->fillRect(0, 0, 32, 32, 0);
     toggle = !toggle;
