@@ -2,6 +2,7 @@
 #include <globals.h>
 #include <Arduino.h>
 #include <config.h>
+#include <coredump.h>
 
 #include <WiFi.h>
 #include <Wire.h>
@@ -209,6 +210,8 @@ void setup() {
 
   logCoreInfo();
 
+  coredump::init();
+  
   RESET_REASON resetReason = rtc_get_reset_reason(0);
 
   ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -268,6 +271,15 @@ void setup() {
   sprintf(msg, "Reset reason: %u", resetReason);
   mqtt::publishStatusMsg(msg);
 
+  if (coredump::checkForCoreDump()) {
+    coredump::logCoreDumpSummary();
+    if (hasSdCard) coredump::writeCoreDumpToFile();
+    mqtt::publishStatusMsg("Found coredump!!");
+    // TODO:
+    // - send coredump via MQTT (on request/always)? Rename file when sent.
+    // - logic when no sd card found - send summary via MQTT? Allow retrieval on request via MQTT?
+  }
+  
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
     8192,               // stack size of task

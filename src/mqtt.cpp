@@ -12,6 +12,8 @@
 
 #include <LittleFS.h>
 
+#include <coredump.h>
+
 // Local logging tag
 static const char TAG[] = __FILE__;
 
@@ -194,7 +196,7 @@ namespace mqtt {
     MqttMessage msg;
     msg.cmd = X_CMD_PUBLISH_STATUS_MSG;
     msg.statusMessage = cloneStr(statusMessage);
-    if (!mqttQueue || !xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100))) {
+    if (!mqttQueue || (xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100)) != pdTRUE)) {
       free(msg.statusMessage);
     }
   }
@@ -389,6 +391,13 @@ namespace mqtt {
       OTA::forceUpdate(msg);
     } else if (strncmp(buf, "reboot", strlen(buf)) == 0) {
       esp_restart();
+    } else if (strncmp(buf, "checkForCoredump", strlen(buf)) == 0) {
+      // TODO: include check on SD Card!
+      if (coredump::checkForCoreDump()) {
+        publishStatusMsgInternal(cloneStr("Coredump found"), false);
+      } else {
+        publishStatusMsgInternal(cloneStr("No coredump found"), false);
+      }
     }
   }
 
