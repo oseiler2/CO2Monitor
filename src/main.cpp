@@ -211,7 +211,7 @@ void setup() {
   logCoreInfo();
 
   coredump::init();
-  
+
   RESET_REASON resetReason = rtc_get_reset_reason(0);
 
   ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -236,7 +236,7 @@ void setup() {
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
   hasSdSlot = false; //(config.sdDetect != 0 && config.sdDat0 != 0 && config.sdDat1 != 0 && config.sdDat2 != 0 && config.sdDat3 != 0 && config.sdClk != 0 && config.sdCmd != 0);
 
-//  if (hasSdSlot) pinMode(config.sdDetect, INPUT);
+  //  if (hasSdSlot) pinMode(config.sdDetect, INPUT);
   hasSdCard = hasSdSlot && SdCard::probe();
 
   Wire.begin((int)SDA_PIN, (int)SCL_PIN, (uint32_t)I2C_CLK);
@@ -271,15 +271,15 @@ void setup() {
   sprintf(msg, "Reset reason: %u", resetReason);
   mqtt::publishStatusMsg(msg);
 
-  if (coredump::checkForCoreDump()) {
-    coredump::logCoreDumpSummary();
-    if (hasSdCard) coredump::writeCoreDumpToFile();
+  if (coredump::checkForCoredump()) {
+    coredump::logCoredumpSummary();
+    if (hasSdCard) coredump::writeCoredumpToFile();
     mqtt::publishStatusMsg("Found coredump!!");
     // TODO:
     // - send coredump via MQTT (on request/always)? Rename file when sent.
     // - logic when no sd card found - send summary via MQTT? Allow retrieval on request via MQTT?
   }
-  
+
   xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
     "mqttLoop",         // name of task
     8192,               // stack size of task
