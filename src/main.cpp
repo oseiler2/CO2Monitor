@@ -2,6 +2,7 @@
 #include <globals.h>
 #include <Arduino.h>
 #include <config.h>
+#include <coredump.h>
 
 #include <WiFi.h>
 #include <sntp.h>
@@ -272,6 +273,8 @@ void setup() {
 
   if (!reinitFromSleep) logCoreInfo();
 
+  coredump::init();
+
   Timekeeper::init();
 
   if (Power::getPowerMode() == USB) {
@@ -345,6 +348,15 @@ void setup() {
   if (hasHub75) hub75 = new HUB75(model);
   if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
   if (hasSdCard) hasSdCard &= SdCard::setup();
+
+  if (coredump::checkForCoreDump()) {
+    coredump::logCoreDumpSummary();
+    if (hasSdCard) coredump::writeCoreDumpToFile();
+    mqtt::publishStatusMsg("Found coredump!!");
+    // TODO:
+    // - send coredump via MQTT (on request/always)? Rename file when sent.
+    // - logic when no sd card found - send summary via MQTT? Allow retrieval on request via MQTT?
+  }
 
   Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
 
