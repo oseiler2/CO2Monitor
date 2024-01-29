@@ -169,7 +169,14 @@ namespace Power {
       case WAKE_FROM_BUTTON: ESP_LOGI(TAG, "Reset reason: WAKE_FROM_BUTTON"); break;
       default: ESP_LOGI(TAG, "Reset reason: UNKNOWN (%u)", reason); break;
     }
-    if (powermode == PM_UNDEFINED || reason == WAKE_FROM_BUTTON) {
+#ifdef BTN_2
+    pinMode(BTN_2, INPUT_PULLUP);
+    int btn2 = (digitalRead(BTN_2) ? 0 : 1);
+#else
+    int btn2 = 1;
+#endif
+
+    if (powermode == PM_UNDEFINED || (reason == WAKE_FROM_BUTTON && btn2 == 1)) {
       powermode = USB;
       ESP_LOGI(TAG, "Power mode: USB");
     }
