@@ -344,7 +344,7 @@ void setup() {
   if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
   if (hasHub75) hub75 = new HUB75(model);
   if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
-  if (hasSdCard)  hasSdCard &= SdCard::setup();
+  if (hasSdCard) hasSdCard &= SdCard::setup();
 
   Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
 
@@ -419,7 +419,7 @@ void setup() {
 #ifdef SHOW_DEBUG_MSGS
   if (lcd) {
     lcd->updateMessage("Setup done.");
-}
+  }
 #endif
 }
 
@@ -436,11 +436,12 @@ void loop() {
         if (hasNeoPixel && neopixel) neopixel->off();
         if (scd40) scd40->shutdown();
         if (bme680) bme680->shutdown();
+        if (hasSdCard) SdCard::unmount();
         Power::powerDown();
-
       }
     }
     if (hasNeoPixel && neopixel) neopixel->prepareToSleep();
+    if (hasSdCard) SdCard::unmount();
     Power::deepSleep(30);
   }
   if (button1State != oldConfirmedButton1State && (millis() - lastBtn1DebounceTime) > debounceDelay) {

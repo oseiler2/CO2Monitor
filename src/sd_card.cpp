@@ -2,9 +2,9 @@
 #include <config.h>
 #include <power.h>
 
-#include "sdmmc_cmd.h"
-#include "driver/sdmmc_host.h"
-#include "esp_vfs_fat.h"
+#include <sdmmc_cmd.h>
+#include <driver/sdmmc_host.h>
+#include <esp_vfs_fat.h>
 #include <sys/stat.h>
 
 #include <model.h>
@@ -14,11 +14,9 @@
 // Local logging tag
 static const char TAG[] = __FILE__;
 
-FILE* f;
-
 namespace SdCard {
 
-#define MOUNT_POINT "/sdcard"
+  static boolean initialised = false;
 
   esp_vfs_fat_sdmmc_mount_config_t mount_config = {
       .format_if_mount_failed = false,
@@ -59,15 +57,15 @@ namespace SdCard {
 
   boolean setup() {
     if (!probe()) return false;
-    esp_err_t ret;
+    esp_err_t err;
     //    ESP_LOGD(TAG, "Mounting SD card FS");
-    ret = esp_vfs_fat_sdmmc_mount(mount_point, &host, &slot_config, &mount_config, &card);
+    err = esp_vfs_fat_sdmmc_mount(mount_point, &host, &slot_config, &mount_config, &card);
 
-    if (ret != ESP_OK) {
-      if (ret == ESP_FAIL) {
+    if (err != ESP_OK) {
+      if (err == ESP_FAIL) {
         ESP_LOGE(TAG, "Failed to mount filesystem.");
       } else {
-        ESP_LOGE(TAG, "Failed to initialize the card (%s). ", esp_err_to_name(ret));
+        ESP_LOGE(TAG, "Failed to initialize the card (%s). ", esp_err_to_name(err));
       }
       return false;
     }
@@ -76,12 +74,23 @@ namespace SdCard {
 #ifdef SHOW_DEBUG_MSGS
 //    sdmmc_card_print_info(stdout, card);
 #endif
+    initialised = true;
     return true;
   }
 
+  boolean isInitialised() {
+    return initialised;
+  }
+
   boolean writeEvent(int16_t mask, Model* model, TrafficLightStatus status, uint16_t batInMV) {
+    if (!initialised) {
+      ESP_LOGE(TAG, "SC card not initiased!");
+      return false;
+    }
+
     time_t now;
     struct tm timeinfo;
+    FILE* f;
     time(&now);
     localtime_r(&now, &timeinfo);
 
@@ -146,15 +155,15 @@ namespace SdCard {
       fprintf(f, ",");
     fprintf(f, "\n");
     fclose(f);
-    f = NULL;
     //    ESP_LOGD(TAG, "File closed");
     return true;
   }
 
   boolean unmount() {
-    esp_err_t ret = esp_vfs_fat_sdcard_unmount(mount_point, card);
-    if (ret != ESP_OK) {
-      ESP_LOGI(TAG, "Error unmounting card (%s)", esp_err_to_name(ret));
+    initialised = false;
+    esp_err_t err = esp_vfs_fat_sdcard_unmount(mount_point, card);
+    if (err != ESP_OK) {
+      ESP_LOGI(TAG, "Error unmounting card (%s)", esp_err_to_name(err));
       return false;
     }
     //    ESP_LOGD(TAG, "Card unmounted");
