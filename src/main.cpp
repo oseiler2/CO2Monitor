@@ -349,9 +349,9 @@ void setup() {
   if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
   if (hasSdCard) hasSdCard &= SdCard::setup();
 
-  if (coredump::checkForCoreDump()) {
-    coredump::logCoreDumpSummary();
-    if (hasSdCard) coredump::writeCoreDumpToFile();
+  if (coredump::checkForCoredump()) {
+    coredump::logCoredumpSummary();
+    if (hasSdCard) coredump::writeCoredumpToFile();
     mqtt::publishStatusMsg("Found coredump!!");
     // TODO:
     // - send coredump via MQTT (on request/always)? Rename file when sent.

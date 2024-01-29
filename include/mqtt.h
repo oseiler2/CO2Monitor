@@ -38,6 +38,7 @@ namespace mqtt {
   void publishSensors(DynamicJsonDocument* _payload);
   void publishConfiguration();
   void publishStatusMsg(const char* statusMessage);
+  boolean sendCoreDump();
 
   void mqttLoop(void* pvParameters);
 

@@ -28,7 +28,8 @@ namespace mqtt {
   const uint8_t X_CMD_PUBLISH_SENSORS = bit(0);
   const uint8_t X_CMD_PUBLISH_CONFIGURATION = bit(1);
   const uint8_t X_CMD_PUBLISH_STATUS_MSG = bit(2);
-  const uint8_t X_CMD_SHUTDOWN = bit(3);
+  const uint8_t X_CMD_SEND_COREDUMP = bit(3);
+  const uint8_t X_CMD_SHUTDOWN = bit(4);
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
@@ -229,6 +230,30 @@ namespace mqtt {
     return true;
   }
 
+  boolean sendCoreDump() {
+    MqttMessage msg;
+    msg.cmd = X_CMD_SEND_COREDUMP;
+    msg.statusMessage = nullptr;
+    return (mqttQueue && xQueueSendToBack(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100)) == pdTRUE);
+  }
+
+  boolean sendCoreDumpInternal() {
+    char topic[256];
+    sprintf(topic, "%s/%u/up/coredump", config.mqttTopic, config.deviceId);
+
+    size_t out_size;
+    size_t out_addr;
+    boolean success = coredump::getCoredumpSize(&out_addr, &out_size);
+    if (!success) return false;
+    ESP_LOGI(TAG, "Coredump size: %u", out_size);
+
+    success = mqtt_client->beginPublish(topic, out_size, false);
+    success = coredump::writeCoredumpToStream(mqtt_client);
+    mqtt_client->endPublish();
+
+    return success;
+  }
+
   // Helper to write a file to fs
   bool writeFile(const char* name, unsigned char* contents) {
     File f;
@@ -396,11 +421,13 @@ namespace mqtt {
       esp_restart();
     } else if (strncmp(buf, "checkForCoredump", strlen(buf)) == 0) {
       // TODO: include check on SD Card!
-      if (coredump::checkForCoreDump()) {
+      if (coredump::checkForCoredump()) {
         publishStatusMsgInternal(cloneStr("Coredump found"), false);
       } else {
         publishStatusMsgInternal(cloneStr("No coredump found"), false);
       }
+    } else if (strncmp(buf, "sendCoredump", strlen(buf)) == 0) {
+      sendCoreDump();
     }
   }
 
@@ -539,6 +566,10 @@ namespace mqtt {
               if (publishStatusMsgInternal(msg.statusMessage, true)) {
                 xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
               }
+            } else if (msg.cmd == X_CMD_SEND_COREDUMP) {
+              if (sendCoreDumpInternal()) {}
+              // always remove from Queue
+              xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
             }
           }
           if (msg.cmd == X_CMD_SHUTDOWN) {
