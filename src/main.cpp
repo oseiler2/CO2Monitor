@@ -27,6 +27,7 @@
 #include <bme680.h>
 #include <wifiManager.h>
 #include <ota.h>
+#include <sd_card.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -51,6 +52,8 @@ bool hasNeoPixel = false;
 bool hasFeatherMatrix = false;
 bool hasNeopixelMatrix = false;
 bool hasHub75 = false;
+bool hasSdSlot = false;
+bool hasSdCard = false;
 
 const uint32_t debounceDelay = 50;
 volatile uint32_t lastBtnDebounceTime = 0;
@@ -228,6 +231,10 @@ void setup() {
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
     && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
+  hasSdSlot = false; //(config.sdDetect != 0 && config.sdDat0 != 0 && config.sdDat1 != 0 && config.sdDat2 != 0 && config.sdDat3 != 0 && config.sdClk != 0 && config.sdCmd != 0);
+
+//  if (hasSdSlot) pinMode(config.sdDetect, INPUT);
+  hasSdCard = hasSdSlot && SdCard::probe();
 
   Wire.begin((int)SDA_PIN, (int)SCL_PIN, (uint32_t)I2C_CLK);
 
@@ -244,6 +251,7 @@ void setup() {
   if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock);
   if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
   if (hasHub75) hub75 = new HUB75(model);
+  if (hasSdCard) hasSdCard &= SdCard::setup();
 
   mqtt::setupMqtt(
     "CO2Monitor",
@@ -307,7 +315,7 @@ void setup() {
 #ifdef SHOW_DEBUG_MSGS
   if (lcd) {
     lcd->updateMessage("Setup done.");
-}
+  }
 #endif
 }
 
