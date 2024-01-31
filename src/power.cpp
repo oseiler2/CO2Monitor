@@ -2,6 +2,7 @@
 #include <config.h>
 #include <power.h>
 #include <WiFi.h>
+#include <nvs_config.h>
 
 #include <rom/rtc.h>
 #include <driver/rtc_io.h>
@@ -22,30 +23,31 @@ extern boolean hasBattery;
 
 namespace Power {
 
-  RTC_NOINIT_ATTR PowerMode powermode = PM_UNDEFINED;
+  RTC_NOINIT_ATTR RunMode runmode = RM_UNDEFINED;
   RTC_NOINIT_ATTR struct timeval RTC_sleep_start_time;
   RTC_NOINIT_ATTR TrafficLightStatus trafficLightStatus;
   RTC_NOINIT_ATTR uint32_t RTC_millis = 0;
 
   void resetRtcVars() {
-    powermode = PM_UNDEFINED;
+    runmode = RM_UNDEFINED;
     RTC_millis = 0;
   }
 
-  PowerMode getPowerMode() {
-    return powermode;
+  RunMode getRunMode() {
+    return runmode;
   }
 
-  boolean setPowerMode(PowerMode pMode) {
-    if (pMode == PM_UNDEFINED) return false;
-    if ((!hasBattery || !Battery::batteryPresent()) && pMode == BATTERY) return false;
-    if (pMode == powermode) return true;
-    powermode = pMode;
-    if (model) model->powerModeChanged();
-    ESP_LOGI(TAG, "Power mode: %s", powermode == PM_UNDEFINED ? "PM_UNDEFINED" : (powermode == USB ? "USB" : "Battery"));
+  boolean setRunMode(RunMode pMode) {
+    if (pMode == RM_UNDEFINED) return false;
+    if (pMode == runmode) return true;
+    runmode = pMode;
+    NVS::writeRunmode(runmode);
+
+    if (model) model->runModeChanged();
+    ESP_LOGD(TAG, "Run mode: %s", runmode == RM_UNDEFINED ? "RM_UNDEFINED" : (runmode == RM_LOW ? "conserve power" : "full power"));
 
     // @TODO: make all necessary calls to enable or disable Wifi, MQTT, task loops, etc, also intervals/modes for sensors
-    if (powermode == BATTERY) {
+    if (runmode == RM_LOW) {
       // maybe don't do this since we go into sleep soon anyway...
       /*
       // give the sensors loop a chance to clean up
@@ -155,11 +157,11 @@ namespace Power {
         break;
     }
 
-    switch (powermode) {
-      case PM_UNDEFINED: ESP_LOGI(TAG, "Power mode: PM_UNDEFINED"); break;
-      case USB: ESP_LOGI(TAG, "Power mode: USB"); break;
-      case BATTERY: ESP_LOGI(TAG, "Power mode: BATTERY"); /*setCpuFrequencyMhz(80); */break;
-      default: ESP_LOGI(TAG, "Power mode: UNKNOWN (%u)", powermode); break;
+    switch (runmode) {
+      case RM_UNDEFINED: ESP_LOGI(TAG, "Run mode: RM_UNDEFINED"); break;
+      case RM_LOW: ESP_LOGI(TAG, "Run mode: RM_LOW"); break;
+      case RM_FULL: ESP_LOGI(TAG, "Run mode: RM_FULL"); /*setCpuFrequencyMhz(80); */break;
+      default: ESP_LOGE(TAG, "Run mode: UNKNOWN (%u)", runmode); break;
     }
 
     switch (reason) {
@@ -176,20 +178,26 @@ namespace Power {
     int btn2 = 1;
 #endif
 
-    if (powermode == PM_UNDEFINED || (reason == WAKE_FROM_BUTTON && btn2 == 1)) {
-      powermode = USB;
-      ESP_LOGI(TAG, "Power mode: USB");
+    if (runmode == RM_UNDEFINED) {
+      runmode = NVS::readRunmode();
+      ESP_LOGE(TAG, "Run mode set to %u from NVS RunMode", runmode);
+    }
+
+    if (runmode == RM_UNDEFINED || (reason == WAKE_FROM_BUTTON && btn2 == 1)) {
+      runmode = RM_FULL;
+      NVS::writeRunmode(runmode);
+      ESP_LOGI(TAG, "Run mode: RM_FULL");
     }
 
     rtc_gpio_deinit((gpio_num_t)BTN_1);
-    if (config.neopixelData > 0 && (powermode == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON))) {
+    if (config.neopixelData > 0 && (runmode == RM_LOW || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON))) {
       pinMode(config.neopixelData, OUTPUT);
       disableRtcHold((gpio_num_t)config.neopixelData);
 #ifdef NEO_1_EN
       pinMode(NEO_1_EN, OUTPUT);
       digitalWrite(NEO_1_EN, HIGH);
 #endif
-      if (powermode == USB) {
+      if (runmode == RM_LOW) {
 #ifdef NEO_23_EN
         pinMode(NEO_23_EN, OUTPUT);
         digitalWrite(NEO_23_EN, HIGH);
@@ -213,7 +221,7 @@ namespace Power {
 
     if (config.oledEn > 0) {
       pinMode(config.oledEn, OUTPUT);
-      if (powermode == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF)) {
+      if (runmode == RM_LOW || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF)) {
         digitalWrite(config.oledEn, HIGH);
       } else {
         digitalWrite(config.oledEn, LOW);

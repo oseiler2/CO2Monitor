@@ -42,19 +42,20 @@ namespace housekeeping {
     }
     if (hasBattery) {
       Battery::readVoltage();
-      switch (Power::getPowerMode()) {
-        case USB:
+      switch (Power::getRunMode()) {
+        case RM_FULL:
           if (!Battery::usbPowerPresent() && Battery::getBatteryLevelInPercent(Battery::getBatteryLevelInmV()) < 50) {
             ESP_LOGI(TAG, "Switching to Battery power!");
-            Power::setPowerMode(BATTERY);
+            // TODO: check against menu driven sleep action re callouts to scd40 and deepsleep
+            Power::setRunMode(RM_LOW);
           }
           break;
-        case BATTERY:
-          if (Battery::usbPowerPresent()) {
-            ESP_LOGI(TAG, "Switching to USB power!");
-            Power::setPowerMode(USB);
-            // @TODO: might need reboot to properly initialise everything
-          }
+        case RM_LOW:
+          /*          if (Battery::usbPowerPresent()) {
+                      ESP_LOGI(TAG, "Switching to USB power!");
+                      Power::setRunMode(RM_FULL);
+                      // @TODO: might need reboot to properly initialise everything
+                    }*/
           break;
         default:
           break;

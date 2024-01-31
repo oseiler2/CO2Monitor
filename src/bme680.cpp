@@ -126,7 +126,7 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
 
   loadState();
 
-  if (Power::getPowerMode() == BATTERY) {
+  if (Power::getRunMode() == RM_LOW) {
     this->sampleRate = BSEC_SAMPLE_RATE_ULP;
     bme680->setConfig(bsec_config_iaq_ULP);
   } else {
@@ -135,7 +135,7 @@ BME680::BME680(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMess
   }
   checkIaqSensorStatus();
 
-  if (!reinitFromSleep || Power::getPowerMode() == USB) {
+  if (!reinitFromSleep || Power::getRunMode() == RM_FULL) {
     bme680->setTemperatureOffset(7.0);
 
     checkIaqSensorStatus();

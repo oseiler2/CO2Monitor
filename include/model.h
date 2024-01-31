@@ -18,7 +18,7 @@ typedef enum {
   M_PM4 = 1 << 8,
   M_PM10 = 1 << 9,
   M_VOLTAGE = 1 << 10,
-  M_POWER_MODE = 1 << 11,
+  M_RUN_MODE = 1 << 11,
   M_CONFIG_CHANGED = 1 << 12
 } Measurement;
 
@@ -58,7 +58,7 @@ public:
   void updateModel(float temperature, float humidity, uint16_t pressure, uint16_t iaq);
   void updateModel(uint16_t pm0_5, uint16_t pm1, uint16_t pm2_5, uint16_t pm4, uint16_t pm10);
   void updateModelmV(uint16_t mV);
-  void powerModeChanged();
+  void runModeChanged();
   void configurationChanged();
 
 private:

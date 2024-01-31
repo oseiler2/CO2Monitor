@@ -95,8 +95,8 @@ void Model::updateModelmV(uint16_t _mV) {
   modelUpdatedEvt(M_VOLTAGE, this->status, this->status);
 }
 
-void Model::powerModeChanged() {
-  modelUpdatedEvt(M_POWER_MODE, this->status, this->status);
+void Model::runModeChanged() {
+  modelUpdatedEvt(M_RUN_MODE, this->status, this->status);
 }
 
 void Model::configurationChanged() {

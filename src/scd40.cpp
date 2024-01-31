@@ -35,12 +35,12 @@ SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessag
   if (!I2C::takeMutex(portMAX_DELAY)) return;
 
   scd40->begin(*wire);
-  if (Power::getPowerMode() == BATTERY) {
+  if (Power::getRunMode() == RM_LOW) {
     this->sampleRate = LP_PERIODIC;
   } else {
     this->sampleRate = PERIODIC;
   }
-  if (!reinitFromSleep || Power::getPowerMode() == USB) {
+  if (!reinitFromSleep || Power::getRunMode() == RM_FULL) {
     // stop potentially previously started measurement
     checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
 

@@ -5,11 +5,10 @@
 #include <model.h>
 
 typedef enum {
-  PM_UNDEFINED = 0,
-  USB,
-  BATTERY
-} PowerMode;
-
+  RM_UNDEFINED = 0,
+  RM_LOW,
+  RM_FULL
+} RunMode;
 
 typedef enum {
   RR_UNDEFINED = 0,
@@ -18,16 +17,15 @@ typedef enum {
   WAKE_FROM_BUTTON
 } ResetReason;
 
-typedef void (*powerModeChangedEvt_t)(PowerMode mode);
-
 extern Model* model;
 
 namespace Power {
   ResetReason afterReset();
   void deepSleep(uint64_t durationInSeconds);
 
-  PowerMode getPowerMode();
-  boolean setPowerMode(PowerMode mode);
+  RunMode getRunMode();
+  boolean setRunMode(RunMode mode);
+
   void powerDown();
 
   uint32_t getUpTime();

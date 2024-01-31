@@ -76,7 +76,7 @@ void Buzzer::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSta
     ledcWrite(PWM_CHANNEL_BUZZER, 0);
     beep(3);
   } else if (newStatus == DARK_RED) {
-    if (Power::getPowerMode() == BATTERY) {
+    if (Power::getRunMode() == RM_LOW) {
       beep(4);
     } else {
       buzzCtr = DARK_RED_BUZZES;

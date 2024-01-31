@@ -144,7 +144,7 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if (hasBuzzer && buzzer) buzzer->update(mask, oldStatus, newStatus);
   if ((mask & M_PRESSURE) && I2C::scd40Present() && scd40) scd40->setAmbientPressure(model->getPressure());
   if ((mask & M_PRESSURE) && I2C::scd30Present() && scd30) scd30->setAmbientPressure(model->getPressure());
-  if ((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE | M_POWER_MODE)) != M_NONE) {
+  if ((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE | M_RUN_MODE)) != M_NONE) {
     char buf[8];
     DynamicJsonDocument* doc = new DynamicJsonDocument(512);
     if (mask & M_CO2) (*doc)["co2"] = model->getCo2();
@@ -284,7 +284,7 @@ void setup() {
 
   Timekeeper::init();
 
-  if (Power::getPowerMode() == USB) {
+  if (Power::getRunMode() == RM_FULL) {
     sntp_servermode_dhcp(1); // needs to be set before Wifi connects and gets DHCP IP
 
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -298,7 +298,7 @@ void setup() {
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0
-    && (Power::getPowerMode() == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)));
+    && (Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)));
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
   hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
@@ -318,7 +318,7 @@ void setup() {
   if (hasBtn3) pinMode(config.btn3, INPUT_PULLUP);
   if (hasBtn4) pinMode(config.btn4, INPUT_PULLUP);
   if (hasOledEnable
-    && (Power::getPowerMode() == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))) {
+    && (Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))) {
     pinMode(config.oledEn, OUTPUT);
     digitalWrite(config.oledEn, HIGH);
   }
@@ -345,7 +345,7 @@ void setup() {
   if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::lcdPresent()
-    && (Power::getPowerMode() == USB || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))
+    && (Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))
     ) lcd = new LCD(&Wire, model, reinitFromSleep);
 
   if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed, reinitFromSleep);
@@ -356,7 +356,7 @@ void setup() {
   if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
   if (hasSdCard) hasSdCard &= SdCard::setup();
 
-  if (Power::getPowerMode() == USB) {
+  if (Power::getRunMode() == RM_FULL) {
     mqtt::setupMqtt(
       "CO2Monitor",
       calibrateCo2SensorCallback,
@@ -385,7 +385,7 @@ void setup() {
 
   Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
 
-  if (Power::getPowerMode() == USB) {
+  if (Power::getRunMode() == RM_FULL) {
     xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
       "mqttLoop",         // name of task
       8192,               // stack size of task
@@ -446,7 +446,7 @@ void setup() {
 }
 
 void loop() {
-  if (Power::getPowerMode() == BATTERY) {
+  if (Power::getRunMode() == RM_LOW) {
     Timekeeper::printTime();
     Sensors::runOnce();
     showTimeLcd();

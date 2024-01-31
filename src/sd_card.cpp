@@ -1,7 +1,6 @@
 #include <logging.h>
 #include <sd_card.h>
 #include <config.h>
-#include <power.h>
 
 #include <sdmmc_cmd.h>
 #include <driver/sdmmc_host.h>

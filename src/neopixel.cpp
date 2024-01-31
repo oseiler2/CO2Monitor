@@ -21,12 +21,12 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
   this->colourOff = this->strip->Color(0, 0, 0);
 
   this->strip->begin();
-  this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
-  if (Power::getPowerMode() == USB || !reinitFromSleep) {
+  this->strip->setBrightness(Power::getRunMode() == RM_LOW ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
+  if (Power::getRunMode() == RM_FULL || !reinitFromSleep) {
     // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
     ticker->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
   }
-  if (reinitFromSleep && Power::getPowerMode() == USB) {
+  if (reinitFromSleep && Power::getRunMode() == RM_FULL) {
     // woke up from sleep, flush all 3 LEDs
     update(M_CONFIG_CHANGED, model->getStatus(), model->getStatus());
   }
@@ -50,7 +50,7 @@ Neopixel::~Neopixel() {
 }
 
 void Neopixel::fill(uint32_t c) {
-  uint8_t limit = Power::getPowerMode() == BATTERY ? 1 : this->strip->numPixels();
+  uint8_t limit = Power::getRunMode() == RM_LOW ? 1 : this->strip->numPixels();
   for (uint16_t i = 0; i < limit; i++) {
     this->strip->setPixelColor(i, c);
   }
@@ -102,7 +102,7 @@ void Neopixel::prepareToSleep() {
 
 void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (oldStatus == newStatus && !(mask & M_CONFIG_CHANGED)) return;
-  if (mask & M_CONFIG_CHANGED) this->strip->setBrightness(Power::getPowerMode() == BATTERY ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
+  if (mask & M_CONFIG_CHANGED) this->strip->setBrightness(Power::getRunMode() == RM_LOW ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
   if (newStatus == OFF) {
     fill(colourGreen);
   } else if (newStatus == GREEN) {
@@ -112,7 +112,7 @@ void Neopixel::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightS
   } else if (newStatus == RED) {
     fill(colourRed);
   } else if (newStatus == DARK_RED) {
-    if (Power::getPowerMode() == BATTERY || oldStatus != newStatus)
+    if (Power::getRunMode() == RM_LOW || oldStatus != newStatus)
       fill(colourPurple);
   }
 }

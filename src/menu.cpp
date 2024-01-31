@@ -10,6 +10,7 @@
 #include <buzzer.h>
 #include <scd40.h>
 #include <bme680.h>
+#include <nvs_config.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -77,7 +78,7 @@ namespace Menu {
 
   void startAPAction(uint8_t selection) {
     ESP_LOGI(TAG, "startAPAction %u", selection);
-    if (Power::getPowerMode() == USB) {
+    if (Power::getRunMode() == RM_FULL) {
       digitalWrite(LED_PIN, LOW);
       prepareOta();
       WifiManager::startCaptivePortal();
@@ -87,7 +88,7 @@ namespace Menu {
   void goToSleepAction(uint8_t selection) {
     ESP_LOGI(TAG, "goToSleepAction()");
     if (neopixel) neopixel->prepareToSleep();
-    Power::setPowerMode(BATTERY);
+    Power::setRunMode(RM_LOW);
     if (scd40) scd40->setSampleRate(LP_PERIODIC);
     if (bme680) bme680->setSampleRate(ULP);
     Power::deepSleep(30);
