@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <config.h>
 #include <coredump.h>
+#include <nvs_config.h>
 
 #include <WiFi.h>
 #include <sntp.h>
@@ -458,11 +459,13 @@ void loop() {
         if (scd40) scd40->shutdown();
         if (bme680) bme680->shutdown();
         if (hasSdCard) SdCard::unmount();
+        NVS::close();
         Power::powerDown();
       }
     }
     if (hasNeoPixel && neopixel) neopixel->prepareToSleep();
     if (hasSdCard) SdCard::unmount();
+    NVS::close();
     Power::deepSleep(30);
   }
   if (button1State != oldConfirmedButton1State && (millis() - lastBtn1DebounceTime) > debounceDelay) {
