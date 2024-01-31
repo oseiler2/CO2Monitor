@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <config.h>
 #include <coredump.h>
+#include <nvs_config.h>
 
 #include <WiFi.h>
 #include <Wire.h>
