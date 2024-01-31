@@ -164,7 +164,13 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
     if (mask & M_PM10) (*doc)["pm10"] = model->getPM10();
     mqtt::publishSensors(doc);
   }
-  if (hasSdCard && ((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE)) != M_NONE)) SdCard::writeEvent(mask, model, newStatus, model->getVoltageInMv());
+  if (((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE)) != M_NONE)) {
+    if (hasSdCard) {
+      SdCard::writeEvent(mask, model, newStatus, model->getVoltageInMv());
+    } else {
+      // write event to internal storage??
+    }
+  }
 }
 
 void configChanged() {
@@ -349,17 +355,6 @@ void setup() {
   if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
   if (hasSdCard) hasSdCard &= SdCard::setup();
 
-  if (coredump::checkForCoredump()) {
-    coredump::logCoredumpSummary();
-    if (hasSdCard) coredump::writeCoredumpToFile();
-    mqtt::publishStatusMsg("Found coredump!!");
-    // TODO:
-    // - send coredump via MQTT (on request/always)? Rename file when sent.
-    // - logic when no sd card found - send summary via MQTT? Allow retrieval on request via MQTT?
-  }
-
-  Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
-
   if (Power::getPowerMode() == USB) {
     mqtt::setupMqtt(
       "CO2Monitor",
@@ -375,7 +370,21 @@ void setup() {
     char msg[128];
     sprintf(msg, "Reset reason: %u", resetReason);
     mqtt::publishStatusMsg(msg);
+  }
 
+  if (coredump::checkForCoredump()) {
+    coredump::logCoredumpSummary();
+    if (hasSdCard) coredump::writeCoredumpToFile();
+    // TODO: MQTT not initialised at this stage, will ignore.
+    mqtt::publishStatusMsg("Found coredump!!");
+    // TODO:
+    // - send coredump via MQTT (on request/always)? Rename file when sent.
+    // - logic when no sd card found - send summary via MQTT? Allow retrieval on request via MQTT?
+  }
+
+  Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
+
+  if (Power::getPowerMode() == USB) {
     xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
       "mqttLoop",         // name of task
       8192,               // stack size of task

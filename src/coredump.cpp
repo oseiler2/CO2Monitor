@@ -1,5 +1,6 @@
 #include <coredump.h>
 #include <sd_card.h>
+#include <logging.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;

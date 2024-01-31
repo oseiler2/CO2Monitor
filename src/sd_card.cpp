@@ -1,3 +1,4 @@
+#include <logging.h>
 #include <sd_card.h>
 #include <config.h>
 #include <power.h>
