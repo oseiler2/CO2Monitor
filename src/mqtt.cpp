@@ -228,7 +228,7 @@ namespace mqtt {
     return true;
   }
 
-  boolean sendCoreDump() {
+  boolean sendCoredump() {
     MqttMessage msg;
     msg.cmd = X_CMD_SEND_COREDUMP;
     msg.statusMessage = nullptr;
@@ -425,7 +425,9 @@ namespace mqtt {
         publishStatusMsgInternal(cloneStr("No coredump found"), false);
       }
     } else if (strncmp(buf, "sendCoredump", strlen(buf)) == 0) {
-      sendCoreDump();
+      sendCoredump();
+    } else if (strncmp(buf, "eraseCoredump", strlen(buf)) == 0) {
+      coredump::eraseCoredump();
     }
   }
 
