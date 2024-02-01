@@ -131,8 +131,8 @@ const char* SLEEP_MODE_OLED_LED_STRINGS[] = {
 void setupConfigManager() {
   if (!LittleFS.begin(true)) {
     ESP_LOGW(TAG, "LittleFS failed! Already tried formatting.");
+    vTaskDelay(pdMS_TO_TICKS(100));
     if (!LittleFS.begin()) {
-      delay(100);
       ESP_LOGW(TAG, "LittleFS failed second time!");
     }
   }

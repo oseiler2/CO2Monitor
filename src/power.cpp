@@ -190,7 +190,7 @@ namespace Power {
     }
 
     rtc_gpio_deinit((gpio_num_t)BTN_1);
-    if (config.neopixelData > 0 && (runmode == RM_LOW || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON))) {
+    if (config.neopixelData > 0 && (runmode == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON))) {
       pinMode(config.neopixelData, OUTPUT);
       disableRtcHold((gpio_num_t)config.neopixelData);
 #ifdef NEO_1_EN

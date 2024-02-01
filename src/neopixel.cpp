@@ -22,7 +22,7 @@ Neopixel::Neopixel(Model* _model, uint8_t _pin, uint8_t numPixel, boolean reinit
 
   this->strip->begin();
   this->strip->setBrightness(Power::getRunMode() == RM_LOW ? min(BAT_BRIGHTNESS, config.brightness) : config.brightness);
-  if (Power::getRunMode() == RM_FULL || !reinitFromSleep) {
+  if (Power::getRunMode() == RM_FULL) {
     // https://stackoverflow.com/questions/60985496/arduino-esp8266-esp32-ticker-callback-class-member-function
     ticker->attach(0.3, +[](Neopixel* instance) { instance->timer(); }, this);
   }
