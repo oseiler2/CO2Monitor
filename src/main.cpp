@@ -23,7 +23,7 @@
 #include <neopixel.h>
 #include <neopixelMatrix.h>
 #include <featherMatrix.h>
-#include <hub75.h>
+#include <hub75Matrix.h>
 #include <bme680.h>
 #include <wifiManager.h>
 #include <ota.h>
@@ -37,7 +37,7 @@ TrafficLight* trafficLight;
 Neopixel* neopixel;
 NeopixelMatrix* neopixelMatrix;
 FeatherMatrix* featherMatrix;
-HUB75* hub75;
+HUB75Matrix* hub75;
 SCD30* scd30;
 SCD40* scd40;
 SPS_30* sps30;
@@ -243,7 +243,7 @@ void setup() {
   if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber);
   if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock);
   if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
-  if (hasHub75) hub75 = new HUB75(model);
+  if (hasHub75) hub75 = new HUB75Matrix(model, 64, 128);
 
   mqtt::setupMqtt(
     calibrateCo2SensorCallback,
@@ -285,6 +285,14 @@ void setup() {
   if (hasNeopixelMatrix) {
     neopixelMatrixTask = neopixelMatrix->start(
       "neopixelMatrixLoop",  // name of task 
+      4096,                  // stack size of task
+      3,                     // priority of the task
+      1);                    // CPU core
+  }
+
+  if (hasHub75) {
+    neopixelMatrixTask = hub75->start(
+      "hub75MatrixLoop",  // name of task 
       4096,                  // stack size of task
       3,                     // priority of the task
       1);                    // CPU core
