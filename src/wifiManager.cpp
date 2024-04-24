@@ -77,7 +77,8 @@ namespace WifiManager {
   void handleReboot(AsyncWebServerRequest* request);
   void handleNotFound(AsyncWebServerRequest* request);
   bool handleCaptivePortal(AsyncWebServerRequest* request);
-  void handleFileDirectory(AsyncWebServerRequest* request);
+  void handleFileDirectoryStatic(AsyncWebServerRequest* request);
+  void handleFileDirectoryJson(AsyncWebServerRequest* request);
   void handleGetFile(AsyncWebServerRequest* request);
   void handleDeleteFile(AsyncWebServerRequest* request);
   bool authenticate(AsyncWebServerRequest* request);
@@ -212,7 +213,8 @@ namespace WifiManager {
     server.on("/scan", HTTP_GET, handleScan);
     server.on("/reboot", HTTP_GET, handleReboot);
     server.on("/calibrate", HTTP_GET, handleCalibrate);
-    server.on("/list", HTTP_GET, handleFileDirectory);
+    server.on("/list", HTTP_GET, handleFileDirectoryStatic);
+    server.on("/listJson", HTTP_GET, handleFileDirectoryJson);
     server.on("/file", HTTP_GET, handleGetFile);
     server.on("/delete", HTTP_GET, handleDeleteFile);
     server.onNotFound(handleNotFound);
@@ -226,32 +228,33 @@ namespace WifiManager {
     improvSerial.setCustomConnectWiFi(improvConnectWifi);
   }
 
-  void handleFileDirectory(AsyncWebServerRequest* request) {
-    ESP_LOGI(TAG, "handleFileDirectory");
+  void handleFileDirectoryStatic(AsyncWebServerRequest* request) {
+    ESP_LOGI(TAG, "handleFileDirectoryStatic");
     if (!authenticate(request)) return;
 
-    String page = FPSTR(html::directory_header);
-    String fileEntry;
+    String page = FPSTR(html::directory_static);
+    AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), page);
+    request->send(response);
+  }
+
+  void handleFileDirectoryJson(AsyncWebServerRequest* request) {
+    ESP_LOGI(TAG, "handleFileDirectoryJson");
+    if (!authenticate(request)) return;
+
+    String page = F("{\"int\":[");
     char cPath[384];
-    page += "<div>Internal flash</div>";
     File root = LittleFS.open("/data/");
     File file = root.openNextFile();
+    uint16_t i = 0;
     while (file) {
-      Serial.print("FILE: ");
-      Serial.println(file.name());
-      fileEntry = FPSTR(html::file_entry_int);
-      sprintf(cPath, "%s (%u kB)", file.name(), file.size() / 1024);
-      fileEntry.replace("{n}", cPath);
-      fileEntry.replace("{e}", urlEncode(file.name()));
-      page += fileEntry;
+      if (i++ > 0) page += ",";
+      sprintf(cPath, "{\"f\":\"%s\",\"s\":\"%u\"}", file.name(), file.size() / 1024);
+      page += cPath;
       file = root.openNextFile();
     }
     root.close();
-
+    page += "],\"ext\":[";
     if (SdCard::isInitialised()) {
-      page += "</fieldset><fieldset>";
-      page += "<div>SD card</div>";
-
       sprintf(cPath, "%s/data", SD_MOUNT_POINT);
       mkdir(cPath, 0777);
 
@@ -261,7 +264,7 @@ namespace WifiManager {
       } else {
         struct dirent* pDirent;
         struct stat _stat;
-
+        i = 0;
         while ((pDirent = readdir(pDir)) != NULL) {
           sprintf(cPath, "%s/data/%s", SD_MOUNT_POINT, pDirent->d_name);
           stat(cPath, &_stat);
@@ -269,19 +272,18 @@ namespace WifiManager {
             //          ESP_LOGD(TAG, "[%s] DIR %u", pDirent->d_name, _stat.st_size);
           } else {
             //          ESP_LOGD(TAG, "[%s] FILE %u", pDirent->d_name, _stat.st_size);
-            fileEntry = FPSTR(html::file_entry_ext);
-            sprintf(cPath, "%s (%u kB)", pDirent->d_name, _stat.st_size / 1024);
-            fileEntry.replace("{n}", cPath);
-            fileEntry.replace("{e}", urlEncode(pDirent->d_name));
-            page += fileEntry;
+            if (i++ > 0) page += ",";
+            sprintf(cPath, "{\"f\":\"%s\",\"s\":\"%u\"}", pDirent->d_name, _stat.st_size / 1024);
+            page += cPath;
           }
         }
         closedir(pDir);
       }
     }
-    page += FPSTR(html::directory_footer);
-
-    AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), page);
+    page += "]}";
+    AsyncWebServerResponse* response = request->beginResponse(200, html::content_type_json, page);
+    response->addHeader(FPSTR(html::header_cache_control), FPSTR(html::cache_control_no_cache));
+    response->addHeader(FPSTR(html::header_access_control_allow_origin), FPSTR(html::cors_asterix));
     request->send(response);
   }
 
