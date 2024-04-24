@@ -10,6 +10,7 @@
 #include <model.h>
 #include <configManager.h>
 #include <battery.h>
+#include <fileDataLogger.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -30,7 +31,7 @@ namespace SdCard {
 
   sdmmc_slot_config_t slot_config;
 
-  const char mount_point[] = MOUNT_POINT;
+  const char* mount_point = SD_MOUNT_POINT;
 
   boolean probe() {
 #if CONFIG_IDF_TARGET_ESP32S3
@@ -87,76 +88,7 @@ namespace SdCard {
       ESP_LOGE(TAG, "SC card not initiased!");
       return false;
     }
-
-    time_t now;
-    struct tm timeinfo;
-    FILE* f;
-    time(&now);
-    localtime_r(&now, &timeinfo);
-
-    char buf[30];
-    strftime(buf, 11, "%Y-%m-%d", &timeinfo);
-
-    char fileName[30];
-
-    sprintf(fileName, "%s/%s.log.csv", MOUNT_POINT, buf);
-    //    ESP_LOGD(TAG, "Opening file %s", fileName);
-
-    struct stat st;
-    if (stat(fileName, &st) == 0) {
-      // file exists
-//      ESP_LOGD(TAG, "File exists - opening");
-      f = fopen(fileName, "a");
-    } else {
-      // file doesn't exist yet
-  //    ESP_LOGD(TAG, "File doesn't exist - creating");
-      f = fopen(fileName, "w");
-      // write headers
-      fprintf(f, "time,co2,temperature,humidity,iaq,pressure,trafficlight,battery(%%),battery(mV)\n");
-    }
-    if (f == NULL) {
-      ESP_LOGE(TAG, "Failed to open file %s for writing", fileName);
-      return false;
-    }
-
-    strftime(buf, 30, "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
-    fprintf(f, "%s,", buf);
-    if (mask & M_CO2)
-      fprintf(f, "%u,", model->getCo2());
-    else
-      fprintf(f, ",");
-    if (mask & M_TEMPERATURE)
-      fprintf(f, "%.1f,", model->getTemperature());
-    else
-      fprintf(f, ",");
-    if (mask & M_HUMIDITY)
-      fprintf(f, "%.1f,", model->getHumidity());
-    else
-      fprintf(f, ",");
-    if (mask & M_IAQ)
-      fprintf(f, "%u,", model->getIAQ());
-    else
-      fprintf(f, ",");
-    if (mask & M_PRESSURE)
-      fprintf(f, "%u,", model->getPressure());
-    else
-      fprintf(f, ",");
-    if (status != OFF)
-      fprintf(f, "%u,", status);
-    else
-      fprintf(f, ",");
-    if (batInMV > 1000)
-      fprintf(f, "%u,", Battery::getBatteryLevelInPercent(batInMV));
-    else
-      fprintf(f, ",");
-    if (batInMV > 1000)
-      fprintf(f, "%u,", batInMV);
-    else
-      fprintf(f, ",");
-    fprintf(f, "\n");
-    fclose(f);
-    //    ESP_LOGD(TAG, "File closed");
-    return true;
+    return FileDataLogger::writeEvent(mount_point, mask, model, status, batInMV);
   }
 
   boolean unmount() {

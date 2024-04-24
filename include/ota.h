@@ -2,7 +2,7 @@
 #define _OTA_H
 
 #include <globals.h>
-#include <messageSupport.h>
+#include <callbacks.h>
 
 typedef void (*preUpdateCallback_t)(void);
 

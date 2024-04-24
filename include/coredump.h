@@ -1,3 +1,5 @@
+#pragma once
+
 #include <logging.h>
 #include <globals.h>
 #include <Arduino.h>

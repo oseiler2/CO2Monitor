@@ -5,7 +5,7 @@
 #include <model.h>
 
 namespace SdCard {
-  #define MOUNT_POINT "/sdcard"
+  #define SD_MOUNT_POINT "/sdcard"
   boolean probe();
   boolean setup();
   boolean isInitialised();

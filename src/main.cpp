@@ -37,6 +37,7 @@
 #include <battery.h>
 #include <timekeeper.h>
 #include <menu.h>
+#include <fileDataLogger.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -169,7 +170,7 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
     if (hasSdCard) {
       SdCard::writeEvent(mask, model, newStatus, model->getVoltageInMv());
     } else {
-      // write event to internal storage??
+      FileDataLogger::writeEvent("/littlefs", mask, model, newStatus, model->getVoltageInMv());
     }
   }
 }
@@ -178,13 +179,16 @@ void configChanged() {
   model->configurationChanged();
 }
 
-void calibrateCo2SensorCallback(uint16_t co2Reference) {
+boolean calibrateCo2SensorCallback(uint16_t co2Reference) {
   ESP_LOGI(TAG, "Starting calibration");
+  boolean result = true;
   if (lcd) lcd->setPriorityMessage("Starting calibration");
-  if (I2C::scd30Present() && scd30) scd30->calibrateScd30ToReference(co2Reference);
-  if (I2C::scd40Present() && scd40) scd40->calibrateScd40ToReference(co2Reference);
+  // * := non-short cut logical AND (evaluate right hand side, even if left side is false)
+  if (I2C::scd30Present() && scd30) result *= scd30->calibrateScd30ToReference(co2Reference);
+  if (I2C::scd40Present() && scd40) result *= scd40->calibrateScd40ToReference(co2Reference);
   vTaskDelay(pdMS_TO_TICKS(200));
   if (lcd) lcd->clearPriorityMessage();
+  return result;
 }
 
 void setTemperatureOffsetCallback(float temperatureOffset) {
@@ -292,7 +296,7 @@ void setup() {
     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, WifiManager::eventHandler, NULL, NULL));
 
     WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, false,
-      updateMessage, setPriorityMessage, clearPriorityMessage, configChanged);
+      updateMessage, setPriorityMessage, clearPriorityMessage, configChanged, calibrateCo2SensorCallback);
 
   }
 

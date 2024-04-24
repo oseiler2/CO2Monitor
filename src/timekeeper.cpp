@@ -40,11 +40,11 @@ namespace Timekeeper {
 
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
 
-#if SNTP_MAX_SERVERS > 1
-    sntp_setservername(1, "nz.pool.ntp.org");
+#if SNTP_MAX_SERVERS >= 1
+    sntp_setservername(0, "nz.pool.ntp.org");
 #endif
-#if SNTP_MAX_SERVERS > 2
-    sntp_setservername(2, "time.cloudflare.com");
+#if SNTP_MAX_SERVERS >= 2
+    sntp_setservername(1, "time.cloudflare.com");
 #endif
     sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
     sntp_set_time_sync_notification_cb(syncNotificationCallback);

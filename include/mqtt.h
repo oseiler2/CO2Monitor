@@ -3,7 +3,7 @@
 
 #include <globals.h>
 #include <ArduinoJson.h>
-#include <messageSupport.h>
+#include <callbacks.h>
 
 // If you issue really large certs (e.g. long CN, extra options) this value may need to be
 // increased, but 1600 is plenty for a typical CN and standard option openSSL issued cert.
@@ -14,14 +14,6 @@
 
 
 namespace mqtt {
-  typedef void (*calibrateCo2SensorCallback_t)(uint16_t);
-  typedef void (*setTemperatureOffsetCallback_t)(float);
-  typedef float (*getTemperatureOffsetCallback_t)(void);
-  typedef uint32_t(*getSPS30AutoCleanIntervalCallback_t)(void);
-  typedef boolean(*setSPS30AutoCleanIntervalCallback_t)(uint32_t);
-  typedef boolean(*cleanSPS30Callback_t)(void);
-  typedef uint8_t(*getSPS30StatusCallback_t)(void);
-
   void setupMqtt(
     const char* appName,
     calibrateCo2SensorCallback_t calibrateCo2SensorCallback,
