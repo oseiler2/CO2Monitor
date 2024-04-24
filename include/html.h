@@ -492,7 +492,10 @@ td {text-align: left;}
     <div class="container">
       <div class="innerDiv">
         <h2>Files</h2>
-          <fieldset> 
+          <fieldset>
+            <div id="filesDiv">
+              Fetching results....          
+            </div>
   )";
 
   const char file_entry_ext[] PROGMEM = R"(
@@ -504,11 +507,46 @@ td {text-align: left;}
   )";
 
   const char directory_footer[] PROGMEM = R"(
-</fieldset>
           <form action="/" method="get"><button class="btn">Back</button></form>
         </fieldset>
       </div>
     </div>
+    <script>
+      function sortByFilename(a, b) {
+        const A = a.f.toUpperCase();
+        const B = b.f.toUpperCase();
+        return (A < B) ? -1 : (A>B ? 1 : 0);
+      }
+
+      async function loadResults() {
+        try {
+          const div = document.getElementById("filesDiv");
+          div.innerHTML = "Fetching results....";
+          const results = await (await fetch(`/listJson`)).json();
+          let newContent = "";
+          newContent += "<fieldset><div>Internal flash</div>";
+          results.int.sort(sortByFilename);
+          results.ext.sort(sortByFilename);
+          results.int?.forEach((file) => {            
+            newContent += `<div><a href='/file?int=${encodeURIComponent(file.f)}'>${file.f} (${file.s} kB)</a>&nbsp;<a href='/delete?int=${file.f}' onclick="return confirm('Are you sure you want to delete this file?');">delete</a></div>`;
+          });
+          if (results.ext?.length > 0) {
+            newContent += "</fieldset><fieldset>";
+            newContent += "<div>SD card</div>";
+            results.ext?.forEach((file) => {            
+              newContent += `<div><a href='/file?ext=${encodeURIComponent(file.f)}'>${file.f} (${file.s} kB)</a>&nbsp;<a href='/delete?ext=${file.f}' onclick="return confirm('Are you sure you want to delete this file?');">delete</a></div>`;
+            });
+            newContent += "</fieldset>";
+          }
+          div.innerHTML = newContent;
+        } catch (e) {
+          console.log(`ERROR: ${e}`);
+        }
+      }
+      document.addEventListener("DOMContentLoaded", async () => {
+        await loadResults();
+      });
+    </script>
   </body>
   </html>
   )";
