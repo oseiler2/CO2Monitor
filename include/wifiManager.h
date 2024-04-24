@@ -3,7 +3,7 @@
 
 #include <globals.h>
 #include <config.h>
-#include <messageSupport.h>
+#include <callbacks.h>
 #include <ESPAsyncWebServer.h>
 #include <configParameter.h>
 #include <model.h>
@@ -16,7 +16,7 @@ namespace WifiManager {
 
   void setupWifiManager(const char* appName, std::vector<ConfigParameterBase<Config>*> configParameterVector, bool keepCaptivePortalActive, bool captivePortalActiveWhenNotConnected,
     updateMessageCallback_t updateMessageCallback, setPriorityMessageCallback_t setPriorityMessageCallback, clearPriorityMessageCallback_t clearPriorityMessageCallback,
-    configChangedCallback_t configChangedCallback);
+    configChangedCallback_t configChangedCallback, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback);
   void resetSettings();
   void startCaptivePortal();
   String getMac();

@@ -5,11 +5,11 @@
 #include <model.h>
 
 namespace SdCard {
-  #define MOUNT_POINT "/sdcard"
+  #define SD_MOUNT_POINT "/sdcard"
   boolean probe();
   boolean setup();
   boolean isInitialised();
-  boolean writeEvent(int16_t mask, Model* model, TrafficLightStatus status, uint16_t batInMV);
+  boolean writeEvent(int16_t mask, Model* model, TrafficLightStatus status);
   boolean unmount();
 }
 

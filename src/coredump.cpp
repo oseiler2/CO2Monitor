@@ -131,7 +131,7 @@ namespace coredump {
 
     char fileName[41]; // 7 + 10 + 19 + 4
 
-    sprintf(fileName, "%s/coredump-%s.bin", MOUNT_POINT, buf);
+    sprintf(fileName, "%s/coredump-%s.bin", SD_MOUNT_POINT, buf);
     ESP_LOGD(TAG, "Opening file %s", fileName);
 
     struct stat st;

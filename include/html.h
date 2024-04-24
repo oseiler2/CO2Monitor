@@ -132,6 +132,8 @@ namespace html {
         <fieldset>
           <form action="/wifi" method="get"><button class="btn">Wifi configuration</button></form><br>
           <form action="/config" method="get"><button class="btn">Configuration</button></form><br>
+          <form action="/calibrate" method="get"><button class="btn">Calibrate CO<sub>2</sub> sensor</button></form><br>
+          <form action="/list" method="get"><button class="btn">Browse filesystem</button></form><br>
           <form action="/logs" method="get"><button class="btn">Logs</button></form><br>
           <form action="/reboot" method="get"><button class="btn">Reboot</button></form>
         </fieldset>
@@ -333,6 +335,39 @@ td {text-align: left;}
   </html>
   )";
 
+
+  const char calibrate[] PROGMEM = R"(
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Calibrate CO<sub>2</sub> sensor</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" /> 
+  </head>
+  <body>
+    <div class="container">
+      <div class="innerDiv">
+        <h2>CO<sub>2</sub> sensor calibration</h2>
+        <br><br>
+        Place monitor in fresh outside air and give it a few minutes to acclimatise. You can find current CO<sub>2</sub> measurements <a href="https://niwa.co.nz/climate/research-projects/carbonwatchnz/dailyco2measurements" target="_blank">here</a>
+        <br><br>
+        <form method="get" action="calibrate">
+          <fieldset>
+            <div>
+              <label>Calibration target (ppm)</label><input id="t" name="t" type='number' maxlength='3' value='420' min='400' max='500' />
+            </div>
+          </fieldset>
+          <br>
+          <button class='btn' type='submit'>Calibrate</button><br>
+        </form>
+        <form action='/' method='get'><button class='btn'>Cancel</button></form>
+      </div>
+    </div>
+  </body>
+</html>
+)";
+
+
   const char wifi_header[] PROGMEM = R"(
 <!DOCTYPE html>
 <html>
@@ -439,6 +474,39 @@ td {text-align: left;}
     <div class="container">
       <div class="innerDiv">
         <h2>Restarting shortly...</h2>
+      </div>
+    </div>
+  </body>
+  </html>
+  )";
+
+  const char directory_header[] PROGMEM = R"(
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="styles.css" /> 
+    <title>Filesystem</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="innerDiv">
+        <h2>Files</h2>
+          <fieldset> 
+  )";
+
+  const char file_entry_ext[] PROGMEM = R"(
+<div><a href='/file?ext={e}'>{n}</a>&nbsp;<a href='/delete?ext={e}' onclick="return confirm('Are you sure you want to delete this file?');">delete</a></div>
+  )";
+
+  const char file_entry_int[] PROGMEM = R"(
+<div><a href='/file?int={e}'>{n}</a>&nbsp;<a href='/delete?int={e}' onclick="return confirm('Are you sure you want to delete this file?');">delete</a></div>
+  )";
+
+  const char directory_footer[] PROGMEM = R"(
+</fieldset>
+          <form action="/" method="get"><button class="btn">Back</button></form>
+        </fieldset>
       </div>
     </div>
   </body>

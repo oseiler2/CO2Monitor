@@ -30,6 +30,7 @@
 #include <wifiManager.h>
 #include <ota.h>
 #include <sd_card.h>
+#include <fileDataLogger.h>
 
 // Local logging tag
 static const char TAG[] = __FILE__;
@@ -124,19 +125,29 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
     if (mask & M_PM10) (*doc)["pm10"] = model->getPM10();
     mqtt::publishSensors(doc);
   }
+  if (((mask & ~(M_CONFIG_CHANGED)) != M_NONE)) {
+    if (hasSdCard) {
+      SdCard::writeEvent(mask, model, newStatus);
+    } else {
+      FileDataLogger::writeEvent("/littlefs", mask, model, newStatus);
+    }
+  }
 }
 
 void configChanged() {
   model->configurationChanged();
 }
 
-void calibrateCo2SensorCallback(uint16_t co2Reference) {
+boolean calibrateCo2SensorCallback(uint16_t co2Reference) {
   ESP_LOGI(TAG, "Starting calibration");
+  boolean result = true;
   if (lcd) lcd->setPriorityMessage("Starting calibration");
-  if (I2C::scd30Present() && scd30) scd30->calibrateScd30ToReference(co2Reference);
-  if (I2C::scd40Present() && scd40) scd40->calibrateScd40ToReference(co2Reference);
+  // * := non-short cut logical AND (evaluate right hand side, even if left side is false)
+  if (I2C::scd30Present() && scd30) result *= scd30->calibrateScd30ToReference(co2Reference);
+  if (I2C::scd40Present() && scd40) result *= scd40->calibrateScd40ToReference(co2Reference);
   vTaskDelay(pdMS_TO_TICKS(200));
   if (lcd) lcd->clearPriorityMessage();
+  return result;
 }
 
 void setTemperatureOffsetCallback(float temperatureOffset) {
@@ -227,7 +238,7 @@ void setup() {
   logConfiguration(config);
 
   WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, true,
-    updateMessage, setPriorityMessage, clearPriorityMessage, configChanged);
+    updateMessage, setPriorityMessage, clearPriorityMessage, configChanged, calibrateCo2SensorCallback);
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);

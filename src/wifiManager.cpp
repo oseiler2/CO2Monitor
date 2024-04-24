@@ -11,6 +11,17 @@
 #include <DNSServer.h>
 
 #include <ImprovWiFiLibrary.h>
+#include <UrlEncode.h>
+#include <timekeeper.h>
+
+#include <FS.h>
+#include <LittleFS.h>
+
+#include <sd_card.h>
+
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/dirent.h>
 
 #ifndef AP_PW
 #define AP_PW ""
@@ -59,12 +70,17 @@ namespace WifiManager {
   void handleLogs(AsyncWebServerRequest* request);
   void handleConfig(AsyncWebServerRequest* request);
   void handleSafeConfig(AsyncWebServerRequest* request);
+  void handleCalibrate(AsyncWebServerRequest* request);
   void handleWifi(AsyncWebServerRequest* request);
   void handleSafeWifi(AsyncWebServerRequest* request);
   void handleScan(AsyncWebServerRequest* request);
   void handleReboot(AsyncWebServerRequest* request);
   void handleNotFound(AsyncWebServerRequest* request);
   bool handleCaptivePortal(AsyncWebServerRequest* request);
+  void handleFileDirectory(AsyncWebServerRequest* request);
+  void handleGetFile(AsyncWebServerRequest* request);
+  void handleDeleteFile(AsyncWebServerRequest* request);
+  bool authenticate(AsyncWebServerRequest* request);
   String getStoredWiFiPass();
   String getStoredWiFiSsid();
   void scanWiFi(bool async);
@@ -124,6 +140,7 @@ namespace WifiManager {
   setPriorityMessageCallback_t setPriorityMessageCallback;
   clearPriorityMessageCallback_t clearPriorityMessageCallback;
   configChangedCallback_t configChangedCallback;
+  calibrateCo2SensorCallback_t calibrateCo2SensorCallback;
 
   ImprovWiFi improvSerial(&Serial);
 
@@ -161,7 +178,7 @@ namespace WifiManager {
 
   void setupWifiManager(const char* _appName, std::vector<ConfigParameterBase<Config>*> _configParameterVector, bool _keepCaptivePortalActive, bool _captivePortalActiveWhenNotConnected,
     updateMessageCallback_t _updateMessageCallback, setPriorityMessageCallback_t _setPriorityMessageCallback, clearPriorityMessageCallback_t _clearPriorityMessageCallback,
-    configChangedCallback_t _configChangedCallback) {
+    configChangedCallback_t _configChangedCallback, calibrateCo2SensorCallback_t _calibrateCo2SensorCallback) {
     appName = _appName;
     configParameterVector = _configParameterVector;
     keepCaptivePortalActive = _keepCaptivePortalActive;
@@ -170,6 +187,7 @@ namespace WifiManager {
     setPriorityMessageCallback = _setPriorityMessageCallback;
     clearPriorityMessageCallback = _clearPriorityMessageCallback;
     configChangedCallback = _configChangedCallback;
+    calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
 
     // TODO: only if Wifi is configured
     WiFi.mode(WIFI_MODE_STA);
@@ -193,6 +211,10 @@ namespace WifiManager {
     server.on("/wifisave", HTTP_GET, handleSafeWifi);
     server.on("/scan", HTTP_GET, handleScan);
     server.on("/reboot", HTTP_GET, handleReboot);
+    server.on("/calibrate", HTTP_GET, handleCalibrate);
+    server.on("/list", HTTP_GET, handleFileDirectory);
+    server.on("/file", HTTP_GET, handleGetFile);
+    server.on("/delete", HTTP_GET, handleDeleteFile);
     server.onNotFound(handleNotFound);
 
     server.begin();
@@ -202,6 +224,136 @@ namespace WifiManager {
     improvSerial.onImprovError(onImprovWiFiErrorCb);
     improvSerial.onImprovConnected(onImprovWiFiConnectedCb);
     improvSerial.setCustomConnectWiFi(improvConnectWifi);
+  }
+
+  void handleFileDirectory(AsyncWebServerRequest* request) {
+    ESP_LOGI(TAG, "handleFileDirectory");
+    if (!authenticate(request)) return;
+
+    String page = FPSTR(html::directory_header);
+    String fileEntry;
+    char cPath[384];
+    page += "<div>Internal flash</div>";
+    File root = LittleFS.open("/data/");
+    File file = root.openNextFile();
+    while (file) {
+      Serial.print("FILE: ");
+      Serial.println(file.name());
+      fileEntry = FPSTR(html::file_entry_int);
+      sprintf(cPath, "%s (%u kB)", file.name(), file.size() / 1024);
+      fileEntry.replace("{n}", cPath);
+      fileEntry.replace("{e}", urlEncode(file.name()));
+      page += fileEntry;
+      file = root.openNextFile();
+    }
+    root.close();
+
+    if (SdCard::isInitialised()) {
+      page += "</fieldset><fieldset>";
+      page += "<div>SD card</div>";
+
+      sprintf(cPath, "%s/data", SD_MOUNT_POINT);
+      mkdir(cPath, 0777);
+
+      DIR* pDir = opendir(cPath);
+      if (pDir == NULL) {
+        ESP_LOGE(TAG, "Could not open directory %s", cPath);
+      } else {
+        struct dirent* pDirent;
+        struct stat _stat;
+
+        while ((pDirent = readdir(pDir)) != NULL) {
+          sprintf(cPath, "%s/data/%s", SD_MOUNT_POINT, pDirent->d_name);
+          stat(cPath, &_stat);
+          if (S_ISDIR(_stat.st_mode)) {
+            //          ESP_LOGD(TAG, "[%s] DIR %u", pDirent->d_name, _stat.st_size);
+          } else {
+            //          ESP_LOGD(TAG, "[%s] FILE %u", pDirent->d_name, _stat.st_size);
+            fileEntry = FPSTR(html::file_entry_ext);
+            sprintf(cPath, "%s (%u kB)", pDirent->d_name, _stat.st_size / 1024);
+            fileEntry.replace("{n}", cPath);
+            fileEntry.replace("{e}", urlEncode(pDirent->d_name));
+            page += fileEntry;
+          }
+        }
+        closedir(pDir);
+      }
+    }
+    page += FPSTR(html::directory_footer);
+
+    AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), page);
+    request->send(response);
+  }
+
+  void handleGetFile(AsyncWebServerRequest* request) {
+    ESP_LOGI(TAG, "handleGetFile");
+    if (!authenticate(request)) return;
+
+    if (request->hasParam("int")) {
+      char fileName[384];
+      sprintf(fileName, "/data/%s", request->arg("int").c_str());
+      ESP_LOGD(TAG, "filename: %s", fileName);
+      File f = LittleFS.open(fileName, "r");
+      request->send(f, request->arg("int"), "application/csv", true);
+    } else if (request->hasParam("ext")) {
+      char fileName[384];
+      sprintf(fileName, "%s/data/%s", SD_MOUNT_POINT, request->arg("ext").c_str());
+      ESP_LOGD(TAG, "filename: %s", fileName);
+      struct stat st;
+      if (stat(fileName, &st) == 0) {
+        static FILE* f = fopen(fileName, FILE_READ);
+        if (f == NULL) {
+          ESP_LOGE(TAG, "Failed to open file %s", fileName);
+          request->send(404);
+          return;
+        } else {
+          AsyncWebServerResponse* response = request->beginChunkedResponse("application/csv",
+            [](uint8_t* buffer, size_t maxLen, size_t index) -> size_t {
+              size_t n = fread(buffer, 1, maxLen, f);
+              if (n == 0 || feof(f) || ferror(f)) {
+                fclose(f);
+                return 0;
+              }
+              return n;
+            });
+
+          snprintf(fileName, sizeof(fileName), "attachment; filename=\"%s\"", request->arg("ext").c_str());
+          response->addHeader("Content-Disposition", fileName);
+          request->send(response);
+        }
+      } else {
+        ESP_LOGI(TAG, "Failed to open file %s", fileName);
+        request->send(404);
+      }
+    } else {
+      request->send(404);
+    }
+  }
+
+  void handleDeleteFile(AsyncWebServerRequest* request) {
+    ESP_LOGI(TAG, "handleDeleteFile");
+    if (!authenticate(request)) return;
+
+    if (request->hasParam("int")) {
+      char fileName[384];
+      sprintf(fileName, "/data/%s", request->arg("int").c_str());
+      ESP_LOGD(TAG, "filename: %s", fileName);
+      if (!LittleFS.remove(fileName))
+        ESP_LOGE(TAG, "file %s could not be removed", fileName);
+      request->redirect("/list");
+    } else if (request->hasParam("ext")) {
+      char fileName[384];
+      sprintf(fileName, "%s/data/%s", SD_MOUNT_POINT, request->arg("ext").c_str());
+      ESP_LOGD(TAG, "filename: %s", fileName);
+      struct stat st;
+      if (stat(fileName, &st) == 0) {
+        if (unlink(fileName) != 0)
+          ESP_LOGE(TAG, "file %s could not be removed", fileName);
+      }
+      request->redirect("/list");
+    } else {
+      request->send(404);
+    }
   }
 
   bool authenticate(AsyncWebServerRequest* request) {
@@ -335,6 +487,25 @@ namespace WifiManager {
       else
         xTaskNotify(wifiManagerTask, X_CMD_SAVE_CONFIG, eSetBits);
     }
+  }
+
+  void  handleCalibrate(AsyncWebServerRequest* request) {
+    ESP_LOGD(TAG, "Calibrate: %s", request->arg("t").c_str());
+    if (!authenticate(request)) return;
+
+    if (request->hasArg("t")) {
+      uint16_t target = (uint16_t)atoi(request->arg("t").c_str());
+      boolean result = calibrateCo2SensorCallback(target);
+      // TODO: display note to confirm success/failure on forwarded page.
+      request->redirect("/");
+      return;
+    }
+
+    String page;
+    page += FPSTR(html::calibrate);
+    AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), page);
+    response->addHeader(FPSTR(html::header_cache_control), FPSTR(html::cache_control_no_cache));
+    request->send(response);
   }
 
   void handleWifi(AsyncWebServerRequest* request) {
@@ -487,10 +658,7 @@ namespace WifiManager {
     if (!isIp(request->host())) {
 
       ESP_LOGI(TAG, "Request redirected to captive portal");
-
-      AsyncWebServerResponse* response = request->beginResponse(302, html::content_type_plain, "");
-      response->addHeader("Location", String("http://") + toStringIp(request->client()->localIP()));
-      request->send(response);
+      request->redirect(String("http://") + toStringIp(request->client()->localIP()));
       return true;
     }
 
@@ -685,6 +853,7 @@ namespace WifiManager {
       ESP_LOGD(TAG, "eventHandler IP_EVENT IP_EVENT_STA_GOT_IP");
       ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
       ESP_LOGD(TAG, "STA Got %sIP:" IPSTR, event->ip_changed ? "New " : "Same ", IP2STR(&event->ip_info.ip));
+      Timekeeper::initSntp();
     } else if (event_base == WIFI_EVENT) {
       if (event_id > 0 && event_id < WIFI_EVENT_MAX) {
         ESP_LOGD(TAG, "eventHandler %s", WIFI_EVENT_STRINGS[event_id]);
