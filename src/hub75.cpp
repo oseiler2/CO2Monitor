@@ -23,7 +23,7 @@ HUB75::HUB75(Model* _model) {
   }
   matrix->begin();
   matrix->setRotation(3);
-  matrix->setBrightness8(config.brightness);
+  matrix->setBrightness(config.brightness);
 
   cyclicTimer = new Ticker();
   // https://arduino.stackexchange.com/questions/81123/using-lambdas-as-callback-functions

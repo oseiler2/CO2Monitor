@@ -20,7 +20,7 @@ public:
 private:
 
   static void neopixelMatrixLoop(void* pvParameters);
-  uint8_t ppmToDots(uint16_t ppm);
+  uint16_t ppmToDots(uint16_t ppm);
   void showTank(uint16_t ppm, bool showDrip);
   void showText();
   void waveTimer();
@@ -75,7 +75,7 @@ private:
 
   uint8_t MATRIX_WIDTH;
   uint8_t MATRIX_HEIGHT;
-  uint8_t NUMBER_OF_DOTS;
+  uint16_t NUMBER_OF_DOTS;
 
   uint8_t TANK_WIDTH;
   uint8_t TANK_HEIGHT;
@@ -104,12 +104,11 @@ private:
   // === SNAKES ===
   const uint8_t NUMBER_OF_SNAKES = 1;
   const uint8_t SNAKE_LENGTH = 5;
-  volatile uint8_t snakePos = 0;
+  volatile uint16_t snakePos = 0;
   const static uint16_t SNAKE_TICKER_INTERVAL = 333;
 
   // === PPM DISPLAY ===
   char txt[6];
-  uint16_t textWidth;
   int16_t scrollWidth;
   volatile int16_t scrollPosition;
   volatile int8_t scrollDirection;

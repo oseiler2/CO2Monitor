@@ -67,9 +67,9 @@ void NeopixelMatrix::stop() {
  * Return the number of dots that represent the given PPM value, with ppm <= LOWER_LIMIT returning NUMBER_OF_DOTS (= full tank) and
  * ppm >= UPPER_LIMIT returning 0 (= empty tank)
  */
-uint8_t NeopixelMatrix::ppmToDots(uint16_t ppm) {
+uint16_t NeopixelMatrix::ppmToDots(uint16_t ppm) {
   ppm = max(min(ppm, UPPER_LIMIT), LOWER_LIMIT);
-  return NUMBER_OF_DOTS - min((uint8_t)floor((ppm - LOWER_LIMIT) / PPM_PER_DOT), NUMBER_OF_DOTS);
+  return NUMBER_OF_DOTS - min((uint16_t)floor((ppm - LOWER_LIMIT) / PPM_PER_DOT), NUMBER_OF_DOTS);
 }
 
 /**
@@ -103,7 +103,7 @@ void NeopixelMatrix::showText() {
 }
 
 /**
- * Render the given PPM value on the matrix->
+ * Render the given PPM value on the matrix
  */
 void NeopixelMatrix::showTank(uint16_t ppm, bool showDrip) {
   if (this->displayMode != SHOW_TANK) return;
@@ -111,7 +111,7 @@ void NeopixelMatrix::showTank(uint16_t ppm, bool showDrip) {
 
   // takes about  1297 micros
   //  uint32_t start = micros();
-  uint8_t dots = ppmToDots(ppm);
+  uint16_t dots = ppmToDots(ppm);
 
   float eps = 1 - ((float)dots / NUMBER_OF_DOTS);
   matrix->setBrightness(min(int(config.brightness + (eps * 10)), 255));
@@ -132,9 +132,9 @@ void NeopixelMatrix::showTank(uint16_t ppm, bool showDrip) {
   // if snake(s) are active, draw snake(s) at current positions - dows not move the snake
   if (snakeTicker->active()) {
     for (uint8_t s = 0; s < NUMBER_OF_SNAKES; s++) {
-      uint8_t snakeOffset = s * (((TANK_WIDTH + TANK_HEIGHT - 2) * 2)) / NUMBER_OF_SNAKES;
+      uint16_t snakeOffset = s * (((TANK_WIDTH + TANK_HEIGHT - 2) * 2)) / NUMBER_OF_SNAKES;
       for (uint8_t i = 0; i < SNAKE_LENGTH; i++) {
-        uint8_t p = (snakePos + i + snakeOffset) % ((TANK_WIDTH + TANK_HEIGHT - 2) * 2);
+        uint16_t p = (snakePos + i + snakeOffset) % ((TANK_WIDTH + TANK_HEIGHT - 2) * 2);
         if (p < TANK_WIDTH) {
           // ESP_LOGD(TAG, "snakePos 1 %u =>(%u,%u)", p, p, TANK_HEIGHT - 1);
           matrix->drawPixel(p, TANK_HEIGHT - 1, RED);
@@ -194,7 +194,7 @@ void NeopixelMatrix::update(uint16_t ppm) {
       sprintf(txt, "%u", ppm);
     }
     int16_t x1, y1 = 0;
-    uint16_t h = 0;
+    uint16_t textWidth, h = 0;
     matrix->getTextBounds(txt, 0, 0, &x1, &y1, &textWidth, &h);
     scrollWidth = textWidth - matrix->width();
     if (scrollWidth > 0) {
@@ -220,7 +220,7 @@ void NeopixelMatrix::update(uint16_t ppm) {
       if (previousPpm > currentPpm) {
         // ppm decreasing
         dripDirection = 1;
-        uint8_t dots = ppmToDots(ppm);
+        uint16_t dots = ppmToDots(ppm);
         dripCurrentRow = TANK_HEIGHT;
         dripColumn = max(dots - 1, 0) % TANK_WIDTH;
         dripFinalRow = min((uint8_t)floor((dots - 1) / TANK_WIDTH), TANK_HEIGHT);
@@ -228,7 +228,7 @@ void NeopixelMatrix::update(uint16_t ppm) {
       } else {
         // ppm increasing
         dripDirection = -1;
-        uint8_t dots = ppmToDots(previousPpm);
+        uint16_t dots = ppmToDots(previousPpm);
         dripCurrentRow = min((uint8_t)floor((dots - 1) / TANK_WIDTH), TANK_HEIGHT);
         dripColumn = max(dots - 1, 0) % TANK_WIDTH;
         dripFinalRow = TANK_HEIGHT - 1;
