@@ -37,7 +37,7 @@ namespace OTA {
   void checkForUpdateInternal() {
     esp32FOTA esp32FOTA(OTA_APP, APP_VERSION, false, false);
     esp32FOTA.setCertFileSystem(&LittleFS);
-    esp32FOTA.checkURL = String(OTA_URL);
+    esp32FOTA.setManifestURL(OTA_URL);
     bool shouldExecuteFirmwareUpdate = esp32FOTA.execHTTPcheck();
     if (shouldExecuteFirmwareUpdate) {
       ESP_LOGD(TAG, "Firmware update available");
@@ -67,7 +67,7 @@ namespace OTA {
     esp32FOTA.setCertFileSystem(&LittleFS);
     mqtt::publishStatusMsg("Starting forced OTA update");
     setPriorityMessageCallback("Starting OTA update");
-    esp32FOTA.forceUpdate(forceUpdateURL, false);
+    esp32FOTA.forceUpdate(forceUpdateURL.c_str(), false);
     forceUpdateURL = "";
     ESP_LOGD(TAG, "Forced OTA done");
     setPriorityMessageCallback("Rebooting");
