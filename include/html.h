@@ -480,7 +480,7 @@ td {text-align: left;}
   </html>
   )";
 
-  const char directory_header[] PROGMEM = R"(
+  const char directory_static[] PROGMEM = R"(
 <!DOCTYPE html>
 <html>
   <head>
@@ -496,17 +496,6 @@ td {text-align: left;}
             <div id="filesDiv">
               Fetching results....          
             </div>
-  )";
-
-  const char file_entry_ext[] PROGMEM = R"(
-<div><a href='/file?ext={e}'>{n}</a>&nbsp;<a href='/delete?ext={e}' onclick="return confirm('Are you sure you want to delete this file?');">delete</a></div>
-  )";
-
-  const char file_entry_int[] PROGMEM = R"(
-<div><a href='/file?int={e}'>{n}</a>&nbsp;<a href='/delete?int={e}' onclick="return confirm('Are you sure you want to delete this file?');">delete</a></div>
-  )";
-
-  const char directory_footer[] PROGMEM = R"(
           <form action="/" method="get"><button class="btn">Back</button></form>
         </fieldset>
       </div>
