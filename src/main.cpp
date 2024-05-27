@@ -72,9 +72,6 @@ bool hasBtn4 = false;
 bool hasOledEnable = false;
 bool hasBattery = false;
 
-volatile uint8_t wifiDisconnected = 0;
-uint32_t lastWifiReconnectAttempt = 0;
-
 const uint32_t debounceDelay = 50;
 volatile uint32_t lastBtn1DebounceTime = 0;
 volatile uint8_t button1State = 0;

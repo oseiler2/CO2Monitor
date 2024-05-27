@@ -315,7 +315,7 @@ A SCD4x NDIR CO2 sensor can be soldered directly onto the pcb and provides CO2, 
 
 ## BME680
 
-A BME680 sensor can be directly soldered onto the dedicates footprint or connected via the I2C JST header [Adafruit BME680](https://www.adafruit.com/product/3660), [STEMMA to JST SH Cable](https://www.adafruit.com/product/4424) to provide additional VOC and AIQ measurements.
+A BME680 sensor can be directly soldered onto the dedicated footprint or connected via the I2C JST header [Adafruit BME680](https://www.adafruit.com/product/3660), [STEMMA to JST SH Cable](https://www.adafruit.com/product/4424) to provide additional VOC and AIQ measurements.
 
 ## SPS30 Particulate matter sensor
 
@@ -335,7 +335,7 @@ Other I2C based sensors can be wired using the JST-PH I2C header.
 
 # Calibration
 
-CO2 sensors need to be regularly calibrated to provide reliable measurements. The used sensors support auto-calibration and that is enabled in the firmware. It works by looking over measurements over a period and calibrating the lowest value against 420ppm (configurable in the firmware). This is based on the assumption that the monitor 'sees' clean outside air about once a week. If that cannot be achieved the firmware also allows for a forced calibration against a given value. Please also make sure to set the altitude setting according to the monitor location. For details please check the sensor's datasheets.
+CO2 sensors need to be regularly calibrated to provide reliable measurements. The used sensors support auto-calibration and that is enabled in the firmware. It works by looking over measurements over a period and calibrating the lowest value against 420ppm (configurable in the firmware). This is based on the assumption that the monitor 'sees' clean outside air about once a week. If that cannot be achieved, the firmware also allows for a forced calibration against a given value. Please also make sure to set the altitude setting according to the monitor location. For details please check the sensor's datasheets.
 
 ## From v1.2.4
 
@@ -343,7 +343,7 @@ Manual calibration can be triggered by pressing the `Boot` button for more than 
 
 # Hardware
 
-The board was designed to use an ESP32 or a Feather controller
+The board was designed to use an ESP32 or another Feather-based controller
 
 ## ESP32
 
@@ -351,7 +351,7 @@ When an ESP32 is used the feather footprint can be used to drive feather wings. 
 
 ## Feather
 
-A feather controller can be used to drive the sensors and LEDs, but unfortunately not the RFM96.
+A feather-based controller can be used to drive the sensors and LEDs, but unfortunately not the RFM96.
 
 ## Pin mapping
 
@@ -395,7 +395,7 @@ A feather controller can be used to drive the sensors and LEDs, but unfortunatel
 
 ## LEDs
 
-The board has room for 3 x 5mm LEDs for traffic light style indication. Each is driven by a transistor to relieve the ESP32/Feather GPIO pins. High intensity LEDs allow for good visibility, but can also be dimmed using the ESP32 internal PWM channels if needed.
+The board has room for 3 x 5mm LEDs for traffic light style indication. Each LED is driven by a transistor connected to the ESP32/Feather GPIO pins. High intensity LEDs allow for good visibility, but can also be dimmed using the ESP32 internal PWM channels if needed.
 
 - [Green, 12.5cd, 30°, 20 mA, 3.2 V](https://nz.element14.com/cree/lc503fpg1-30q-a3-00001/led-5mm-green/dp/1648988) (use 5Ω resistor)
 - [Yellow, 9.3cd, 30°, 20 mA, 2.1 V](https://nz.element14.com/broadcom-limited/hlmp-el3g-vx0dd/led-amber-9-3cd-590nm-th/dp/2900814) (use 60Ω resistor)

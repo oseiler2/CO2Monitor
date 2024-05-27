@@ -6,6 +6,9 @@
 #include <esp32fota.h>
 #include <Ticker.h>
 
+#include <HTTPClient.h>
+#include <Update.h>
+
 // Local logging tag
 static const char TAG[] = __FILE__;
 
