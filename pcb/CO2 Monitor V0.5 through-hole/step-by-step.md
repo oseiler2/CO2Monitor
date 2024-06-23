@@ -70,8 +70,7 @@ Solder the SCD30 sensor to the main PCB while making sure it lies flat on the bo
 
 ![](./17-liquid-tape.jpg)
 
-9. Before plugging the monitor in, have a good look at all components and make sure that all components are installed in the correct location and orientation, all solder joints are well done and not short circuited and everything looks right. Then plug a micro-USB cable into the ESP32 and flash the firmware.
-   The monitor will start up and display the name of its WiFi access point in the first row on the display. After a short while it will also show a CO2 reading. Don't worry that the LEDs don't turn on quite yet as they'll need to be enabled in the configuration first.
+9. Before plugging the monitor in, have a good look at all components and make sure that all components are installed in the correct location and orientation, all solder joints are well done and not short circuited and everything looks right. Then plug a micro-USB cable into the ESP32 and flash the firmware using the web interface at https://oseiler2.github.io/CO2Monitor/. The monitor will start up and display the name of its WiFi access point in the first row on the display. After a short while it will also show a CO2 reading. Don't worry that the LEDs don't turn on quite yet as they'll need to be enabled in the configuration first.
 
 ![](./18-flash.jpg)
 
