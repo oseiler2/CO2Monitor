@@ -198,7 +198,6 @@ namespace WifiManager {
 
     if (keepCaptivePortalActive) startCaptivePortal();
 
-    // TODO: filebrowser for portable monitor? https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
     // TODO: OTA, plus OTA status updates => https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
     events.onConnect(eventsOnConnect);
     if (strlen(PORTAL_USER) > 0 && strlen(PORTAL_PW) > 0) events.setAuthentication(PORTAL_USER, PORTAL_PW);
@@ -864,14 +863,18 @@ namespace WifiManager {
       }
       if (event_id == WIFI_EVENT_STA_CONNECTED) {
         wifiDisconnected = 0;
+#ifdef LED_PIN
         if (LED_PIN >= 0) digitalWrite(LED_PIN, HIGH);
+#endif
         if (captivePortalActive) {
           stopCaptivePortal();
           WiFi.setAutoReconnect(true);
         }
       } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
         wifiDisconnected = 1;
+#ifdef LED_PIN
         if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
+#endif
         lastWifiDisconnect = millis();
         wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
         ESP_LOGD(TAG, "STA Disconnected: ssid: %s, reason: %s", event->ssid, reason2str(event->reason));
