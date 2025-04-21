@@ -377,11 +377,7 @@ void setup() {
   if (coredump::checkForCoredump()) {
     coredump::logCoredumpSummary();
     if (hasSdCard) coredump::writeCoredumpToFile();
-    // TODO: MQTT not initialised at this stage, will ignore.
     mqtt::publishStatusMsg("Found coredump!!");
-    // TODO:
-    // - send coredump via MQTT (on request/always)? Rename file when sent.
-    // - logic when no sd card found - send summary via MQTT? Allow retrieval on request via MQTT?
   }
 
   Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
