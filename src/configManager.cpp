@@ -45,19 +45,6 @@ Config config;
   "matrixColumns": 12,
   "matrixRows": 5,
   "matrixLayout": 0,
-  "hub75R1": 15,
-  "hub75G1": 2,
-  "hub75B1": 4,
-  "hub75R2": 16,
-  "hub75G2": 12,
-  "hub75B2": 17,
-  "hub75ChA": 5,
-  "hub75ChB": 18,
-  "hub75ChC": 19,
-  "hub75ChD": 14,
-  "hub75Clk": 27,
-  "hub75Lat": 26,
-  "hub75Oe": 25,
   "sleepModeOledLed": 0
 }
 */
