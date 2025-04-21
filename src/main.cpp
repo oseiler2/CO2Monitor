@@ -149,13 +149,17 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
     char buf[8];
     DynamicJsonDocument* doc = new DynamicJsonDocument(512);
     if (mask & M_CO2) (*doc)["co2"] = model->getCo2();
-    if (mask & M_TEMPERATURE) {
-      sprintf(buf, "%.1f", model->getTemperature());
-      (*doc)["temperature"] = buf;
-    }
-    if (mask & M_HUMIDITY) {
-      sprintf(buf, "%.1f", model->getHumidity());
-      (*doc)["humidity"] = buf;
+    if (I2C::bme680Present() && bme680 && (mask & M_CO2)) {
+      // if bme680 is present ignore temp/hum from CO2 sensor as it's less accurate
+    } else {
+      if (mask & M_TEMPERATURE) {
+        sprintf(buf, "%.1f", model->getTemperature());
+        (*doc)["temperature"] = buf;
+      }
+      if (mask & M_HUMIDITY) {
+        sprintf(buf, "%.1f", model->getHumidity());
+        (*doc)["humidity"] = buf;
+      }
     }
     if (mask & M_PRESSURE) (*doc)["pressure"] = model->getPressure();
     if (mask & M_IAQ) (*doc)["iaq"] = model->getIAQ();
