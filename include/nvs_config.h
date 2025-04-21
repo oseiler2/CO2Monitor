@@ -1,5 +1,4 @@
-#ifndef _NVS_H
-#define _NVS_H
+#pragma once
 
 #include <Arduino.h>
 #include <power.h>
@@ -13,6 +12,3 @@ namespace NVS {
   boolean writeRunmode(RunMode rm);
 
 }
-
-
-#endif

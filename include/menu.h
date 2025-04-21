@@ -1,5 +1,4 @@
-#ifndef _MENU_H
-#define _MENU_H
+#pragma once
 
 #include <globals.h>
 #include <menuItem.h>
@@ -10,5 +9,3 @@ namespace Menu {
   void button3Pressed();
   void button4Pressed();
 }
-
-#endif

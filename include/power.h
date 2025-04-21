@@ -1,5 +1,4 @@
-#ifndef _POWER_H
-#define _POWER_H
+#pragma once
 
 #include <globals.h>
 #include <model.h>
@@ -30,5 +29,3 @@ namespace Power {
 
   uint32_t getUpTime();
 }
-
-#endif

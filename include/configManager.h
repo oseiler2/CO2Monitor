@@ -1,7 +1,6 @@
-#ifndef _CONFIG_MANAGER_H
-#define _CONFIG_MANAGER_H
+#pragma once
 
-#include <Arduino.h>
+#include <globals.h>
 #include <config.h>
 #include <configParameter.h>
 #include <vector>
@@ -18,5 +17,3 @@ BuzzerMode getBuzzerModeFromUint(uint8_t buzzerMode);
 SleepModeOledLed getSleepModeOledLedFromUint(uint8_t mode);
 
 std::vector<ConfigParameterBase<Config>*> getConfigParameters();
-
-#endif

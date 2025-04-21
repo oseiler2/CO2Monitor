@@ -1,5 +1,4 @@
-#ifndef _BATTERY_H
-#define _BATTERY_H
+#pragma once
 
 #include <globals.h>
 #include <model.h>
@@ -12,5 +11,3 @@ namespace Battery {
   uint16_t getBatteryLevelInmV();
   uint8_t getBatteryLevelInPercent(uint16_t mV);
 }
-
-#endif

@@ -1,8 +1,6 @@
-#ifndef _BUZZER_H
-#define _BUZZER_H
+#pragma once
 
 #include <globals.h>
-#include <Arduino.h>
 #include <config.h>
 #include <model.h>
 
@@ -30,5 +28,3 @@ private:
   uint8_t buzzerPin;
   Ticker* cyclicTimer;
 };
-
-#endif

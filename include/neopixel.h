@@ -1,8 +1,6 @@
-#ifndef _NEOPIXEL_H
-#define _NEOPIXEL_H
+#pragma once
 
 #include <globals.h>
-#include <Arduino.h>
 #include <model.h>
 #include <Adafruit_NeoPixel.h>
 
@@ -32,5 +30,3 @@ private:
   uint32_t colourPurple;
   uint32_t colourOff;
 };
-
-#endif

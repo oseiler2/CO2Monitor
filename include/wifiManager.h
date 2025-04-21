@@ -7,7 +7,6 @@
 #include <configParameter.h>
 #include <model.h>
 
-
 namespace WifiManager {
   extern TaskHandle_t wifiManagerTask;
 
@@ -23,5 +22,3 @@ namespace WifiManager {
   TaskHandle_t start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core);
   void eventHandler(void* event_handler_arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 }
-
-#endif

@@ -1,13 +1,11 @@
-#include <sdkconfig.h>
+#pragma once
 
-#ifndef _HUB75_H
-#define _HUB75_H
-
-#include <Arduino.h>
 #include <globals.h>
 #include <config.h>
 #include <model.h>
 #include <Ticker.h>
+
+#include <sdkconfig.h>
 
 #if CONFIG_IDF_TARGET_ESP32
 
@@ -41,7 +39,5 @@ public:
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
   void stopDMA();
 };
-
-#endif
 
 #endif

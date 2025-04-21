@@ -1,5 +1,4 @@
-#ifndef _MQTT_H
-#define _MQTT_H
+#pragma once
 
 #include <globals.h>
 #include <ArduinoJson.h>
@@ -36,5 +35,3 @@ namespace mqtt {
 
   extern TaskHandle_t mqttTask;
 }
-
-#endif

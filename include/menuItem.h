@@ -1,5 +1,4 @@
-#ifndef _MENUITEM_H
-#define _MENUITEM_H
+#pragma once
 
 #include <globals.h>
 
@@ -38,5 +37,3 @@ private:
   actionMenuItemCallback_t actionMenuItemCallback;
 };
 
-
-#endif

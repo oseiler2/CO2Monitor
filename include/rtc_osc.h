@@ -1,10 +1,7 @@
-#ifndef _RTC_OSC_H
-#define _RTC_OSC_H
+#pragma once
 
-#include "globals.h"
+#include <globals.h>
 
 namespace RtcOsc {
   void setupRtc();
 }
-
-#endif

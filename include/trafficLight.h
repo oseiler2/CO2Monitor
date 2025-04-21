@@ -1,8 +1,6 @@
-#ifndef _TRAFFIC_LIGHT_H
-#define _TRAFFIC_LIGHT_H
+#pragma once
 
 #include <globals.h>
-#include <Arduino.h>
 #include <config.h>
 #include <model.h>
 
@@ -24,5 +22,3 @@ private:
   uint8_t pinGreen;
   Ticker* cyclicTimer;
 };
-
-#endif

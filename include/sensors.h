@@ -1,5 +1,4 @@
-#ifndef _SENSORS_H
-#define _SENSORS_H
+#pragma once
 
 #include <globals.h>
 
@@ -23,5 +22,3 @@ namespace Sensors {
   extern TaskHandle_t sensorsTask;
 
 }
-
-#endif

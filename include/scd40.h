@@ -1,7 +1,5 @@
-#ifndef _SCD40_H
-#define _SCD40_H
+#pragma once
 
-#include <Arduino.h>
 #include <globals.h>
 #include <config.h>
 #include <callbacks.h>
@@ -43,5 +41,3 @@ private:
 
   SCD40SampleRate sampleRate;
 };
-
-#endif

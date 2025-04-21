@@ -1,5 +1,4 @@
-#ifndef _I2C_H
-#define _I2C_H
+#pragma once
 
 #include <globals.h>
 
@@ -24,4 +23,3 @@ namespace I2C {
   boolean sps30Present();
   boolean bme680Present();
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _SD_CARD_H
-#define _SD_CARD_H
+#pragma once
 
 #include <globals.h>
 #include <model.h>
@@ -12,5 +11,3 @@ namespace SdCard {
   boolean writeEvent(int16_t mask, Model* model, TrafficLightStatus status, uint16_t batInMV);
   boolean unmount();
 }
-
-#endif

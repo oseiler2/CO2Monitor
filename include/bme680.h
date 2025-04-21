@@ -1,8 +1,6 @@
-#ifndef _BME680_H
-#define _BME680_H
+#pragma once
 
-#include <Arduino.h>
-#include "globals.h"
+#include <globals.h>
 #include <config.h>
 #include <callbacks.h>
 #include <Wire.h>
@@ -41,5 +39,3 @@ private:
   void updateState(void);
 
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _GLOBALS_H
-#define _GLOBALS_H
+#pragma once
 
 #include <logging.h>
 #include <Arduino.h>
@@ -12,6 +11,4 @@
     for (;;)                                                                   \
       ;                                                                        \
   }
-#endif
-
 #endif

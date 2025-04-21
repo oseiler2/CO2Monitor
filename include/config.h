@@ -1,7 +1,4 @@
-#include <sdkconfig.h>
-
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#pragma once
 
 #include <logging.h>
 #include <sdkconfig.h>
@@ -148,4 +145,3 @@ struct Config {
   uint8_t sdCmd = SD_CMD;
 };
 
-#endif

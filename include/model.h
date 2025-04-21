@@ -1,7 +1,6 @@
-#ifndef _MODEL_H
-#define _MODEL_H
+#pragma once
 
-#include <Arduino.h>
+#include <globals.h>
 
 const float NaN = sqrt(-1);
 
@@ -79,5 +78,3 @@ private:
   void updateStatus();
 
 };
-
-#endif

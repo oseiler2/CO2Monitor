@@ -1,5 +1,4 @@
-#ifndef _CONFIG_PARAMETER_H
-#define _CONFIG_PARAMETER_H
+#pragma once
 
 #include <globals.h>
 #include <config.h>
@@ -148,5 +147,3 @@ public:
 protected:
   const char** enumLabels;
 };
-
-#endif

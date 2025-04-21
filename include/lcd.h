@@ -1,5 +1,4 @@
-#ifndef _LCD_H
-#define _LCD_H
+#pragma once
 
 #include <globals.h>
 #include <Wire.h>
@@ -39,5 +38,3 @@ private:
 
 };
 
-
-#endif

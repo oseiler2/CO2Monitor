@@ -1,8 +1,6 @@
-#ifndef _FEATHER_MATRIX_H
-#define _FEATHER_MATRIX_H
+#pragma once
 
 #include <globals.h>
-#include <Arduino.h>
 #include <model.h>
 #include <Adafruit_DotStarMatrix.h>
 
@@ -30,5 +28,4 @@ private:
   int16_t scrollWidth;
 };
 
-#endif
 
