@@ -21,7 +21,7 @@
   "greenLed": 0,
   "yellowLed": 26,
   "redLed": 25,
-  "neopixelData": 17,
+  "neopixelData": 0,
   "neopixelNumber": 3,
   "neopixelMatrixData": 0,
   "featherMatrixData": 0,
