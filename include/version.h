@@ -1,0 +1,5 @@
+#define APP_TAG         "UNDEFINED"
+#define APP_VERSION     "UNDEFINED"
+#define SRC_REVISION    "UNDEFINED"
+#define SRC_BRANCH      "UNDEFINED"
+#define BUILD_TIMESTAMP "UNDEFINED"
