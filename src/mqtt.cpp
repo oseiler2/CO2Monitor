@@ -1,5 +1,5 @@
 #include <mqtt.h>
-#include <Arduino.h>
+#include <version.h>
 #include <config.h>
 
 #include <PubSubClient.h>

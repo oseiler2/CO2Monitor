@@ -8,11 +8,12 @@ static const char TAG[] = "Battery";
 
 namespace Battery {
 
+#if HAS_BATTERY
   Model* model;
 
   void init(Model* _model) {
     model = _model;
-    adcAttachPin(config.vBatAdc);
+    adcAttachPin(VBAT_ADC);
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);
   }
@@ -40,7 +41,7 @@ namespace Battery {
   }
 
   uint16_t getBatteryLevelInmV() {
-    digitalWrite(config.vBatEn, HIGH);
+    digitalWrite(VBAT_EN, HIGH);
     adc_power_acquire();
     uint32_t maxValue = 0;
     uint32_t minValue = 0xffffffff;
@@ -48,17 +49,27 @@ namespace Battery {
     uint32_t reading;
 #define NUMBER_OF_READINGS         10
     for (uint8_t i = 0; i < NUMBER_OF_READINGS; i++) {
-      reading = analogReadMilliVolts(config.vBatAdc);
+      reading = analogReadMilliVolts(VBAT_ADC);
       sumValue += reading;
       if (reading > maxValue) maxValue = reading;
       if (reading < minValue) minValue = reading;
     }
     uint16_t mV_raw = (sumValue - maxValue - minValue) / (NUMBER_OF_READINGS - 2);
-    digitalWrite(config.vBatEn, LOW);
+    digitalWrite(VBAT_EN, LOW);
     uint16_t mV = mV_raw * 1.496f; //* 1.365f;  //1.496f;  (1k vs 1k5)
     adc_power_release();
     ESP_LOGI(TAG, "Battery: %u mV (raw: %u mV)", mV, mV_raw);
     return mV;
   }
+#else
+
+  void init(Model* _model) {}
+  void readVoltage() {}
+  boolean batteryPresent() { return false; }
+  boolean usbPowerPresent() { return true; }
+  uint16_t getBatteryLevelInmV() { return 4200; }
+  uint8_t getBatteryLevelInPercent(uint16_t mV) { return 100; }
+
+#endif
 
 }

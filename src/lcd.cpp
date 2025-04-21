@@ -19,8 +19,6 @@
 // Local logging tag
 static const char TAG[] = "OLED";
 
-extern boolean hasBattery;
-
 LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
   priorityMessageActive = false;
   menuActive = false;
@@ -210,7 +208,7 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
   this->display->setFont(NULL);
   this->display->setTextSize(1);
   this->display->setCursor(0, temp_hum_y);
-  if (hasBattery) {
+  if (HAS_BATTERY) {
     uint8_t bat = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
     this->display->printf("%3.1fC %2.0f%%rH %u%% %s", model->getTemperature(), model->getHumidity(), bat, Battery::usbPowerPresent() ? "USB" : "Bat");
   } else {

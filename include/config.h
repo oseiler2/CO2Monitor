@@ -1,47 +1,57 @@
 #pragma once
 
-#include <logging.h>
-#include <sdkconfig.h>
+#include <variant.h>
+#include <Arduino.h>
 
 #define OTA_URL               "https://otahost/co2monitor/firmware.json"
 #define OTA_APP               "co2monitor"
 //#define OTA_POLL
 
-#if CONFIG_IDF_TARGET_ESP32
 
-#define LED_PIN                2
-#define BTN_1                  0
-#define SDA_PIN              SDA
-#define SCL_PIN              SCL
-#define SCD30_RDY_PIN         35
+#if not defined (SCD30_RDY_PIN)
+#define SCD30_RDY_PIN       (-1)
+#endif
 
-#elif CONFIG_IDF_TARGET_ESP32S3
+#if defined (BTN_2)
+#define HAS_BTN_2            (1)
+#else
+#define HAS_BTN_2            (0)
+#endif
 
-#define LED_PIN                2
-#define BUZZER_PIN             1
-#define SD_DETECT              3
-#define SD_DAT0                5
-#define SD_DAT1                4
-#define SD_DAT2                8
-#define SD_DAT3               18
-#define SD_CLK                 6
-#define SD_CMD                 7
-#define VBAT_ADC               9
-#define BTN_1                  0
-#define BTN_2                 12
-#define BTN_3                 11
-#define BTN_4                 10
-#define OLED_EN               13
-#define NEO_DATA              17
-#define XTAL_32k_1            15
-#define XTAL_32k_2            16
-#define VBAT_EN               46
-#define SDA_PIN               14
-#define SCL_PIN               21
-#define SCD30_RDY_PIN         -1
-#define NEO_1_EN              48
-#define NEO_23_EN             47
+#if defined (BTN_3)
+#define HAS_BTN_3            (1)
+#else
+#define HAS_BTN_3            (0)
+#endif
 
+#if defined (BTN_4)
+#define HAS_BTN_4            (1)
+#else
+#define HAS_BTN_4            (0)
+#endif
+
+#if defined (VBAT_EN) && defined (VBAT_ADC)
+#define HAS_BATTERY          (1)
+#else
+#define HAS_BATTERY          (0)
+#endif
+
+#if defined (OLED_EN)
+#define HAS_OLED_EN          (1)
+#else
+#define HAS_OLED_EN          (0)
+#endif
+
+#if defined (BUZZER_PIN)
+#define HAS_BUZZER           (1)
+#else
+#define HAS_BUZZER           (0)
+#endif
+
+#if defined (SD_DETECT) && defined (SD_DAT0) && defined (SD_DAT1) && defined (SD_DAT2) && defined (SD_DAT3) && defined (SD_CLK) && defined (SD_CMD)
+#define HAS_SD_SLOT          (1)
+#else
+#define HAS_SD_SLOT          (0)
 #endif
 
 #define I2C_CLK 100000UL
@@ -101,8 +111,12 @@ struct Config {
   uint16_t iaqRedThreshold;
   uint16_t iaqDarkRedThreshold;
   uint8_t brightness;
+#if HAS_BUZZER  
   BuzzerMode buzzerMode;
+#endif
+#if HAS_BATTERY
   SleepModeOledLed sleepModeOledLed;
+#endif
   uint8_t ssd1306Rows;
   uint8_t greenLed;
   uint8_t yellowLed;
@@ -115,33 +129,5 @@ struct Config {
   uint8_t matrixColumns;
   uint8_t matrixRows;
   uint8_t matrixLayout;
-  uint8_t hub75R1;
-  uint8_t hub75G1;
-  uint8_t hub75B1;
-  uint8_t hub75R2;
-  uint8_t hub75G2;
-  uint8_t hub75B2;
-  uint8_t hub75ChA;
-  uint8_t hub75ChB;
-  uint8_t hub75ChC;
-  uint8_t hub75ChD;
-  uint8_t hub75Clk;
-  uint8_t hub75Lat;
-  uint8_t hub75Oe;
-
-  uint8_t vBatEn = VBAT_EN;
-  uint8_t vBatAdc = VBAT_ADC;
-  uint8_t btn2 = BTN_2;
-  uint8_t btn3 = BTN_3;
-  uint8_t btn4 = BTN_4;
-  uint8_t oledEn = OLED_EN;
-  uint8_t buzzerPin = BUZZER_PIN;
-  uint8_t sdDetect = SD_DETECT;
-  uint8_t sdDat0 = SD_DAT0;
-  uint8_t sdDat1 = SD_DAT1;
-  uint8_t sdDat2 = SD_DAT2;
-  uint8_t sdDat3 = SD_DAT3;
-  uint8_t sdClk = SD_CLK;
-  uint8_t sdCmd = SD_CMD;
 };
 

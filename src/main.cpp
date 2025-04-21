@@ -47,7 +47,9 @@ TrafficLight* trafficLight;
 Neopixel* neopixel;
 NeopixelMatrix* neopixelMatrix;
 FeatherMatrix* featherMatrix;
+#if defined (HAS_HUB75)
 HUB75* hub75;
+#endif
 Buzzer* buzzer;
 SCD30* scd30;
 SCD40* scd40;
@@ -60,16 +62,8 @@ TaskHandle_t neopixelMatrixTask;
 bool hasLEDs = false;
 bool hasNeoPixel = false;
 bool hasFeatherMatrix = false;
-bool hasBuzzer = false;
 bool hasNeopixelMatrix = false;
-bool hasHub75 = false;
-bool hasSdSlot = false;
 bool hasSdCard = false;
-bool hasBtn2 = false;
-bool hasBtn3 = false;
-bool hasBtn4 = false;
-bool hasOledEnable = false;
-bool hasBattery = false;
 
 const uint32_t debounceDelay = 50;
 volatile uint32_t lastBtn1DebounceTime = 0;
@@ -90,23 +84,31 @@ void ICACHE_RAM_ATTR button1Handler() {
   lastBtn1DebounceTime = millis();
 }
 
+#if HAS_BTN_2
 void ICACHE_RAM_ATTR button2Handler() {
-  button2State = (digitalRead(config.btn2) ? 0 : 1);
+  button2State = (digitalRead(BTN_2) ? 0 : 1);
   lastBtn2DebounceTime = millis();
 }
+#endif
 
+#if HAS_BTN_3
 void ICACHE_RAM_ATTR button3Handler() {
-  button3State = (digitalRead(config.btn3) ? 0 : 1);
+  button3State = (digitalRead(BTN_3) ? 0 : 1);
   lastBtn3DebounceTime = millis();
 }
+#endif
 
+#if HAS_BTN_4
 void ICACHE_RAM_ATTR button4Handler() {
-  button4State = (digitalRead(config.btn4) ? 0 : 1);
+  button4State = (digitalRead(BTN_4) ? 0 : 1);
   lastBtn4DebounceTime = millis();
 }
+#endif
 
 void prepareOta() {
-  if (hasHub75 && hub75) hub75->stopDMA();
+#if defined (HAS_HUB75)
+  if (hub75) hub75->stopDMA();
+#endif
   if (hasNeopixelMatrix && neopixelMatrix) {
     hasNeopixelMatrix = false;
     neopixelMatrix->stop();
@@ -137,8 +139,10 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
   if (hasNeoPixel && neopixel) neopixel->update(mask, oldStatus, newStatus);
   if (hasFeatherMatrix && featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
   if (hasNeopixelMatrix && neopixelMatrix) neopixelMatrix->update(mask, oldStatus, newStatus);
-  if (hasHub75 && hub75) hub75->update(mask, oldStatus, newStatus);
-  if (hasBuzzer && buzzer) buzzer->update(mask, oldStatus, newStatus);
+#if defined (HAS_HUB75)
+  if (hub75) hub75->update(mask, oldStatus, newStatus);
+#endif
+  if (HAS_BUZZER && buzzer) buzzer->update(mask, oldStatus, newStatus);
   if ((mask & M_PRESSURE) && I2C::scd40Present() && scd40) scd40->setAmbientPressure(model->getPressure());
   if ((mask & M_PRESSURE) && I2C::scd30Present() && scd30) scd30->setAmbientPressure(model->getPressure());
   if ((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE | M_RUN_MODE)) != M_NONE) {
@@ -298,44 +302,41 @@ void setup() {
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
   hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0
-    && (Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)));
+    && (Power::getRunMode() == RM_FULL
+#if HAS_BATTERY
+      || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)
+#endif
+      ));
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
-  hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
-    && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
-  hasBuzzer = config.buzzerPin != 0;
-  hasSdSlot = (config.sdDetect != 0 && config.sdDat0 != 0 && config.sdDat1 != 0 && config.sdDat2 != 0 && config.sdDat3 != 0 && config.sdClk != 0 && config.sdCmd != 0);
-  hasBtn2 = config.btn2 != 0;
-  hasBtn3 = config.btn3 != 0;
-  hasBtn4 = config.btn4 != 0;
-  hasOledEnable = config.oledEn != 0;
-  hasBattery = config.vBatAdc != 0 && config.vBatEn > 0;
 
+#if HAS_OLED_EN
+  if ((Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))) {
+    pinMode(OLED_EN, OUTPUT);
+    digitalWrite(OLED_EN, HIGH);
+  }
+#endif
+
+#ifdef LED_PIN
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
-  pinMode(BTN_1, INPUT_PULLUP);
-  if (hasBtn2) pinMode(config.btn2, INPUT_PULLUP);
-  if (hasBtn3) pinMode(config.btn3, INPUT_PULLUP);
-  if (hasBtn4) pinMode(config.btn4, INPUT_PULLUP);
-  if (hasOledEnable
-    && (Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))) {
-    pinMode(config.oledEn, OUTPUT);
-    digitalWrite(config.oledEn, HIGH);
-  }
+#endif
+
   if (hasNeoPixel) {
     pinMode(config.neopixelData, OUTPUT);
     digitalWrite(config.neopixelData, LOW);
   }
-  if (hasBuzzer) {
-    pinMode(config.buzzerPin, OUTPUT);
-    digitalWrite(config.buzzerPin, LOW);
-  }
-  if (hasBattery) {
-    pinMode(config.vBatEn, OUTPUT);
-    digitalWrite(config.vBatEn, LOW);
-  }
-  if (hasSdSlot) pinMode(config.sdDetect, INPUT);
-  hasSdCard = hasSdSlot && SdCard::probe();
+
+#if HAS_BATTERY
+  pinMode(VBAT_EN, OUTPUT);
+  digitalWrite(VBAT_EN, LOW);
+  Battery::readVoltage();
+#endif
+
+#if HAS_SD_SLOT
+  pinMode(SD_DETECT, INPUT);
+  hasSdCard = HAS_SD_SLOT && SdCard::probe();
+#endif
 
   Wire.begin((int)SDA_PIN, (int)SCL_PIN, (uint32_t)I2C_CLK);
   I2C::initI2C(!reinitFromSleep);
@@ -345,15 +346,28 @@ void setup() {
   if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::lcdPresent()
-    && (Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))
-    ) lcd = new LCD(&Wire, model, reinitFromSleep);
+    && (Power::getRunMode() == RM_FULL
+#if HAS_BATTERY
+      || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF)
+#endif
+      )) {
+    lcd = new LCD(&Wire, model, reinitFromSleep);
+  }
 
   if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed, reinitFromSleep);
   if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber, reinitFromSleep);
   if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock, reinitFromSleep);
   if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
-  if (hasHub75) hub75 = new HUB75(model);
-  if (hasBuzzer) buzzer = new Buzzer(model, config.buzzerPin, reinitFromSleep);
+#if defined (HAS_HUB75)
+  hub75 = new HUB75(model);
+#endif
+
+#if HAS_BUZZER
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+  buzzer = new Buzzer(model, BUZZER_PIN, reinitFromSleep);
+#endif
+
   if (hasSdCard) hasSdCard &= SdCard::setup();
 
   if (Power::getRunMode() == RM_FULL) {
@@ -426,12 +440,23 @@ void setup() {
 
     clockTimer.attach(1, showTimeLcd);
   }
+  pinMode(BTN_1, INPUT_PULLUP);
   attachInterrupt(BTN_1, button1Handler, CHANGE);
-  if (hasBtn2) attachInterrupt(config.btn2, button2Handler, CHANGE);
-  if (hasBtn3) attachInterrupt(config.btn3, button3Handler, CHANGE);
-  if (hasBtn4) attachInterrupt(config.btn4, button4Handler, CHANGE);
 
-  if (hasBattery) Battery::readVoltage();
+#if HAS_BTN_2
+  pinMode(BTN_2, INPUT_PULLUP);
+  attachInterrupt(BTN_2, button2Handler, CHANGE);
+#endif
+
+#if HAS_BTN_3
+  pinMode(BTN_3, INPUT_PULLUP);
+  attachInterrupt(BTN_3, button3Handler, CHANGE);
+#endif
+
+#if HAS_BTN_4
+  pinMode(BTN_4, INPUT_PULLUP);
+  attachInterrupt(BTN_4, button4Handler, CHANGE);
+#endif
 
   ESP_LOGI(TAG, "Setup done.");
 #ifdef SHOW_DEBUG_MSGS
@@ -446,11 +471,11 @@ void loop() {
     Timekeeper::printTime();
     Sensors::runOnce();
     showTimeLcd();
-    if (hasBattery) {
+    if (HAS_BATTERY) {
       uint8_t percent = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
       if (percent < 15) {
         ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
-        if (hasBuzzer && buzzer) buzzer->alert();
+        if (HAS_BUZZER && buzzer) buzzer->alert();
         if (hasNeoPixel && neopixel) neopixel->off();
         if (scd40) scd40->shutdown();
         if (bme680) bme680->shutdown();
@@ -471,19 +496,19 @@ void loop() {
     }
   }
 
-  if (hasBtn2 && button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
+  if (HAS_BTN_2 && button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
     oldConfirmedButton2State = button2State;
     if (oldConfirmedButton2State == 1) {
       Menu::button2Pressed();
     }
   }
-  if (hasBtn3 && button3State != oldConfirmedButton3State && (millis() - lastBtn3DebounceTime) > debounceDelay) {
+  if (HAS_BTN_3 && button3State != oldConfirmedButton3State && (millis() - lastBtn3DebounceTime) > debounceDelay) {
     oldConfirmedButton3State = button3State;
     if (oldConfirmedButton3State == 1) {
       Menu::button3Pressed();
     }
   }
-  if (hasBtn4 && button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
+  if (HAS_BTN_4 && button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
     oldConfirmedButton4State = button4State;
     if (oldConfirmedButton4State == 1) {
       Menu::button4Pressed();

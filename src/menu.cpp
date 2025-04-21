@@ -21,7 +21,6 @@ extern Buzzer* buzzer;
 extern SCD40* scd40;
 extern BME680* bme680;
 
-extern bool hasBuzzer;
 extern bool hasNeoPixel;
 
 extern void prepareOta();
@@ -52,10 +51,12 @@ namespace Menu {
   const char* const miGoToSleepLabels[] = { "Go to\nsleep" };
 
   void setBuzzerAction(uint8_t selection) {
+#if HAS_BUZZER
     ESP_LOGI(TAG, "setBuzzerAction %u", selection);
     config.buzzerMode = getBuzzerModeFromUint(selection);
     saveConfiguration(config);
     model->configurationChanged();
+#endif
   }
 
   void setBrightnessAction(uint8_t selection) {
@@ -66,9 +67,11 @@ namespace Menu {
   }
 
   void setSleepModeAction(uint8_t selection) {
+#if HAS_BATTERY
     ESP_LOGI(TAG, "setSleepModeAction %u", selection);
     config.sleepModeOledLed = getSleepModeOledLedFromUint(selection);
     saveConfiguration(config);
+#endif
   }
 
   void doCalibrateAction(uint8_t selection) {
@@ -79,7 +82,9 @@ namespace Menu {
   void startAPAction(uint8_t selection) {
     ESP_LOGI(TAG, "startAPAction %u", selection);
     if (Power::getRunMode() == RM_FULL) {
+#ifdef LED_PIN
       digitalWrite(LED_PIN, LOW);
+#endif
       prepareOta();
       WifiManager::startCaptivePortal();
     }
@@ -96,7 +101,7 @@ namespace Menu {
 
   void powerDownAction(uint8_t selection) {
     ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
-    if (hasBuzzer && buzzer) buzzer->alert();
+    if (HAS_BUZZER && buzzer) buzzer->alert();
     if (hasNeoPixel && neopixel) neopixel->off();
     if (scd40) scd40->shutdown();
     if (bme680) bme680->shutdown();
@@ -139,8 +144,12 @@ namespace Menu {
     } else*/ if (menuLevel < 1) {
       if (menuLevel == -1) {
         brightnessMenuItem->setSelection(config.brightness);
+#if HAS_BUZZER
         buzzerMenuItem->setSelection(config.buzzerMode);
+#endif
+#if HAS_BATTERY
         sleepModeMenuItem->setSelection(config.sleepModeOledLed);
+#endif
         currentMenuItem = 0;
       }
       menuLevel++;

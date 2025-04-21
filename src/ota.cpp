@@ -1,4 +1,5 @@
 #include <config.h>
+#include <version.h>
 #include <mqtt.h>
 #include <ota.h>
 #include <LittleFS.h>

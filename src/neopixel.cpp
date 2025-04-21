@@ -71,7 +71,11 @@ void Neopixel::prepareToSleep() {
     this->strip->setPixelColor(i, colourOff);
   }
   this->strip->show();
+#if HAS_BATTERY
   if (config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON) {
+#else
+  if (true) {
+#endif
     this->strip->setBrightness(min(BAT_BRIGHTNESS, config.brightness));
     uint32_t c;
     switch (model->getStatus()) {

@@ -1,4 +1,5 @@
 #include <fileDataLogger.h>
+#include <config.h>
 #include <battery.h>
 
 #include <FS.h>
@@ -44,7 +45,7 @@ namespace FileDataLogger {
       return false;
     }
 
-//    strftime(buf, 30, "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
+    //    strftime(buf, 30, "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
     strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &timeinfo);
     fprintf(f, "%s,", buf);
     if (mask & M_CO2)
@@ -71,11 +72,11 @@ namespace FileDataLogger {
       fprintf(f, "%u,", status);
     else
       fprintf(f, ",");
-    if (batInMV > 1000)
+    if (HAS_BATTERY && batInMV > 1000)
       fprintf(f, "%u,", Battery::getBatteryLevelInPercent(batInMV));
     else
       fprintf(f, ",");
-    if (batInMV > 1000)
+    if (HAS_BATTERY && batInMV > 1000)
       fprintf(f, "%u,", batInMV);
     else
       fprintf(f, ",");

@@ -15,6 +15,8 @@ static const char TAG[] = "SdCard";
 
 namespace SdCard {
 
+#if HAS_SD_SLOT
+
   static boolean initialised = false;
 
   esp_vfs_fat_sdmmc_mount_config_t mount_config = {
@@ -33,23 +35,23 @@ namespace SdCard {
 
   boolean probe() {
 #if CONFIG_IDF_TARGET_ESP32S3
-    slot_config.clk = (gpio_num_t)config.sdClk;
-    slot_config.cmd = (gpio_num_t)config.sdCmd;
-    slot_config.d0 = (gpio_num_t)config.sdDat0;
-    slot_config.d1 = (gpio_num_t)config.sdDat1;
-    slot_config.d2 = (gpio_num_t)config.sdDat2;
-    slot_config.d3 = (gpio_num_t)config.sdDat3;
+    slot_config.clk = (gpio_num_t)SD_CLK;
+    slot_config.cmd = (gpio_num_t)SD_CMD;
+    slot_config.d0 = (gpio_num_t)SD_DAT0;
+    slot_config.d1 = (gpio_num_t)SD_DAT1;
+    slot_config.d2 = (gpio_num_t)SD_DAT2;
+    slot_config.d3 = (gpio_num_t)SD_DAT3;
     slot_config.d4 = GPIO_NUM_NC;
     slot_config.d5 = GPIO_NUM_NC;
     slot_config.d6 = GPIO_NUM_NC;
     slot_config.d7 = GPIO_NUM_NC;
 #endif
-    slot_config.cd = (gpio_num_t)config.sdDetect;
+    slot_config.cd = (gpio_num_t)SD_DETECT;
     slot_config.wp = SDMMC_SLOT_NO_WP;
     slot_config.width = 4;
     slot_config.flags = 0;
 
-    boolean cardDetected = !digitalRead(config.sdDetect);
+    boolean cardDetected = !digitalRead(SD_DETECT);
     //    ESP_LOGD(TAG, "Card detected ? %u", cardDetected);
     return cardDetected;
   }
@@ -99,5 +101,13 @@ namespace SdCard {
     //    ESP_LOGD(TAG, "Card unmounted");
     return true;
   }
+#else
 
+  boolean probe() { return false; }
+  boolean setup() { return false; }
+  boolean isInitialised() { return false; }
+  boolean writeEvent(int16_t mask, Model* model, TrafficLightStatus status, uint16_t batInMV) { return false; }
+  boolean unmount() { return true; }
+
+#endif
 }

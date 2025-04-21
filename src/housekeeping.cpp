@@ -9,8 +9,6 @@
 // Local logging tag
 static const char TAG[] = "Housekeeping";
 
-extern boolean hasBattery;
-
 namespace housekeeping {
   Ticker cyclicTimer;
 
@@ -40,7 +38,7 @@ namespace housekeeping {
       Serial.flush();
       esp_restart();
     }
-    if (hasBattery) {
+    if (HAS_BATTERY) {
       Battery::readVoltage();
       switch (Power::getRunMode()) {
         case RM_FULL:

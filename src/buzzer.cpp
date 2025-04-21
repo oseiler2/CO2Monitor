@@ -6,6 +6,7 @@
 // Local logging tag
 static const char TAG[] = "Buzzer";
 
+#if HAS_BUZZER
 #define PWM_FREQ_BUZZER           2000
 #define PWM_RESOULTION_BUZZER     8
 #define BUZZER_DUTY               128
@@ -94,3 +95,4 @@ void Buzzer::timer() {
     }
   }
 }
+#endif

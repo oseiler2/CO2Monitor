@@ -18,8 +18,6 @@
 // Local logging tag
 static const char TAG[] = "Power";
 
-extern boolean hasBattery;
-
 namespace Power {
 
   RTC_NOINIT_ATTR RunMode runmode = RM_UNDEFINED;
@@ -189,7 +187,11 @@ namespace Power {
     }
 
     rtc_gpio_deinit((gpio_num_t)BTN_1);
-    if (config.neopixelData > 0 && (runmode == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON))) {
+    if (config.neopixelData > 0 && (runmode == RM_FULL
+#if HAS_BATTERY
+      || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)
+#endif
+      )) {
       pinMode(config.neopixelData, OUTPUT);
       disableRtcHold((gpio_num_t)config.neopixelData);
 #ifdef NEO_1_EN
@@ -218,17 +220,23 @@ namespace Power {
 #endif
     }
 
-    if (config.oledEn > 0) {
-      pinMode(config.oledEn, OUTPUT);
-      if (runmode == RM_LOW || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF)) {
-        digitalWrite(config.oledEn, HIGH);
-      } else {
-        digitalWrite(config.oledEn, LOW);
-      }
-      disableRtcHold((gpio_num_t)config.oledEn);
+#if HAS_OLED_EN
+    pinMode(OLED_EN, OUTPUT);
+    if (runmode == RM_LOW || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF)) {
+      digitalWrite(OLED_EN, HIGH);
+    } else {
+      digitalWrite(OLED_EN, LOW);
     }
-    if (config.buzzerPin > 0) disableRtcHold((gpio_num_t)config.buzzerPin);
+    disableRtcHold((gpio_num_t)OLED_EN);
+#endif
+
+#if HAS_BUZZER
+    disableRtcHold((gpio_num_t)BUZZER_PIN);
+#endif
+
+#ifdef LED_PIN
     disableRtcHold((gpio_num_t)LED_PIN);
+#endif
 
     enableGpioPullDn(GPIO_NUM_35);    // GPIO SUBSPID
     enableGpioPullDn(GPIO_NUM_36);    // GPIO SUBSPICLK
@@ -250,7 +258,10 @@ namespace Power {
   void prepareForDeepSleep(bool powerDown) {
     ESP_LOGI(TAG, "prepareForDeepSleep(%s)", powerDown ? "true" : "false");
 
-    if (powerDown || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) digitalWrite(config.oledEn, LOW);
+#if HAS_BATTERY   
+#if HAS_OLED_EN
+    if (powerDown || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) digitalWrite(OLED_EN, LOW);
+#endif
     if (powerDown || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_OFF) {
 #ifdef NEO_1_EN
       digitalWrite(NEO_1_EN, LOW);
@@ -266,13 +277,23 @@ namespace Power {
       digitalWrite(config.neopixelData, LOW);
       setGpioSleepPullMode((gpio_num_t)config.neopixelData, GPIO_PULLDOWN_ONLY);
     }
+#endif
+
 #ifdef NEO_23_EN
     digitalWrite(NEO_23_EN, LOW);
     setGpioSleepPullMode((gpio_num_t)NEO_23_EN, GPIO_PULLDOWN_ONLY);
 #endif
+#ifdef LED_PIN
     digitalWrite(LED_PIN, LOW);
-    digitalWrite(config.buzzerPin, LOW);
-    digitalWrite(config.vBatEn, LOW);
+#endif
+
+#if HAS_BUZZER
+    digitalWrite(BUZZER_PIN, LOW);
+#endif
+
+#if HAS_BATTERY
+    digitalWrite(VBAT_EN, LOW);
+#endif
 
     mqtt::shutDownMqtt();
     I2C::shutDownI2C();
@@ -289,10 +310,22 @@ namespace Power {
     if (model) trafficLightStatus = model->getStatus();
 
     enableRtcHold((gpio_num_t)config.neopixelData);
-    enableRtcHold((gpio_num_t)config.oledEn);
-    setGpioSleepPullMode((gpio_num_t)config.buzzerPin, GPIO_PULLDOWN_ONLY);
+
+#if HAS_OLED_EN
+    enableRtcHold((gpio_num_t)OLED_EN);
+#endif
+
+#if HAS_BUZZER
+    setGpioSleepPullMode((gpio_num_t)BUZZER_PIN, GPIO_PULLDOWN_ONLY);
+#endif
+
+#ifdef LED_PIN    
     enableRtcHold((gpio_num_t)LED_PIN);
+#endif
+
+#if HAS_BATTERY
     setGpioSleepPullMode((gpio_num_t)VBAT_EN, GPIO_PULLDOWN_ONLY);
+#endif
 
     // don't - it increases power consumption. Use pullup/downn instead.
     //gpio_deep_sleep_hold_en();

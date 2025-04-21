@@ -6,7 +6,7 @@
 #include <digits.h>
 #include <message.h>
 
-#if CONFIG_IDF_TARGET_ESP32
+#if defined (HAS_HUB75)
 
 // Local logging tag
 static const char TAG[] = "Hub75";
@@ -15,14 +15,11 @@ static const char TAG[] = "Hub75";
 
 HUB75::HUB75(Model* _model) {
   this->model = _model;
-  if (config.hub75R1 != 0 && config.hub75G1 != 0 && config.hub75B1 != 0 && config.hub75R2 != 0 && config.hub75G2 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0
-    && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0 && config.hub75Clk != 0 && config.hub75Lat != 0 && config.hub75Oe) {
-    HUB75_I2S_CFG::i2s_pins hub75Pins = { static_cast<int8_t>(config.hub75R1), static_cast<int8_t>(config.hub75G1), static_cast<int8_t>(config.hub75B1), static_cast<int8_t>(config.hub75R2),
-      static_cast<int8_t>(config.hub75G2), static_cast<int8_t>(config.hub75B2), static_cast<int8_t>(config.hub75ChA), static_cast<int8_t>(config.hub75ChB), static_cast<int8_t>(config.hub75ChC),
-      static_cast<int8_t>(config.hub75ChD), -1, static_cast<int8_t>(config.hub75Lat), static_cast<int8_t>(config.hub75Oe), static_cast<int8_t>(config.hub75Clk) };
-    HUB75_I2S_CFG mxconfig(64, 32, 1, hub75Pins, HUB75_I2S_CFG::FM6126A, false, HUB75_I2S_CFG::HZ_15M, 1, true, 50, 6);
-    this->matrix = new MatrixPanel_I2S_DMA(mxconfig);
-  }
+  HUB75_I2S_CFG::i2s_pins hub75Pins = { static_cast<int8_t>(HUB75_R1), static_cast<int8_t>(HUB75_G1), static_cast<int8_t>(HUB75_B1), static_cast<int8_t>(HUB75_R2),
+    static_cast<int8_t>(HUB75_G2), static_cast<int8_t>(HUB75_B2), static_cast<int8_t>(HUB75_ChA), static_cast<int8_t>(HUB75_ChB), static_cast<int8_t>(HUB75_ChC),
+    static_cast<int8_t>(HUB75_ChD), -1, static_cast<int8_t>(HUB75_Lat), static_cast<int8_t>(HUB75_Oe), static_cast<int8_t>(HUB75_Clk) };
+  HUB75_I2S_CFG mxconfig(64, 32, 1, hub75Pins, HUB75_I2S_CFG::FM6126A, false, HUB75_I2S_CFG::HZ_15M, 1, true, 50, 6);
+  this->matrix = new MatrixPanel_I2S_DMA(mxconfig);
   matrix->begin();
   matrix->setRotation(3);
   matrix->setBrightness(config.brightness);
@@ -93,13 +90,5 @@ void HUB75::timer() {
     toggle = !toggle;
   }
 }
-
-#elif CONFIG_IDF_TARGET_ESP32S3
-
-HUB75::HUB75(Model* _model) {}
-HUB75::~HUB75() {}
-
-void HUB75::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {}
-void HUB75::stopDMA() {}
 
 #endif

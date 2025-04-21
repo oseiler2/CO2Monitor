@@ -1,6 +1,7 @@
 #include <wifiManager.h>
 #include <html.h>
 #include <configManager.h>
+#include <version.h>
 
 #include <base64.h>
 #include <esp_wifi.h>

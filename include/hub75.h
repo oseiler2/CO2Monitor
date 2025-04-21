@@ -5,12 +5,9 @@
 #include <model.h>
 #include <Ticker.h>
 
-#include <sdkconfig.h>
-
-#if CONFIG_IDF_TARGET_ESP32
+#if defined (HAS_HUB75)
 
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
-
 
 class HUB75 {
 public:
@@ -27,17 +24,6 @@ private:
   void timer();
   Ticker* cyclicTimer;
   boolean toggle;
-};
-
-#elif CONFIG_IDF_TARGET_ESP32S3
-
-class HUB75 {
-public:
-  HUB75(Model* _model);
-  ~HUB75();
-
-  void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
-  void stopDMA();
 };
 
 #endif
