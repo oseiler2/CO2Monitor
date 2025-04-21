@@ -1,7 +1,4 @@
-#include <globals.h>
-#include <config.h>
 #include <scd30.h>
-#include <Arduino.h>
 
 #include <configManager.h>
 #include <i2c.h>
@@ -9,7 +6,7 @@
 #include "freertos/FreeRTOS.h"
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "SCD30";
 
 #define MAX_RETRY 5
 #define SCD30_INTERVAL 15

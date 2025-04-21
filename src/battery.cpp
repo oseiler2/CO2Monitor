@@ -1,11 +1,10 @@
-#include <Arduino.h>
 #include <config.h>
 #include <configManager.h>
 #include <battery.h>
 #include <driver/adc.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Battery";
 
 namespace Battery {
 

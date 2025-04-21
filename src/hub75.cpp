@@ -9,7 +9,7 @@
 #if CONFIG_IDF_TARGET_ESP32
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Hub75";
 
 #define USE_FASTLINES
 

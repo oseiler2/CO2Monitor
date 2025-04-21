@@ -1,9 +1,5 @@
-#include <globals.h>
-#include <logging.h>
-
 #include <wifiManager.h>
 #include <html.h>
-#include <config.h>
 #include <configManager.h>
 
 #include <base64.h>
@@ -36,7 +32,7 @@
 #endif
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "WifiManager";
 
 namespace WifiManager {
 

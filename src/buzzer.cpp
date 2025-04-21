@@ -4,7 +4,7 @@
 #include <configManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Buzzer";
 
 #define PWM_FREQ_BUZZER           2000
 #define PWM_RESOULTION_BUZZER     8

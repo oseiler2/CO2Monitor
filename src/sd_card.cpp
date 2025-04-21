@@ -1,4 +1,3 @@
-#include <logging.h>
 #include <sd_card.h>
 #include <config.h>
 
@@ -7,13 +6,12 @@
 #include <esp_vfs_fat.h>
 #include <sys/stat.h>
 
-#include <model.h>
 #include <configManager.h>
 #include <battery.h>
 #include <fileDataLogger.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "SdCard";
 
 namespace SdCard {
 

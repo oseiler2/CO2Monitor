@@ -1,14 +1,11 @@
-#include <globals.h>
-#include <config.h>
 #include <scd40.h>
-#include <model.h>
 
 #include <i2c.h>
 #include <configManager.h>
 #include <power.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "SCD40";
 
 boolean SCD40::checkError(uint16_t error, char const* msg) {
   if (error != 0) {

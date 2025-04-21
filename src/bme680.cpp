@@ -1,15 +1,11 @@
-#include <globals.h>
-#include <config.h>
 #include <bme680.h>
-#include <model.h>
 
 #include <i2c.h>
 #include <configManager.h>
-#include <EEPROM.h>
 #include <power.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "BME680";
 
 const uint8_t bsec_config_iaq_LP[] = {
 #include "config/generic_33v_3s_4d/bsec_iaq.txt"

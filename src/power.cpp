@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <config.h>
 #include <power.h>
 #include <WiFi.h>
@@ -17,7 +16,7 @@
 #include <configManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Power";
 
 extern boolean hasBattery;
 

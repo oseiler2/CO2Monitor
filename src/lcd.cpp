@@ -17,7 +17,7 @@
 #define FONT_9 &FreeMono9pt7b
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "OLED";
 
 extern boolean hasBattery;
 

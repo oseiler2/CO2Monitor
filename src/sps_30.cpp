@@ -1,13 +1,10 @@
-#include <globals.h>
-#include <config.h>
 #include <sps_30.h>
-#include <model.h>
 
 #include <i2c.h>
 #include <configManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "SPS30";
 
 #define SP30_COMMS Wire
 

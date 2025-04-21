@@ -1,9 +1,8 @@
 #include <rtc_osc.h>
+#include "soc/rtc.h"
 
 // Local logging tag
-static const char TAG[] = __FILE__;
-
-#include "soc/rtc.h"
+static const char TAG[] = "RtcOsc";
 
 #define CALIBRATE_ONE(cali_clk) calibrate_one(cali_clk, #cali_clk)
 

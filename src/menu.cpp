@@ -13,7 +13,7 @@
 #include <nvs_config.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Menu";
 
 extern LCD* lcd;
 extern Neopixel* neopixel;

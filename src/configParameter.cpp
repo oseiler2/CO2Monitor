@@ -1,7 +1,7 @@
 #include <configParameter.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "ConfigParameter";
 
 // -------------------- generic -------------------
 template <typename C, typename T>

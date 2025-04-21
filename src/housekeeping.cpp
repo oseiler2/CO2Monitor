@@ -7,7 +7,7 @@
 #include <wifiManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Housekeeping";
 
 extern boolean hasBattery;
 

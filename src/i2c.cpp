@@ -1,10 +1,9 @@
-#include <Arduino.h>
 #include <i2c.h>
 #include <Wire.h>
 #include <config.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "I2C";
 
 namespace I2C {
   boolean lcdDetected = false;

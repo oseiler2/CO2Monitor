@@ -1,6 +1,5 @@
-#include <logging.h>
 #include <globals.h>
-#include <Arduino.h>
+#include <version.h>
 #include <config.h>
 #include <coredump.h>
 #include <nvs_config.h>
@@ -40,7 +39,7 @@
 #include <fileDataLogger.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Main";
 
 Model* model;
 LCD* lcd;

@@ -4,7 +4,7 @@
 #include <power.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Neopixel";
 
 #define BAT_BRIGHTNESS (uint8_t)15
 

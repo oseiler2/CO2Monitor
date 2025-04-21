@@ -3,7 +3,7 @@
 #include <configManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "NeopixelMatrix";
 
 #define ENABLE_TEXT   true
 #define TANK_INTERVAL 30000

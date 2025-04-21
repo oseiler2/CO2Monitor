@@ -3,9 +3,10 @@
 
 #include <FS.h>
 #include <LittleFS.h>
+#include <sys/stat.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "FileDataLogger";
 
 namespace FileDataLogger {
 

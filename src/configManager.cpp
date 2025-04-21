@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "ConfigManager";
 
 Config config;
 

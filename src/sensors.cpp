@@ -1,12 +1,7 @@
 #include <sensors.h>
-#include <Arduino.h>
-#include <scd30.h>
-#include <scd40.h>
-#include <sps_30.h>
-#include <bme680.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Sensors";
 
 const uint32_t X_CMD_SCD30_DATA_READY = bit(1);
 const uint32_t X_CMD_SHUTDOWN = bit(2);

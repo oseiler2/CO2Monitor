@@ -1,9 +1,8 @@
 #include <config.h>
-#include <Arduino.h>
 #include <menuItem.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "MenuItem";
 
 char buf[5];
 
