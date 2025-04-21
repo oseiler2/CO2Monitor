@@ -1,5 +1,4 @@
-#ifndef _WIFI_H
-#define _WIFI_H
+#pragma once
 
 #include <globals.h>
 #include <config.h>
