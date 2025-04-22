@@ -71,6 +71,13 @@ void Model::updateModel(uint16_t _co2, float _temperature, float _humidity) {
   modelUpdatedEvt((_co2 != 0 ? M_CO2 : M_NONE) | M_TEMPERATURE | M_HUMIDITY, oldStatus, this->status);
 }
 
+void Model::updateModelTHP(float _temperature, float _humidity, uint16_t _pressure) {
+  this->temperature = _temperature;
+  this->humidity = _humidity;
+  this->pressure = _pressure;
+  modelUpdatedEvt(M_TEMPERATURE | M_HUMIDITY | M_PRESSURE, this->status, this->status);
+}
+
 void Model::updateModel(float _temperature, float _humidity, uint16_t _pressure, uint16_t _iaq) {
   this->temperature = _temperature;
   this->humidity = _humidity;

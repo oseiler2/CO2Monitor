@@ -28,6 +28,7 @@
 #include <hub75.h>
 #include <buzzer.h>
 #include <bme680.h>
+#include <bme280.h>
 #include <wifiManager.h>
 #include <ota.h>
 #include <model.h>
@@ -55,6 +56,7 @@ SCD30* scd30;
 SCD40* scd40;
 SPS_30* sps30;
 BME680* bme680;
+BME280* bme280;
 TaskHandle_t sensorsTask;
 TaskHandle_t wifiManagerTask;
 TaskHandle_t neopixelMatrixTask;
@@ -135,7 +137,13 @@ void clearPriorityMessage() {
 }
 
 void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (lcd) lcd->update(mask, oldStatus, newStatus);
+  if (lcd) {
+    if (((I2C::bme680Present() && bme680) || (I2C::bme280Present() && bme280)) && (mask & M_CO2)) {
+      lcd->update(mask & ~M_TEMPERATURE & ~M_HUMIDITY, oldStatus, newStatus);
+    } else {
+      lcd->update(mask, oldStatus, newStatus);
+    }
+  }
   if (hasLEDs && trafficLight) trafficLight->update(mask, oldStatus, newStatus);
   if (hasNeoPixel && neopixel) neopixel->update(mask, oldStatus, newStatus);
   if (hasFeatherMatrix && featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
@@ -150,8 +158,8 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
     char buf[8];
     DynamicJsonDocument* doc = new DynamicJsonDocument(512);
     if (mask & M_CO2) (*doc)["co2"] = model->getCo2();
-    if (I2C::bme680Present() && bme680 && (mask & M_CO2)) {
-      // if bme680 is present ignore temp/hum from CO2 sensor as it's less accurate
+    if (((I2C::bme680Present() && bme680) || (I2C::bme280Present() && bme280)) && (mask & M_CO2)) {
+      // if bme680 or bme280 is present ignore temp/hum from CO2 sensor as it's less accurate
     } else {
       if (mask & M_TEMPERATURE) {
         sprintf(buf, "%.1f", model->getTemperature());
@@ -350,6 +358,7 @@ void setup() {
   if (I2C::scd40Present()) scd40 = new SCD40(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage, reinitFromSleep);
+  if (I2C::bme280Present()) bme280 = new BME280(&Wire, model, updateMessage, reinitFromSleep);
   if (I2C::lcdPresent()
     && (Power::getRunMode() == RM_FULL
 #if HAS_BATTERY
@@ -398,7 +407,7 @@ void setup() {
     mqtt::publishStatusMsg("Found coredump!!");
   }
 
-  Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
+  Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680, bme280);
 
   if (Power::getRunMode() == RM_FULL) {
     xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
@@ -417,7 +426,7 @@ void setup() {
       &OTA::otaTask,      // task handle
       1);                 // CPU core
 
-    Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
+    Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680, bme280);
     sensorsTask = Sensors::start(
       "sensorsLoop",      // name of task
       4096,               // stack size of task
@@ -484,6 +493,7 @@ void loop() {
         if (hasNeoPixel && neopixel) neopixel->off();
         if (scd40) scd40->shutdown();
         if (bme680) bme680->shutdown();
+        if (bme280) bme280->shutdown();
         if (hasSdCard) SdCard::unmount();
         NVS::close();
         Power::powerDown();

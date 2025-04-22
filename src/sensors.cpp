@@ -14,11 +14,13 @@ namespace Sensors {
   SCD40* scd40;
   SPS_30* sps30;
   BME680* bme680;
+  BME280* bme280;
 
   uint32_t lastScd30Reading = 0;
   uint32_t lastScd40Reading = 0;
   uint32_t lastSps30Reading = 0;
   uint32_t lastBme680Reading = 0;
+  uint32_t lastBme280Reading = 0;
 
   volatile boolean loopActive = false;
 
@@ -28,15 +30,16 @@ namespace Sensors {
       xTaskNotifyFromISR(sensorsTask, X_CMD_SCD30_DATA_READY, eSetBits, &high_task_awoken);
   }
 
-  void setupSensorsLoop(SCD30* pScd30, SCD40* pScd40, SPS_30* pSps30, BME680* pBme680) {
+  void setupSensorsLoop(SCD30* pScd30, SCD40* pScd40, SPS_30* pSps30, BME680* pBme680, BME280* pBme280) {
     scd30 = pScd30;
     scd40 = pScd40;
     sps30 = pSps30;
     bme680 = pBme680;
+    bme280 = pBme280;
   }
 
   TaskHandle_t start(const char* name, uint32_t stackSize, UBaseType_t priority, BaseType_t core) {
-    _ASSERT(scd30 || scd40 || sps30 || bme680);
+    _ASSERT(scd30 || scd40 || sps30 || bme680 || bme280);
     loopActive = true;
     xTaskCreatePinnedToCore(
       sensorsLoop,  // task function
@@ -49,6 +52,7 @@ namespace Sensors {
     if (scd40) lastScd40Reading = millis() - (uint32_t)(scd40->getInterval() * 1000);
     if (sps30) lastSps30Reading = millis() - (uint32_t)(sps30->getInterval() * 1000);
     if (bme680) lastBme680Reading = millis() - (uint32_t)(bme680->getInterval() * 1000);
+    if (bme280) lastBme280Reading = millis() - (uint32_t)(bme280->getInterval() * 1000);
     if (scd30) {
       lastScd30Reading = millis() - (uint32_t)(scd30->getInterval() * 1000);
       pinMode(SCD30_RDY_PIN, INPUT);
@@ -62,6 +66,7 @@ namespace Sensors {
     if (scd30) scd30->readScd30();
     if (sps30) sps30->readSps30();
     if (bme680) bme680->readBme680();
+    if (bme280) bme280->readBme280();
   }
 
   void shutDownSensorsLoop() {
@@ -86,6 +91,7 @@ namespace Sensors {
     if (scd30) scd30->readScd30();
     if (sps30) sps30->readSps30();
     if (bme680) bme680->readBme680();
+    if (bme280) bme280->readBme280();
     while (loopActive) {
       if (scd40 && (millis() - lastScd40Reading > (uint32_t)(scd40->getInterval() * 1000))) {
         lastScd40Reading += (uint32_t)(scd40->getInterval() * 1000);
@@ -98,6 +104,10 @@ namespace Sensors {
       if (bme680 && (millis() - lastBme680Reading > (uint32_t)(bme680->getInterval() * 1000))) {
         lastBme680Reading += (uint32_t)(bme680->getInterval() * 1000);
         bme680->readBme680();
+      }
+      if (bme280 && (millis() - lastBme280Reading > (uint32_t)(bme280->getInterval() * 1000))) {
+        lastBme280Reading += (uint32_t)(bme280->getInterval() * 1000);
+        bme280->readBme280();
       }
 
       now = millis();
@@ -122,6 +132,11 @@ namespace Sensors {
         if (nextBme680 > (uint32_t)(bme680->getInterval() * 1000)) nextBme680 = 0;
         delay = min(delay, nextBme680);
       }
+      if (bme280) {
+        uint32_t nextBme280 = (uint32_t)(bme280->getInterval() * 1000) - (now - lastBme280Reading);
+        if (nextBme280 > (uint32_t)(bme280->getInterval() * 1000)) nextBme280 = 0;
+        delay = min(delay, nextBme280);
+      }
 
       notified = xTaskNotifyWait(0x00,  // Don't clear any bits on entry
         ULONG_MAX,                      // Clear all bits on exit
@@ -140,7 +155,7 @@ namespace Sensors {
       } else {
         if (scd30 && digitalRead(SCD30_RDY_PIN)) {
           scd30->readScd30();
-            lastScd30Reading += (uint32_t)(scd30->getInterval() * 1000);
+          lastScd30Reading += (uint32_t)(scd30->getInterval() * 1000);
         }
       }
     }

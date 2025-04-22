@@ -9,7 +9,7 @@ namespace I2C {
 #define SCD30_I2C_ADR 0x61
 #define SCD40_I2C_ADR 0x62
 #define SPS30_I2C_ADR 0x69
-#define BME680_I2C_ADR 0x76
+#define BMx_I2C_ADR 0x76
 
   void initI2C(boolean fullScan);
   void shutDownI2C();
@@ -21,5 +21,6 @@ namespace I2C {
   boolean scd30Present();
   boolean scd40Present();
   boolean sps30Present();
+  boolean bme280Present();
   boolean bme680Present();
 }

@@ -204,15 +204,17 @@ void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus
     }
   }
 
-  this->display->writeFillRect(0, temp_hum_y, 128, temp_hum_height, SSD1306_BLACK);
-  this->display->setFont(NULL);
-  this->display->setTextSize(1);
-  this->display->setCursor(0, temp_hum_y);
-  if (HAS_BATTERY) {
-    uint8_t bat = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
-    this->display->printf("%3.1fC %2.0f%%rH %u%% %s", model->getTemperature(), model->getHumidity(), bat, Battery::usbPowerPresent() ? "USB" : "Bat");
-  } else {
-    this->display->printf("Temp:%3.1fC Hum:%2.0f%%rH", model->getTemperature(), model->getHumidity());
+  if (mask & (M_TEMPERATURE | M_HUMIDITY | M_VOLTAGE)) {
+    this->display->writeFillRect(0, temp_hum_y, 128, temp_hum_height, SSD1306_BLACK);
+    this->display->setFont(NULL);
+    this->display->setTextSize(1);
+    this->display->setCursor(0, temp_hum_y);
+    if (HAS_BATTERY) {
+      uint8_t bat = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
+      this->display->printf("%3.1fC %2.0f%%rH %u%% %s", model->getTemperature(), model->getHumidity(), bat, Battery::usbPowerPresent() ? "USB" : "Bat");
+    } else {
+      this->display->printf("Temp:%3.1fC Hum:%2.0f%%rH", model->getTemperature(), model->getHumidity());
+    }
   }
   this->display->display();
   I2C::giveMutex();

@@ -10,6 +10,7 @@
 #include <buzzer.h>
 #include <scd40.h>
 #include <bme680.h>
+#include <bme280.h>
 #include <nvs_config.h>
 
 // Local logging tag
@@ -20,6 +21,7 @@ extern Neopixel* neopixel;
 extern Buzzer* buzzer;
 extern SCD40* scd40;
 extern BME680* bme680;
+extern BME280* bme280;
 
 extern bool hasNeoPixel;
 
@@ -96,6 +98,7 @@ namespace Menu {
     Power::setRunMode(RM_LOW);
     if (scd40) scd40->setSampleRate(LP_PERIODIC);
     if (bme680) bme680->setSampleRate(ULP);
+    if (bme280) bme280->setSampleRate(1.0 / 30);
     Power::deepSleep(30);
   }
 
@@ -105,6 +108,7 @@ namespace Menu {
     if (hasNeoPixel && neopixel) neopixel->off();
     if (scd40) scd40->shutdown();
     if (bme680) bme680->shutdown();
+    if (bme280) bme280->shutdown();
     Power::powerDown();
   }
 

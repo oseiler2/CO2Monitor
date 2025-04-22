@@ -160,6 +160,8 @@ namespace mqtt {
       doc["scd40"] = true;
     if (I2C::bme680Present())
       doc["bme680"] = true;
+      if (I2C::bme280Present())
+      doc["bme280"] = true;
     if (I2C::lcdPresent())
       doc["lcd"] = true;
     if (I2C::sps30Present()) {
