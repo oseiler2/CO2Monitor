@@ -22,3 +22,5 @@
 #define SCL_PIN               21
 #define NEO_1_EN              48
 #define NEO_23_EN             47
+
+#define KEEP_CAPTIVE_PORTAL_IF_NOT_CONNECTED    false
