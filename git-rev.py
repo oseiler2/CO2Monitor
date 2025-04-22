@@ -26,6 +26,8 @@ if GITHUB_REF is not None:
       tag = m.group(2)
       try:
         branch = subprocess.check_output("git branch -r --contains tags/" + tag, shell=True).decode().strip()
+        if branch.find("origin/main") >= 0:
+          branch = "main"
         if branch.startswith("origin/"):
           branch = branch[7:]
       except:
