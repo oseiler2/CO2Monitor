@@ -61,8 +61,8 @@ jobs:
           mv .pio/build/esp32-basic/firmware-combined.bin build/firmware-combined-esp32-basic.bin
           mv .pio/build/esp32s3-basic/firmware.bin build/firmware-esp32s3-basic.bin
           mv .pio/build/esp32s3-basic/firmware-combined.bin build/firmware-combined-esp32s3-basic.bin
-          mv .pio/build/esp32s3-basic/firmware.bin build/firmware-esp32s3-portable.bin
-          mv .pio/build/esp32s3-basic/firmware-combined.bin build/firmware-combined-esp32s3-portable.bin
+          mv .pio/build/esp32s3-portable/firmware.bin build/firmware-esp32s3-portable.bin
+          mv .pio/build/esp32s3-portable/firmware-combined.bin build/firmware-combined-esp32s3-portable.bin
 
       - name: "Build"
         run: |
