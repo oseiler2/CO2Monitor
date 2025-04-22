@@ -74,7 +74,7 @@ Config config;
 #define DEFAULT_RED_LED                   25
 // 16
 #define DEFAULT_NEOPIXEL_DATA              NEO_DATA
-#define DEFAULT_NEOPIXEL_NUMBER            3
+#define DEFAULT_NEOPIXEL_NUMBER            NEO_NUMBER
 // 14
 #define DEFAULT_NEOPIXEL_MATRIX_DATA       0
 // 27

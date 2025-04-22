@@ -4,3 +4,4 @@
 #define SCL_PIN               21
 #define NEO_EN                47
 #define NEO_DATA              17
+#define NEO_NUMBER             4

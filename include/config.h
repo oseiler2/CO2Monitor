@@ -69,6 +69,10 @@
 #define HAS_SD_SLOT          (0)
 #endif
 
+#if not defined NEO_NUMBER
+#define NEO_NUMBER             (3)
+#endif
+
 #define I2C_CLK 100000UL
 #define SCD30_I2C_CLK 50000UL   // SCD30 recommendation of 50kHz
 
