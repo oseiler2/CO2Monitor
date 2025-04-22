@@ -218,7 +218,12 @@ namespace WifiManager {
     server.begin();
     logging::addOnLogCallback(logCallback);
 
+#if CONFIG_IDF_TARGET_ESP32
     improvSerial.setDeviceInfo(ImprovTypes::ChipFamily::CF_ESP32, appName, APP_VERSION, getSSID().c_str(), "");
+#elif CONFIG_IDF_TARGET_ESP32S3
+    improvSerial.setDeviceInfo(ImprovTypes::ChipFamily::CF_ESP32_S3, appName, APP_VERSION, getSSID().c_str(), "");
+#endif
+
     improvSerial.onImprovError(onImprovWiFiErrorCb);
     improvSerial.onImprovConnected(onImprovWiFiConnectedCb);
     improvSerial.setCustomConnectWiFi(improvConnectWifi);
