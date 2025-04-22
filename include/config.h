@@ -69,6 +69,10 @@
 #define HAS_SD_SLOT          (0)
 #endif
 
+#if not defined KEEP_CAPTIVE_PORTAL_IF_NOT_CONNECTED
+#define KEEP_CAPTIVE_PORTAL_IF_NOT_CONNECTED    true
+#endif
+
 #if not defined NEO_NUMBER
 #define NEO_NUMBER             (3)
 #endif

@@ -308,7 +308,7 @@ void setup() {
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, WifiManager::eventHandler, NULL, NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, WifiManager::eventHandler, NULL, NULL));
 
-    WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, false,
+    WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, KEEP_CAPTIVE_PORTAL_IF_NOT_CONNECTED,
       updateMessage, setPriorityMessage, clearPriorityMessage, configChanged, calibrateCo2SensorCallback);
 
   }
