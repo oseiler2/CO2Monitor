@@ -77,6 +77,10 @@
 #define NEO_NUMBER             (3)
 #endif
 
+#if not defined LOG_TO_INTERNAL_FLASH
+#define LOG_TO_INTERNAL_FLASH                 false
+#endif
+
 #define I2C_CLK 100000UL
 #define SCD30_I2C_CLK 50000UL   // SCD30 recommendation of 50kHz
 

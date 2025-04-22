@@ -24,3 +24,4 @@
 #define NEO_23_EN             47
 
 #define KEEP_CAPTIVE_PORTAL_IF_NOT_CONNECTED    false
+#define LOG_TO_INTERNAL_FLASH                   true

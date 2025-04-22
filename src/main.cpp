@@ -202,7 +202,9 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
     if (hasSdCard) {
       SdCard::writeEvent(mask, model, newStatus, model->getVoltageInMv());
     } else {
-      FileDataLogger::writeEvent("/littlefs", mask, model, newStatus, model->getVoltageInMv());
+      if (LOG_TO_INTERNAL_FLASH) {
+        FileDataLogger::writeEvent("/littlefs", mask, model, newStatus, model->getVoltageInMv());
+      }
     }
   }
 }
