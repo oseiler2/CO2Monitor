@@ -2,15 +2,17 @@
 #include <nvs_config.h>
 #include <nvs_flash.h>
 #include <nvs.h>
+#include <power.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "NVSConfig";
 
 //#include <Preferences.h>
 
 namespace NVS {
 
   static const char* nvsNamespace = "co2mon";
+  static const char* KEY_RUNMODE = "runmode";
 
   static boolean initialised = false;
   static nvs_handle_t handle;
@@ -60,6 +62,37 @@ namespace NVS {
 
   boolean isInitialised() {
     return initialised;
+  }
+
+  RunMode readRunmode() {
+    if (!initialised) {
+      init();
+    }
+    uint8_t runmode = RM_UNDEFINED;
+    esp_err_t err = nvs_get_u8(handle, KEY_RUNMODE, &runmode);
+    if (err != ESP_OK) {
+      ESP_LOGI(TAG, "Error getting RunMode from NVS (%s)", esp_err_to_name(err));
+    }
+    ESP_LOGD(TAG, "Reading RunMode %u", runmode);
+    return (RunMode)runmode;
+  }
+
+  boolean writeRunmode(RunMode rm) {
+    if (!initialised) {
+      init();
+    }
+    esp_err_t err = nvs_set_u8(handle, KEY_RUNMODE, (uint8_t)rm);
+    if (err != ESP_OK) {
+      ESP_LOGI(TAG, "Error writing RunMode to NVS (%s)", esp_err_to_name(err));
+      return false;
+    }
+    err = nvs_commit(handle);
+    if (err != ESP_OK) {
+      ESP_LOGI(TAG, "Error commiting RunMode changes NVS (%s)", esp_err_to_name(err));
+      return false;
+    }
+    ESP_LOGD(TAG, "Successfully written RunMode %u", rm);
+    return true;
   }
 
   void close() {

@@ -1,5 +1,4 @@
-#ifndef _HOUSEKEEPING_H
-#define _HOUSEKEEPING_H
+#pragma once
 
 #include <globals.h>
 #include <Ticker.h>
@@ -13,4 +12,3 @@ namespace housekeeping {
 extern TaskHandle_t sensorsTask;
 extern TaskHandle_t neopixelMatrixTask;
 
-#endif

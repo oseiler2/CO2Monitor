@@ -2,7 +2,7 @@
 #include <configManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Model";
 
 Model::Model(modelUpdatedEvt_t _modelUpdatedEvt) {
   this->temperature = NaN;
@@ -17,6 +17,7 @@ Model::Model(modelUpdatedEvt_t _modelUpdatedEvt) {
   this->pm10 = 0;
   this->modelUpdatedEvt = _modelUpdatedEvt;
   this->status = OFF;
+  this->voltageInMv = 0;
 }
 
 Model::~Model() {}
@@ -70,6 +71,13 @@ void Model::updateModel(uint16_t _co2, float _temperature, float _humidity) {
   modelUpdatedEvt((_co2 != 0 ? M_CO2 : M_NONE) | M_TEMPERATURE | M_HUMIDITY, oldStatus, this->status);
 }
 
+void Model::updateModelTHP(float _temperature, float _humidity, uint16_t _pressure) {
+  this->temperature = _temperature;
+  this->humidity = _humidity;
+  this->pressure = _pressure;
+  modelUpdatedEvt(M_TEMPERATURE | M_HUMIDITY | M_PRESSURE, this->status, this->status);
+}
+
 void Model::updateModel(float _temperature, float _humidity, uint16_t _pressure, uint16_t _iaq) {
   this->temperature = _temperature;
   this->humidity = _humidity;
@@ -89,9 +97,22 @@ void Model::updateModel(uint16_t _pm0_5, uint16_t _pm1, uint16_t _pm2_5, uint16_
   modelUpdatedEvt(M_PM0_5 | M_PM1_0 | M_PM2_5 | M_PM4 | M_PM10, this->status, this->status);
 }
 
+void Model::updateModelmV(uint16_t _mV) {
+  this->voltageInMv = _mV;
+  modelUpdatedEvt(M_VOLTAGE, this->status, this->status);
+}
+
+void Model::runModeChanged() {
+  modelUpdatedEvt(M_RUN_MODE, this->status, this->status);
+}
+
 void Model::configurationChanged() {
   updateStatus();
   modelUpdatedEvt(M_CONFIG_CHANGED, this->status, this->status);
+}
+
+void Model::setStatus(TrafficLightStatus _status) {
+  this->status = _status;
 }
 
 TrafficLightStatus Model::getStatus() {
@@ -136,4 +157,8 @@ uint16_t Model::getPM4() {
 
 uint16_t Model::getPM10() {
   return this->pm10;
+}
+
+uint16_t Model::getVoltageInMv() {
+  return this->voltageInMv;
 }

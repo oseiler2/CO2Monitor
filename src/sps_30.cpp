@@ -1,13 +1,10 @@
-#include <globals.h>
-#include <config.h>
 #include <sps_30.h>
-#include <model.h>
 
 #include <i2c.h>
 #include <configManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "SPS30";
 
 #define SP30_COMMS Wire
 
@@ -24,7 +21,7 @@ boolean SPS_30::checkError(uint16_t error, char const* msg) {
   return true;
 }
 
-SPS_30::SPS_30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback) {
+SPS_30::SPS_30(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean reinitFromSleep) {
   this->model = _model;
   this->updateMessageCallback = _updateMessageCallback;
   this->sps30 = new SPS30();

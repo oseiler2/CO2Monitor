@@ -1,5 +1,4 @@
-#ifndef _LCD_H
-#define _LCD_H
+#pragma once
 
 #include <globals.h>
 #include <Wire.h>
@@ -9,13 +8,18 @@
 
 class LCD {
 public:
-  LCD(TwoWire* pwire, Model* model);
+  LCD(TwoWire* pwire, Model* model, boolean initFromSleep);
   ~LCD();
 
   void updateMessage(char const* msg);
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
   void setPriorityMessage(char const* msg);
   void clearPriorityMessage();
+  void setLargePriorityMessage(char const* msg);
+  void clearLargePriorityMessage();
+
+  void showMenu(char const* heading, char const* selection);
+  void quitMenu();
 
 private:
   Model* model;
@@ -23,6 +27,8 @@ private:
   Adafruit_SSD1306* display;
 
   boolean priorityMessageActive;
+  boolean largePriorityMessageActive;
+  boolean menuActive;
 
   uint8_t status_y;
   uint8_t status_height;
@@ -35,5 +41,3 @@ private:
 
 };
 
-
-#endif

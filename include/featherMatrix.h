@@ -1,8 +1,6 @@
-#ifndef _FEATHER_MATRIX_H
-#define _FEATHER_MATRIX_H
+#pragma once
 
 #include <globals.h>
-#include <Arduino.h>
 #include <model.h>
 #include <Adafruit_DotStarMatrix.h>
 
@@ -10,7 +8,7 @@
 
 class FeatherMatrix {
 public:
-  FeatherMatrix(Model* model, uint8_t dataPin, uint8_t clockPin);
+  FeatherMatrix(Model* model, uint8_t dataPin, uint8_t clockPin, boolean initFromSleep);
   ~FeatherMatrix();
 
   void update(uint16_t, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
@@ -30,5 +28,4 @@ private:
   int16_t scrollWidth;
 };
 
-#endif
 

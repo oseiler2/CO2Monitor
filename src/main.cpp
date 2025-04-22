@@ -1,18 +1,18 @@
-#include <logging.h>
 #include <globals.h>
-#include <Arduino.h>
+#include <version.h>
 #include <config.h>
 #include <coredump.h>
 #include <nvs_config.h>
 
 #include <WiFi.h>
+#include <sntp.h>
 #include <Wire.h>
 #include <i2c.h>
 #include <esp_event.h>
 #include <esp_err.h>
 #include <esp_task_wdt.h>
-#include <rom/rtc.h>
 
+#include <power.h>
 #include <configManager.h>
 #include <mqtt.h>
 #include <sensors.h>
@@ -26,14 +26,21 @@
 #include <neopixelMatrix.h>
 #include <featherMatrix.h>
 #include <hub75.h>
+#include <buzzer.h>
 #include <bme680.h>
+#include <bme280.h>
 #include <wifiManager.h>
 #include <ota.h>
+#include <model.h>
+#include <rtc_osc.h>
 #include <sd_card.h>
+#include <battery.h>
+#include <timekeeper.h>
+#include <menu.h>
 #include <fileDataLogger.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Main";
 
 Model* model;
 LCD* lcd;
@@ -41,11 +48,15 @@ TrafficLight* trafficLight;
 Neopixel* neopixel;
 NeopixelMatrix* neopixelMatrix;
 FeatherMatrix* featherMatrix;
+#if defined (HAS_HUB75)
 HUB75* hub75;
+#endif
+Buzzer* buzzer;
 SCD30* scd30;
 SCD40* scd40;
 SPS_30* sps30;
 BME680* bme680;
+BME280* bme280;
 TaskHandle_t sensorsTask;
 TaskHandle_t wifiManagerTask;
 TaskHandle_t neopixelMatrixTask;
@@ -54,23 +65,53 @@ bool hasLEDs = false;
 bool hasNeoPixel = false;
 bool hasFeatherMatrix = false;
 bool hasNeopixelMatrix = false;
-bool hasHub75 = false;
-bool hasSdSlot = false;
 bool hasSdCard = false;
 
 const uint32_t debounceDelay = 50;
-volatile uint32_t lastBtnDebounceTime = 0;
-volatile uint8_t buttonState = 0;
-uint8_t oldConfirmedButtonState = 0;
-uint32_t lastConfirmedBtnPressedTime = 0;
+volatile uint32_t lastBtn1DebounceTime = 0;
+volatile uint8_t button1State = 0;
+uint8_t oldConfirmedButton1State = 0;
+uint32_t lastConfirmedBtn1PressedTime = 0;
+volatile uint32_t lastBtn2DebounceTime = 0;
+volatile uint8_t button2State = 0;
+uint8_t oldConfirmedButton2State = 0;
+volatile uint32_t lastBtn3DebounceTime = 0;
+volatile uint8_t button3State = 0;
+uint8_t oldConfirmedButton3State = 0;
+volatile uint32_t lastBtn4DebounceTime = 0;
+volatile uint8_t button4State = 0;
+uint8_t oldConfirmedButton4State = 0;
 
-void ICACHE_RAM_ATTR buttonHandler() {
-  buttonState = (digitalRead(BTN_1) ? 0 : 1);
-  lastBtnDebounceTime = millis();
+void ICACHE_RAM_ATTR button1Handler() {
+  button1State = (digitalRead(BTN_1) ? 0 : 1);
+  lastBtn1DebounceTime = millis();
 }
 
+#if HAS_BTN_2
+void ICACHE_RAM_ATTR button2Handler() {
+  button2State = (digitalRead(BTN_2) ? 0 : 1);
+  lastBtn2DebounceTime = millis();
+}
+#endif
+
+#if HAS_BTN_3
+void ICACHE_RAM_ATTR button3Handler() {
+  button3State = (digitalRead(BTN_3) ? 0 : 1);
+  lastBtn3DebounceTime = millis();
+}
+#endif
+
+#if HAS_BTN_4
+void ICACHE_RAM_ATTR button4Handler() {
+  button4State = (digitalRead(BTN_4) ? 0 : 1);
+  lastBtn4DebounceTime = millis();
+}
+#endif
+
 void prepareOta() {
-  if (hasHub75 && hub75) hub75->stopDMA();
+#if defined (HAS_HUB75)
+  if (hub75) hub75->stopDMA();
+#endif
   if (hasNeopixelMatrix && neopixelMatrix) {
     hasNeopixelMatrix = false;
     neopixelMatrix->stop();
@@ -95,26 +136,58 @@ void clearPriorityMessage() {
   }
 }
 
+void setLargePriorityMessage(char const* msg) {
+  if (lcd) {
+    lcd->setLargePriorityMessage(msg);
+  }
+}
+
+void clearLargePriorityMessage() {
+  if (lcd) {
+    lcd->clearLargePriorityMessage();
+  }
+}
+
+void clearLargePriorityMessage(TimerHandle_t xTimer) {
+  if (xTimer != nullptr) {
+    clearLargePriorityMessage();
+    xTimerDelete(xTimer, 0);
+  }
+}
+
 void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (lcd) lcd->update(mask, oldStatus, newStatus);
+  if (lcd) {
+    if (((I2C::bme680Present() && bme680) || (I2C::bme280Present() && bme280)) && (mask & M_CO2)) {
+      lcd->update(mask & ~M_TEMPERATURE & ~M_HUMIDITY, oldStatus, newStatus);
+    } else {
+      lcd->update(mask, oldStatus, newStatus);
+    }
+  }
   if (hasLEDs && trafficLight) trafficLight->update(mask, oldStatus, newStatus);
   if (hasNeoPixel && neopixel) neopixel->update(mask, oldStatus, newStatus);
   if (hasFeatherMatrix && featherMatrix) featherMatrix->update(mask, oldStatus, newStatus);
   if (hasNeopixelMatrix && neopixelMatrix) neopixelMatrix->update(mask, oldStatus, newStatus);
-  if (hasHub75 && hub75) hub75->update(mask, oldStatus, newStatus);
+#if defined (HAS_HUB75)
+  if (hub75) hub75->update(mask, oldStatus, newStatus);
+#endif
+  if (HAS_BUZZER && buzzer) buzzer->update(mask, oldStatus, newStatus);
   if ((mask & M_PRESSURE) && I2C::scd40Present() && scd40) scd40->setAmbientPressure(model->getPressure());
   if ((mask & M_PRESSURE) && I2C::scd30Present() && scd30) scd30->setAmbientPressure(model->getPressure());
-  if ((mask & ~M_CONFIG_CHANGED) != M_NONE) {
+  if ((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE | M_RUN_MODE)) != M_NONE) {
     char buf[8];
     DynamicJsonDocument* doc = new DynamicJsonDocument(512);
     if (mask & M_CO2) (*doc)["co2"] = model->getCo2();
-    if (mask & M_TEMPERATURE) {
-      sprintf(buf, "%.1f", model->getTemperature());
-      (*doc)["temperature"] = buf;
-    }
-    if (mask & M_HUMIDITY) {
-      sprintf(buf, "%.1f", model->getHumidity());
-      (*doc)["humidity"] = buf;
+    if (((I2C::bme680Present() && bme680) || (I2C::bme280Present() && bme280)) && (mask & M_CO2)) {
+      // if bme680 or bme280 is present ignore temp/hum from CO2 sensor as it's less accurate
+    } else {
+      if (mask & M_TEMPERATURE) {
+        sprintf(buf, "%.1f", model->getTemperature());
+        (*doc)["temperature"] = buf;
+      }
+      if (mask & M_HUMIDITY) {
+        sprintf(buf, "%.1f", model->getHumidity());
+        (*doc)["humidity"] = buf;
+      }
     }
     if (mask & M_PRESSURE) (*doc)["pressure"] = model->getPressure();
     if (mask & M_IAQ) (*doc)["iaq"] = model->getIAQ();
@@ -125,11 +198,13 @@ void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightSt
     if (mask & M_PM10) (*doc)["pm10"] = model->getPM10();
     mqtt::publishSensors(doc);
   }
-  if (((mask & ~(M_CONFIG_CHANGED)) != M_NONE)) {
+  if (((mask & ~(M_CONFIG_CHANGED | M_VOLTAGE)) != M_NONE)) {
     if (hasSdCard) {
-      SdCard::writeEvent(mask, model, newStatus);
+      SdCard::writeEvent(mask, model, newStatus, model->getVoltageInMv());
     } else {
-      FileDataLogger::writeEvent("/littlefs", mask, model, newStatus);
+      if (LOG_TO_INTERNAL_FLASH) {
+        FileDataLogger::writeEvent("/littlefs", mask, model, newStatus, model->getVoltageInMv());
+      }
     }
   }
 }
@@ -205,135 +280,218 @@ void logCoreInfo() {
     ESP.getFlashChipSpeed());
 }
 
+Ticker clockTimer;
+
+void showTimeLcd() {
+  if (lcd) {
+    time_t now;
+    struct tm timeinfo;
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    char buf[20];
+    strftime(buf, 20, "%d/%m/%Y %H:%M.%S", &timeinfo);
+    lcd->updateMessage(buf);
+  }
+}
+
 void setup() {
   esp_task_wdt_init(20, true);
-
-  if (LED_PIN >= 0) {
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
-  }
-  pinMode(BTN_1, INPUT_PULLUP);
   Serial.begin(115200);
   esp_log_set_vprintf(logging::logger);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
   ESP_LOGI(TAG, "CO2 Monitor v%s. Built from %s @ %s", APP_VERSION, SRC_REVISION, BUILD_TIMESTAMP);
 
+  RtcOsc::setupRtc();
   model = new Model(modelUpdatedEvt);
-
-  logCoreInfo();
-
-  coredump::init();
-
-  RESET_REASON resetReason = rtc_get_reset_reason(0);
-
-  ESP_ERROR_CHECK(esp_event_loop_create_default());
-  ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, WifiManager::eventHandler, NULL, NULL));
-  ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, WifiManager::eventHandler, NULL, NULL));
+  Battery::init(model);
 
   setupConfigManager();
   if (!loadConfiguration(config)) {
     getDefaultConfiguration(config);
     saveConfiguration(config);
   }
-  logConfiguration(config);
 
-  WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, true,
-    updateMessage, setPriorityMessage, clearPriorityMessage, configChanged, calibrateCo2SensorCallback);
+  ResetReason resetReason = Power::afterReset();
+  boolean reinitFromSleep = (resetReason == WAKE_FROM_SLEEPTIMER || resetReason == WAKE_FROM_BUTTON);
+
+  if (!reinitFromSleep) logConfiguration(config);
+
+  if (!reinitFromSleep) logCoreInfo();
+
+  coredump::init();
+
+  Timekeeper::init();
+
+  if (Power::getRunMode() == RM_FULL) {
+    sntp_servermode_dhcp(1); // needs to be set before Wifi connects and gets DHCP IP
+
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, WifiManager::eventHandler, NULL, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, WifiManager::eventHandler, NULL, NULL));
+
+    WifiManager::setupWifiManager("CO2-Monitor", getConfigParameters(), false, KEEP_CAPTIVE_PORTAL_IF_NOT_CONNECTED,
+      updateMessage, setPriorityMessage, clearPriorityMessage, configChanged, calibrateCo2SensorCallback);
+
+  }
 
   hasLEDs = (config.greenLed != 0 && config.yellowLed != 0 && config.redLed != 0);
-  hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0);
+  hasNeoPixel = (config.neopixelData != 0 && config.neopixelNumber != 0
+    && (Power::getRunMode() == RM_FULL
+#if HAS_BATTERY
+      || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_OFF_LED_ON)
+#endif
+      ));
   hasFeatherMatrix = (config.featherMatrixClock != 0 && config.featherMatrixData != 0);
   hasNeopixelMatrix = (config.neopixelMatrixData != 0 && config.matrixColumns != 0 && config.matrixRows != 0);
-  hasHub75 = (config.hub75B1 != 0 && config.hub75B2 != 0 && config.hub75ChA != 0 && config.hub75ChB != 0 && config.hub75ChC != 0 && config.hub75ChD != 0
-    && config.hub75Clk != 0 && config.hub75G1 != 0 && config.hub75G2 != 0 && config.hub75Lat != 0 && config.hub75Oe != 0 && config.hub75R1 != 0 && config.hub75R2 != 0);
-  hasSdSlot = false; //(config.sdDetect != 0 && config.sdDat0 != 0 && config.sdDat1 != 0 && config.sdDat2 != 0 && config.sdDat3 != 0 && config.sdClk != 0 && config.sdCmd != 0);
 
-  //  if (hasSdSlot) pinMode(config.sdDetect, INPUT);
-  hasSdCard = hasSdSlot && SdCard::probe();
+#if HAS_OLED_EN
+  if ((Power::getRunMode() == RM_FULL || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF))) {
+    pinMode(OLED_EN, OUTPUT);
+    digitalWrite(OLED_EN, HIGH);
+  }
+#endif
+
+  if (LED_PIN >= 0) {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH);
+  }
+
+  if (hasNeoPixel) {
+    pinMode(config.neopixelData, OUTPUT);
+    digitalWrite(config.neopixelData, LOW);
+  }
+
+#if HAS_BATTERY
+  pinMode(VBAT_EN, OUTPUT);
+  digitalWrite(VBAT_EN, LOW);
+  Battery::readVoltage();
+#endif
+
+#if HAS_SD_SLOT
+  pinMode(SD_DETECT, INPUT);
+  hasSdCard = HAS_SD_SLOT && SdCard::probe();
+#endif
 
   Wire.begin((int)SDA_PIN, (int)SCL_PIN, (uint32_t)I2C_CLK);
+  I2C::initI2C(!reinitFromSleep);
 
-  I2C::initI2C();
+  if (I2C::scd30Present()) scd30 = new SCD30(&Wire, model, updateMessage, reinitFromSleep);
+  if (I2C::scd40Present()) scd40 = new SCD40(&Wire, model, updateMessage, reinitFromSleep);
+  if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage, reinitFromSleep);
+  if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage, reinitFromSleep);
+  if (I2C::bme280Present()) bme280 = new BME280(&Wire, model, updateMessage, reinitFromSleep);
+  if (I2C::lcdPresent()
+    && (Power::getRunMode() == RM_FULL
+#if HAS_BATTERY
+      || (config.sleepModeOledLed == SLEEP_OLED_ON_LED_ON || config.sleepModeOledLed == SLEEP_OLED_ON_LED_OFF)
+#endif
+      )) {
+    lcd = new LCD(&Wire, model, reinitFromSleep);
+  }
 
-  if (I2C::scd30Present()) scd30 = new SCD30(&Wire, model, updateMessage);
-  if (I2C::scd40Present()) scd40 = new SCD40(&Wire, model, updateMessage);
-  if (I2C::sps30Present()) sps30 = new SPS_30(&Wire, model, updateMessage);
-  if (I2C::bme680Present()) bme680 = new BME680(&Wire, model, updateMessage);
-  if (I2C::lcdPresent()) lcd = new LCD(&Wire, model);
-
-  if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed);
-  if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber);
-  if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock);
+  if (hasLEDs) trafficLight = new TrafficLight(model, config.redLed, config.yellowLed, config.greenLed, reinitFromSleep);
+  if (hasNeoPixel) neopixel = new Neopixel(model, config.neopixelData, config.neopixelNumber, reinitFromSleep);
+  if (hasFeatherMatrix) featherMatrix = new FeatherMatrix(model, config.featherMatrixData, config.featherMatrixClock, reinitFromSleep);
   if (hasNeopixelMatrix) neopixelMatrix = new NeopixelMatrix(model, config.neopixelMatrixData, config.matrixColumns, config.matrixRows, config.matrixLayout);
-  if (hasHub75) hub75 = new HUB75(model);
+#if defined (HAS_HUB75)
+  hub75 = new HUB75(model);
+#endif
+
+#if HAS_BUZZER
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+  buzzer = new Buzzer(model, BUZZER_PIN, reinitFromSleep);
+#endif
+
   if (hasSdCard) hasSdCard &= SdCard::setup();
 
-  mqtt::setupMqtt(
-    "CO2Monitor",
-    calibrateCo2SensorCallback,
-    setTemperatureOffsetCallback,
-    getTemperatureOffsetCallback,
-    getSPS30AutoCleanInterval,
-    setSPS30AutoCleanInterval,
-    cleanSPS30,
-    getSPS30Status,
-    configChanged);
+  if (Power::getRunMode() == RM_FULL) {
+    mqtt::setupMqtt(
+      "CO2Monitor",
+      calibrateCo2SensorCallback,
+      setTemperatureOffsetCallback,
+      getTemperatureOffsetCallback,
+      getSPS30AutoCleanInterval,
+      setSPS30AutoCleanInterval,
+      cleanSPS30,
+      getSPS30Status,
+      configChanged);
 
-  char msg[128];
-  sprintf(msg, "Reset reason: %u", resetReason);
-  mqtt::publishStatusMsg(msg);
+    char msg[128];
+    sprintf(msg, "Reset reason: %u", resetReason);
+    mqtt::publishStatusMsg(msg);
+  }
 
   if (coredump::checkForCoredump()) {
     coredump::logCoredumpSummary();
     if (hasSdCard) coredump::writeCoredumpToFile();
     mqtt::publishStatusMsg("Found coredump!!");
-    // TODO:
-    // - send coredump via MQTT (on request/always)? Rename file when sent.
-    // - logic when no sd card found - send summary via MQTT? Allow retrieval on request via MQTT?
   }
 
-  xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
-    "mqttLoop",         // name of task
-    8192,               // stack size of task
-    (void*)1,           // parameter of the task
-    2,                  // priority of the task
-    &mqtt::mqttTask,    // task handle
-    0);                 // CPU core
+  Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680, bme280);
 
-  xTaskCreatePinnedToCore(OTA::otaLoop,  // task function
-    "otaLoop",          // name of task
-    8192,               // stack size of task
-    (void*)1,           // parameter of the task
-    2,                  // priority of the task
-    &OTA::otaTask,      // task handle
-    1);                 // CPU core
+  if (Power::getRunMode() == RM_FULL) {
+    xTaskCreatePinnedToCore(mqtt::mqttLoop,  // task function
+      "mqttLoop",         // name of task
+      8192,               // stack size of task
+      (void*)1,           // parameter of the task
+      2,                  // priority of the task
+      &mqtt::mqttTask,    // task handle
+      0);                 // CPU core
 
-  Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680);
-  sensorsTask = Sensors::start(
-    "sensorsLoop",      // name of task
-    4096,               // stack size of task
-    2,                  // priority of the task
-    1);                 // CPU core
+    xTaskCreatePinnedToCore(OTA::otaLoop,  // task function
+      "otaLoop",          // name of task
+      8192,               // stack size of task
+      (void*)1,           // parameter of the task
+      2,                  // priority of the task
+      &OTA::otaTask,      // task handle
+      1);                 // CPU core
 
-  if (hasNeopixelMatrix) {
-    neopixelMatrixTask = neopixelMatrix->start(
-      "neopixelMatrixLoop",  // name of task 
-      4096,                  // stack size of task
-      3,                     // priority of the task
-      1);                    // CPU core
+    Sensors::setupSensorsLoop(scd30, scd40, sps30, bme680, bme280);
+    sensorsTask = Sensors::start(
+      "sensorsLoop",      // name of task
+      4096,               // stack size of task
+      2,                  // priority of the task
+      1);                 // CPU core
+
+    if (hasNeopixelMatrix) {
+      neopixelMatrixTask = neopixelMatrix->start(
+        "neopixelMatrixLoop",
+        4096,
+        3,
+        1);
+    }
+
+    wifiManagerTask = WifiManager::start(
+      "wifiManagerLoop",  // name of task
+      8192,               // stack size of task
+      2,                  // priority of the task
+      1);                 // CPU core
+
+
+    housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
+
+    OTA::setupOta(prepareOta, setPriorityMessage, clearPriorityMessage);
+
+    clockTimer.attach(1, showTimeLcd);
   }
+  pinMode(BTN_1, INPUT_PULLUP);
+  attachInterrupt(BTN_1, button1Handler, CHANGE);
 
-  wifiManagerTask = WifiManager::start(
-    "wifiManagerLoop",  // name of task
-    8192,               // stack size of task
-    2,                  // priority of the task
-    1);                 // CPU core
+#if HAS_BTN_2
+  pinMode(BTN_2, INPUT_PULLUP);
+  attachInterrupt(BTN_2, button2Handler, CHANGE);
+#endif
 
-  housekeeping::cyclicTimer.attach(30, housekeeping::doHousekeeping);
+#if HAS_BTN_3
+  pinMode(BTN_3, INPUT_PULLUP);
+  attachInterrupt(BTN_3, button3Handler, CHANGE);
+#endif
 
-  OTA::setupOta(prepareOta, setPriorityMessage, clearPriorityMessage);
-
-  attachInterrupt(BTN_1, buttonHandler, CHANGE);
+#if HAS_BTN_4
+  pinMode(BTN_4, INPUT_PULLUP);
+  attachInterrupt(BTN_4, button4Handler, CHANGE);
+#endif
 
   ESP_LOGI(TAG, "Setup done.");
 #ifdef SHOW_DEBUG_MSGS
@@ -341,24 +499,81 @@ void setup() {
     lcd->updateMessage("Setup done.");
   }
 #endif
+
+  if (!reinitFromSleep && lcd) {
+    char msg[5];
+    snprintf(msg, sizeof(msg), "#%3u", config.deviceId);
+    setLargePriorityMessage(msg);
+    TimerHandle_t timer = xTimerCreate("ClearStatusMsg", pdMS_TO_TICKS(5000), pdFALSE, (void*)0, clearLargePriorityMessage);
+    xTimerStart(timer, 0);
+  }
 }
 
 void loop() {
-  if (buttonState != oldConfirmedButtonState && (millis() - lastBtnDebounceTime) > debounceDelay) {
-    oldConfirmedButtonState = buttonState;
-    if (oldConfirmedButtonState == 1) {
-      lastConfirmedBtnPressedTime = millis();
-    } else if (oldConfirmedButtonState == 0) {
-      uint32_t btnPressTime = millis() - lastConfirmedBtnPressedTime;
-      ESP_LOGD(TAG, "lastConfirmedBtnPressedTime - millis() %u", btnPressTime);
-      if (btnPressTime < 2000) {
-        if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
-        prepareOta();
-        WifiManager::startCaptivePortal();
-      } else if (btnPressTime > 5000) {
-        calibrateCo2SensorCallback(420);
+  if (Power::getRunMode() == RM_LOW) {
+    Timekeeper::printTime();
+    Sensors::runOnce();
+    showTimeLcd();
+    if (HAS_BATTERY) {
+      uint8_t percent = Battery::getBatteryLevelInPercent(model->getVoltageInMv());
+      if (percent < 15) {
+        ESP_LOGI(TAG, ">>>> Battery critial - turning off !");
+        if (HAS_BUZZER && buzzer) buzzer->alert();
+        if (hasNeoPixel && neopixel) neopixel->off();
+        if (scd40) scd40->shutdown();
+        if (bme680) bme680->shutdown();
+        if (bme280) bme280->shutdown();
+        if (hasSdCard) SdCard::unmount();
+        NVS::close();
+        Power::powerDown();
+      }
+    }
+    if (hasNeoPixel && neopixel) neopixel->prepareToSleep();
+    if (hasSdCard) SdCard::unmount();
+    NVS::close();
+    Power::deepSleep(30);
+  }
+  if (button1State != oldConfirmedButton1State && (millis() - lastBtn1DebounceTime) > debounceDelay) {
+    oldConfirmedButton1State = button1State;
+    if (HAS_MENU_BTNS) {
+      if (oldConfirmedButton1State == 1) {
+        Menu::button1Pressed();
+      }
+    } else {
+      if (oldConfirmedButton1State == 1) {
+        lastConfirmedBtn1PressedTime = millis();
+      } else if (oldConfirmedButton1State == 0) {
+        uint32_t btnPressTime = millis() - lastConfirmedBtn1PressedTime;
+        ESP_LOGD(TAG, "lastConfirmedBtn1PressedTime - millis() %u", btnPressTime);
+        if (btnPressTime < 2000) {
+          if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
+          prepareOta();
+          WifiManager::startCaptivePortal();
+        } else if (btnPressTime > 5000) {
+          calibrateCo2SensorCallback(420);
+        }
       }
     }
   }
-  vTaskDelay(pdMS_TO_TICKS(50));
+
+  if (HAS_BTN_2 && button2State != oldConfirmedButton2State && (millis() - lastBtn2DebounceTime) > debounceDelay) {
+    oldConfirmedButton2State = button2State;
+    if (oldConfirmedButton2State == 1) {
+      Menu::button2Pressed();
+    }
+  }
+  if (HAS_BTN_3 && button3State != oldConfirmedButton3State && (millis() - lastBtn3DebounceTime) > debounceDelay) {
+    oldConfirmedButton3State = button3State;
+    if (oldConfirmedButton3State == 1) {
+      Menu::button3Pressed();
+    }
+  }
+  if (HAS_BTN_4 && button4State != oldConfirmedButton4State && (millis() - lastBtn4DebounceTime) > debounceDelay) {
+    oldConfirmedButton4State = button4State;
+    if (oldConfirmedButton4State == 1) {
+      Menu::button4Pressed();
+    }
+  }
+
+  vTaskDelay(pdMS_TO_TICKS(5));
 }

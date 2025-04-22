@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "ConfigManager";
 
 Config config;
 
@@ -32,6 +32,7 @@ Config config;
   "iaqRedThreshold": 200,
   "iaqDarkRedThreshold": 300,
   "brightness": 255,
+  "buzzerMode": 1,
   "ssd1306Rows": 64,
   "greenLed": 27,
   "yellowLed": 26,
@@ -44,19 +45,7 @@ Config config;
   "matrixColumns": 12,
   "matrixRows": 5,
   "matrixLayout": 0,
-  "hub75R1": 15,
-  "hub75G1": 2,
-  "hub75B1": 4,
-  "hub75R2": 16,
-  "hub75G2": 12,
-  "hub75B2": 17,
-  "hub75ChA": 5,
-  "hub75ChB": 18,
-  "hub75ChC": 19,
-  "hub75ChD": 14,
-  "hub75Clk": 27,
-  "hub75Lat": 26,
-  "hub75Oe": 25
+  "sleepModeOledLed": 0
 }
 */
 
@@ -84,8 +73,8 @@ Config config;
 #define DEFAULT_YELLOW_LED                26
 #define DEFAULT_RED_LED                   25
 // 16
-#define DEFAULT_NEOPIXEL_DATA              0
-#define DEFAULT_NEOPIXEL_NUMBER            3
+#define DEFAULT_NEOPIXEL_DATA              NEO_DATA
+#define DEFAULT_NEOPIXEL_NUMBER            NEO_NUMBER
 // 14
 #define DEFAULT_NEOPIXEL_MATRIX_DATA       0
 // 27
@@ -94,28 +83,29 @@ Config config;
 #define DEFAULT_MATRIX_COLUMNS            12
 #define DEFAULT_MATRIX_ROWS                5
 #define DEFAULT_MATRIX_LAYOUT              0
-// 15
-#define DEFAULT_HUB75_R1                   0
-#define DEFAULT_HUB75_G1                   2
-#define DEFAULT_HUB75_B1                   4
-#define DEFAULT_HUB75_R2                  16
-#define DEFAULT_HUB75_G2                  12
-#define DEFAULT_HUB75_B2                  17
-#define DEFAULT_HUB75_CH_A                 5
-#define DEFAULT_HUB75_CH_B                18
-#define DEFAULT_HUB75_CH_C                19
-#define DEFAULT_HUB75_CH_D                14
-#define DEFAULT_HUB75_CLK                 27
-#define DEFAULT_HUB75_LAT                 26
-#define DEFAULT_HUB75_OE                  25
+#define DEFAULT_BUZZER_MODE               BUZ_LVL_CHANGE
+#define DEFAULT_SLEEP_MODE_OLED_LED       SLEEP_OLED_ON_LED_ON
 
 std::vector<ConfigParameterBase<Config>*> configParameterVector;
+
+const char* BUZZER_MODE_STRINGS[] = {
+  "Buzzer off",
+  "Buzzer when level changes",
+  "Buzzer always on",
+};
+
+const char* SLEEP_MODE_OLED_LED_STRINGS[] = {
+    "Display on, LED on",
+    "Display on, LED off",
+    "Display off, LED on",
+    "Display off, LED off"
+};
 
 void setupConfigManager() {
   if (!LittleFS.begin(true)) {
     ESP_LOGW(TAG, "LittleFS failed! Already tried formatting.");
+    vTaskDelay(pdMS_TO_TICKS(100));
     if (!LittleFS.begin()) {
-      delay(100);
       ESP_LOGW(TAG, "LittleFS failed second time!");
     }
   }
@@ -138,6 +128,12 @@ void setupConfigManager() {
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqRedThreshold", "IAQ Red threshold", &Config::iaqRedThreshold, DEFAULT_IAQ_RED_THRESHOLD));
   configParameterVector.push_back(new Uint16ConfigParameter<Config>("iaqDarkRedThreshold", "IAQ Dark red threshold", &Config::iaqDarkRedThreshold, DEFAULT_IAQ_DARK_RED_THRESHOLD));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("brightness", "LED brightness pwm", &Config::brightness, DEFAULT_BRIGHTNESS));
+#if HAS_BUZZER
+  configParameterVector.push_back(new EnumConfigParameter<Config, uint8_t, BuzzerMode>("buzzerMode", "Buzzer mode", &Config::buzzerMode, DEFAULT_BUZZER_MODE, BUZZER_MODE_STRINGS, BUZ_OFF, BUZ_ALWAYS));
+#endif
+#if HAS_BATTERY
+  configParameterVector.push_back(new EnumConfigParameter<Config, uint8_t, SleepModeOledLed>("sleepModeOledLed", "Display/LEDs sleep mode", &Config::sleepModeOledLed, SLEEP_OLED_ON_LED_ON, SLEEP_MODE_OLED_LED_STRINGS, SLEEP_OLED_ON_LED_ON, SLEEP_OLED_OFF_LED_OFF));
+#endif
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("ssd1306Rows", "SSD1306 rows", &Config::ssd1306Rows, DEFAULT_SSD1306_ROWS, 32, 64, true));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("greenLed", "Green Led pin", &Config::greenLed, DEFAULT_GREEN_LED, true));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("yellowLed", "Yellow Led pin", &Config::yellowLed, DEFAULT_YELLOW_LED, true));
@@ -150,19 +146,6 @@ void setupConfigManager() {
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixColumns", "Matrix columns", &Config::matrixColumns, DEFAULT_MATRIX_COLUMNS, true));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixRows", "Matrix rows", &Config::matrixRows, DEFAULT_MATRIX_ROWS, true));
   configParameterVector.push_back(new Uint8ConfigParameter<Config>("matrixLayout", "Matrix layout", &Config::matrixLayout, DEFAULT_MATRIX_LAYOUT, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R1", "Hub75 R1 pin", &Config::hub75R1, DEFAULT_HUB75_R1, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G1", "Hub75 G1 pin", &Config::hub75G1, DEFAULT_HUB75_G1, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B1", "Hub75 B1 pin", &Config::hub75B1, DEFAULT_HUB75_B1, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75R2", "Hub75 R2 pin", &Config::hub75R2, DEFAULT_HUB75_R2, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75G2", "Hub75 G2 pin", &Config::hub75G2, DEFAULT_HUB75_G2, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75B2", "Hub75 B2 pin", &Config::hub75B2, DEFAULT_HUB75_B2, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChA", "Hub75 Channel A pin", &Config::hub75ChA, DEFAULT_HUB75_CH_A, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChB", "Hub75 Channel B pin", &Config::hub75ChB, DEFAULT_HUB75_CH_B, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChC", "Hub75 Channel C pin", &Config::hub75ChC, DEFAULT_HUB75_CH_C, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75ChD", "Hub75 Channel D pin", &Config::hub75ChD, DEFAULT_HUB75_CH_D, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Clk", "Hub75 Clk pin", &Config::hub75Clk, DEFAULT_HUB75_CLK, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Lat", "Hub75 Lat pin", &Config::hub75Lat, DEFAULT_HUB75_LAT, true));
-  configParameterVector.push_back(new Uint8ConfigParameter<Config>("hub75Oe", "Hub75 Oe pin", &Config::hub75Oe, DEFAULT_HUB75_OE, true));
 }
 
 std::vector<ConfigParameterBase<Config>*> getConfigParameters() {
@@ -258,4 +241,21 @@ void printFile() {
 
   // Close the file
   file.close();
+}
+
+BuzzerMode getBuzzerModeFromUint(uint8_t buzzerMode) {
+  switch (buzzerMode) {
+    case 1: return BUZ_LVL_CHANGE;
+    case 2: return BUZ_ALWAYS;
+    default: return BUZ_OFF;
+  }
+}
+
+SleepModeOledLed getSleepModeOledLedFromUint(uint8_t mode) {
+  switch (mode) {
+    case 1: return SLEEP_OLED_ON_LED_OFF;
+    case 2: return SLEEP_OLED_OFF_LED_ON;
+    case 3: return SLEEP_OLED_OFF_LED_OFF;
+    default: return SLEEP_OLED_ON_LED_ON;
+  }
 }

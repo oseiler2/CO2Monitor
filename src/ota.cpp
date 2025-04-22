@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include <config.h>
+#include <version.h>
 #include <mqtt.h>
 #include <ota.h>
 #include <LittleFS.h>
@@ -10,7 +10,7 @@
 #include <Update.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "OTA";
 
 namespace OTA {
 

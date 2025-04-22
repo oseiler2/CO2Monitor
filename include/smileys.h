@@ -1,3 +1,5 @@
+#pragma once
+
 // 'smiley_green', 32x32px, colur green: 0x0fc0
 const unsigned char smiley_green_bitmap[] PROGMEM = {
   0b00000000, 0b00000000, 0b00000000, 0b00000000, 

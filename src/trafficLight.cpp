@@ -1,7 +1,7 @@
 #include <trafficLight.h>
 #include <configManager.h>
 
-TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, uint8_t _pinGreen) {
+TrafficLight::TrafficLight(Model* _model, uint8_t _pinRed, uint8_t _pinYellow, uint8_t _pinGreen, boolean reinitFromSleep) {
   this->model = _model;
   this->pinRed = _pinRed;
   this->pinYellow = _pinYellow;

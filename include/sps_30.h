@@ -1,7 +1,5 @@
-#ifndef _SPS30_H
-#define _SPS30_H
+#pragma once
 
-#include <Arduino.h>
 #include <globals.h>
 #include <config.h>
 #include <callbacks.h>
@@ -11,7 +9,7 @@
 
 class SPS_30 {
 public:
-  SPS_30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback);
+  SPS_30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean initFromSleep);
   ~SPS_30();
 
   boolean readSps30();
@@ -30,5 +28,3 @@ private:
   boolean checkError(uint16_t error, char const* msg);
   static void sps30Loop(void* pvParameters);
 };
-
-#endif

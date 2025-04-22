@@ -1,5 +1,4 @@
-#ifndef _OTA_H
-#define _OTA_H
+#pragma once
 
 #include <globals.h>
 #include <callbacks.h>
@@ -13,5 +12,4 @@ namespace OTA {
   void otaLoop(void* pvParameters);
   void forceUpdate(char* url);
 }
-
-#endif
+#pragma once

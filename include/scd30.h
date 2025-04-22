@@ -1,7 +1,5 @@
-#ifndef _SCD30_H
-#define _SCD30_H
+#pragma once
 
-#include <Arduino.h>
 #include <globals.h>
 #include <config.h>
 #include <callbacks.h>
@@ -11,7 +9,7 @@
 
 class SCD30 {
 public:
-  SCD30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback);
+  SCD30(TwoWire* pwire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean initFromSleep);
   ~SCD30();
 
   boolean readScd30();
@@ -32,4 +30,4 @@ private:
   static void scd30Loop(void* pvParameters);
 };
 
-#endif
+#pragma once

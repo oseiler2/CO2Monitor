@@ -1,7 +1,15 @@
 import subprocess
 import time
 import os
+import os.path
 import re
+from SCons.Script import DefaultEnvironment
+
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
 
 branch = "?"
 tag = "?"
@@ -68,8 +76,35 @@ if clean != "":
   version += "-" + ts
 
 # print build flags
-print("'-DAPP_TAG=\"{0}\"'".format(tag))
-print("'-DAPP_VERSION=\"{0}\"'".format(version))
-print("'-DSRC_REVISION=\"{0}\"'".format(commit))
-print("'-DSRC_BRANCH=\"{0}\"'".format(branch))
-print("'-DBUILD_TIMESTAMP=\"{0}\"'".format(ts))
+print("APP_TAG=\"{0}\"".format(tag))
+print("APP_VERSION=\"{0}\"".format(version))
+print("SRC_REVISION=\"{0}\"".format(commit))
+print("SRC_BRANCH=\"{0}\"".format(branch))
+print("BUILD_TIMESTAMP=\"{0}\"".format(ts))
+
+# get platformio environment variables
+env = DefaultEnvironment()
+env.Append(APP_VERSION = version)
+env.Append(BUILD_TIMESTAMP = ts)
+config = configparser.ConfigParser()
+config.read("platformio.ini")
+
+# get platformio source path
+srcdir = env.get("PROJECT_SRC_DIR")
+
+print ("PROJECT_SRC_DIR: " + srcdir)
+
+# check if lmic config file is present in source directory
+versionconstants = config.get("env", "versionconstants")
+versionconstantsfile = os.path.join (srcdir, "../include", versionconstants)
+
+if os.path.exists(versionconstantsfile):
+  os.remove(versionconstantsfile)
+f = open(versionconstantsfile, "x")
+f.write('#define APP_TAG         "{0}"\n'.format(tag))
+f.write('#define APP_VERSION     "{0}"\n'.format(version))
+f.write('#define SRC_REVISION    "{0}"\n'.format(commit))
+f.write('#define SRC_BRANCH      "{0}"\n'.format(branch))
+f.write('#define BUILD_TIMESTAMP "{0}"\n'.format(ts))
+
+f.close

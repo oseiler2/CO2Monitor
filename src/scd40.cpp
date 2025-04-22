@@ -1,13 +1,11 @@
-#include <globals.h>
-#include <config.h>
 #include <scd40.h>
-#include <model.h>
 
 #include <i2c.h>
 #include <configManager.h>
+#include <power.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "SCD40";
 
 boolean SCD40::checkError(uint16_t error, char const* msg) {
   if (error != 0) {
@@ -24,61 +22,67 @@ boolean SCD40::checkError(uint16_t error, char const* msg) {
   return true;
 }
 
-SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback) {
+SCD40::SCD40(TwoWire* wire, Model* _model, updateMessageCallback_t _updateMessageCallback, boolean reinitFromSleep) {
   this->model = _model;
   this->updateMessageCallback = _updateMessageCallback;
   this->scd40 = new SensirionI2CScd4x();
+  this->sampleRate = PERIODIC;
   ESP_LOGD(TAG, "Initialising SCD40");
 
   if (!I2C::takeMutex(portMAX_DELAY)) return;
 
   scd40->begin(*wire);
+  if (Power::getRunMode() == RM_LOW) {
+    this->sampleRate = LP_PERIODIC;
+  } else {
+    this->sampleRate = PERIODIC;
+  }
+  if (!reinitFromSleep || Power::getRunMode() == RM_FULL) {
+    // stop potentially previously started measurement
+    checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
 
-  // stop potentially previously started measurement
-  checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
+    vTaskDelay(pdMS_TO_TICKS(500));
 
-  vTaskDelay(pdMS_TO_TICKS(500));
+    /*
+      uint16_t sensorStatus;
+      ESP_LOGD(TAG, "Performing sensor self test...");
+      if (checkError(scd40->performSelfTest(sensorStatus), "performSelfTest")) {
+        if (sensorStatus != 0) {
+          ESP_LOGW(TAG, "Self check error: %x", sensorStatus);
+          //      checkError(scd40->performFactoryReset(), "performFactoryReset");
+        }
+      }
+    */
 
-  /*
-    uint16_t sensorStatus;
-    ESP_LOGD(TAG, "Performing sensor self test...");
-    if (checkError(scd40->performSelfTest(sensorStatus), "performSelfTest")) {
-      if (sensorStatus != 0) {
-        ESP_LOGW(TAG, "Self check error: %x", sensorStatus);
-        //      checkError(scd40->performFactoryReset(), "performFactoryReset");
+    uint16_t serialNo[3];
+    if (checkError(scd40->getSerialNumber(serialNo[0], serialNo[1], serialNo[2]), "getSerialNumber")) {
+      ESP_LOGD(TAG, "SCD40 serial#: %x%x%x", serialNo[0], serialNo[1], serialNo[2]);
+    }
+
+    uint16_t ascEnabled;
+    if (checkError(scd40->getAutomaticSelfCalibration(ascEnabled), "getAutomaticSelfCalibration")) {
+      ESP_LOGD(TAG, "Automatic self-calibration: %u", ascEnabled);
+      if (ascEnabled != 1) {
+        checkError(scd40->setAutomaticSelfCalibration(0x01), "setAutomaticSelfCalibration");
+        checkError(scd40->persistSettings(), "persistSettings");
       }
     }
-  */
 
-  uint16_t serialNo[3];
-  if (checkError(scd40->getSerialNumber(serialNo[0], serialNo[1], serialNo[2]), "getSerialNumber")) {
-    ESP_LOGD(TAG, "SCD40 serial#: %x%x%x", serialNo[0], serialNo[1], serialNo[2]);
-  }
-
-  uint16_t ascEnabled;
-  if (checkError(scd40->getAutomaticSelfCalibration(ascEnabled), "getAutomaticSelfCalibration")) {
-    ESP_LOGD(TAG, "Automatic self-calibration: %u", ascEnabled);
-    if (ascEnabled != 1) {
-      checkError(scd40->setAutomaticSelfCalibration(0x01), "setAutomaticSelfCalibration");
-      checkError(scd40->persistSettings(), "persistSettings");
+    uint16_t sensor_altitude;
+    if (checkError(scd40->getSensorAltitude(sensor_altitude), "getSensorAltitude")) {
+      if (sensor_altitude != config.altitude) {
+        checkError(scd40->setSensorAltitude(config.altitude), "setSensorAltitude");
+        checkError(scd40->persistSettings(), "persistSettings");
+      }
     }
-  }
 
-  uint16_t sensor_altitude;
-  if (checkError(scd40->getSensorAltitude(sensor_altitude), "getSensorAltitude")) {
-    if (sensor_altitude != config.altitude) {
-      checkError(scd40->setSensorAltitude(config.altitude), "setSensorAltitude");
-      checkError(scd40->persistSettings(), "persistSettings");
+    float temperature_offset;
+    if (checkError(scd40->getTemperatureOffset(temperature_offset), "getTemperatureOffset")) {
+      ESP_LOGD(TAG, "Temperature offset: %.1f", temperature_offset);
     }
-  }
 
-  float temperature_offset;
-  if (checkError(scd40->getTemperatureOffset(temperature_offset), "getTemperatureOffset")) {
-    ESP_LOGD(TAG, "Temperature offset: %.1f", temperature_offset);
+    startMeasurement();
   }
-
-  // Start Measurement
-  checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
   I2C::giveMutex();
   ESP_LOGD(TAG, "SCD40 initialised");
 }
@@ -87,11 +91,58 @@ SCD40::~SCD40() {
   if (this->scd40) delete scd40;
 }
 
+boolean SCD40::startMeasurement() {
+  if (this->sampleRate == PERIODIC) {
+    return checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
+  } else if (this->sampleRate == LP_PERIODIC) {
+    return checkError(scd40->startLowPowerPeriodicMeasurement(), "startLowPowerPeriodicMeasurement");
+  }
+  return false;
+}
+
+void SCD40::shutdown() {
+  if (this->scd40) {
+    if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
+    boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
+    success = checkError(scd40->powerDown(), "powerDown");
+    I2C::giveMutex();
+  }
+}
+
+boolean SCD40::setSampleRate(SCD40SampleRate _sampleRate) {
+  // ESP_LOGD(TAG, "SCD40::setSampleRate()");
+  if (this->sampleRate != _sampleRate) {
+    this->sampleRate = _sampleRate;
+    if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return false;
+    boolean success = checkError(scd40->stopPeriodicMeasurement(), "stopPeriodicMeasurement");
+    if (!success) {
+      I2C::giveMutex();
+      ESP_LOGD(TAG, "failed to setSampleRate");
+      return false;
+    }
+    success = startMeasurement();
+    if (!success) {
+      I2C::giveMutex();
+      ESP_LOGD(TAG, "failed to setSampleRate");
+      return false;
+    }
+    I2C::giveMutex();
+  }
+  // ESP_LOGD(TAG, "done");
+  return true;
+}
+
 uint32_t SCD40::getInterval() {
-  return 5;
+  switch (sampleRate) {
+    case PERIODIC: return 5;
+    case LP_PERIODIC: return 30;
+    default:
+      return 0;
+  }
 }
 
 boolean SCD40::readScd40() {
+  //  ESP_LOGD(TAG, "SCD40::readScd40()");
 #ifdef SHOW_DEBUG_MSGS
   this->updateMessageCallback("readScd40");
 #endif
@@ -150,7 +201,7 @@ boolean SCD40::calibrateScd40ToReference(uint16_t co2Reference) {
     return false;
   }
   ESP_LOGD(TAG, "co2Reference: %u, frcCorrection %u", co2Reference, frcCorrection);
-  success = checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
+  success = startMeasurement();
   I2C::giveMutex();
   return success;
 }
@@ -172,7 +223,7 @@ float SCD40::getTemperatureOffset() {
     return false;
   }
   ESP_LOGD(TAG, "getTemperatureOffset: %.1f", temperatureOffset);
-  success = checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
+  success = startMeasurement();
   I2C::giveMutex();
   return temperatureOffset;
 }
@@ -200,7 +251,7 @@ boolean SCD40::setTemperatureOffset(float temperatureOffset) {
     }
   }
   ESP_LOGD(TAG, "setTemperatureOffset: %.1f", temperatureOffset);
-  success = checkError(scd40->startPeriodicMeasurement(), "startPeriodicMeasurement");
+  success = startMeasurement();
   I2C::giveMutex();
   return success;
 }

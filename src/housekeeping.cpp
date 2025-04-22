@@ -1,10 +1,13 @@
 #include <housekeeping.h>
 #include <mqtt.h>
 #include <ota.h>
+#include <sensors.h>
+#include <power.h>
+#include <battery.h>
 #include <wifiManager.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Housekeeping";
 
 namespace housekeeping {
   Ticker cyclicTimer;
@@ -34,6 +37,27 @@ namespace housekeeping {
         ESP.getMinFreeHeap(), ESP.getFreeHeap());
       Serial.flush();
       esp_restart();
+    }
+    if (HAS_BATTERY) {
+      Battery::readVoltage();
+      switch (Power::getRunMode()) {
+        case RM_FULL:
+          if (!Battery::usbPowerPresent() && Battery::getBatteryLevelInPercent(Battery::getBatteryLevelInmV()) < 50) {
+            ESP_LOGI(TAG, "Switching to Battery power!");
+            // TODO: check against menu driven sleep action re callouts to scd40 and deepsleep
+            Power::setRunMode(RM_LOW);
+          }
+          break;
+        case RM_LOW:
+          /*          if (Battery::usbPowerPresent()) {
+                      ESP_LOGI(TAG, "Switching to USB power!");
+                      Power::setRunMode(RM_FULL);
+                      // @TODO: might need reboot to properly initialise everything
+                    }*/
+          break;
+        default:
+          break;
+      }
     }
   }
 

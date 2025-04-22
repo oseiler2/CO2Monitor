@@ -1,8 +1,6 @@
-#ifndef _NEOPIXEL_MATRIX_H
-#define _NEOPIXEL_MATRIX_H
+#pragma once
 
 #include <globals.h>
-#include <Arduino.h>
 #include <model.h>
 #include <Adafruit_NeoMatrix.h>
 
@@ -115,6 +113,3 @@ private:
   const static uint16_t TEXT_TIMER_INTERVAL = 500;
 
 };
-
-#endif
-

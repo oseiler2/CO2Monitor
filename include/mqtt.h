@@ -1,5 +1,4 @@
-#ifndef _MQTT_H
-#define _MQTT_H
+#pragma once
 
 #include <globals.h>
 #include <ArduinoJson.h>
@@ -25,6 +24,7 @@ namespace mqtt {
     getSPS30StatusCallback_t getSPS30StatusCallback,
     configChangedCallback_t configChangedCallback
   );
+  void shutDownMqtt();
 
   void publishSensors(DynamicJsonDocument* _payload);
   void publishConfiguration();
@@ -35,5 +35,3 @@ namespace mqtt {
 
   extern TaskHandle_t mqttTask;
 }
-
-#endif

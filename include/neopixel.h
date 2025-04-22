@@ -1,8 +1,6 @@
-#ifndef _NEOPIXEL_H
-#define _NEOPIXEL_H
+#pragma once
 
 #include <globals.h>
-#include <Arduino.h>
 #include <model.h>
 #include <Adafruit_NeoPixel.h>
 
@@ -10,10 +8,11 @@
 
 class Neopixel {
 public:
-  Neopixel(Model* model, uint8_t pin, uint8_t numPixel);
+  Neopixel(Model* model, uint8_t pin, uint8_t numPixel, boolean initFromSleep);
   ~Neopixel();
 
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
+  void prepareToSleep();
   void off();
 
 private:
@@ -31,5 +30,3 @@ private:
   uint32_t colourPurple;
   uint32_t colourOff;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _LOGGING_H
-#define _LOGGING_H
+#pragma once
 
 #include <Arduino.h>
 
@@ -75,5 +74,3 @@ namespace logging {
 #define log_d(format, ...) logging::decorateLog(ESP_LOG_DEBUG, pathToFileName(__FILE__), __LINE__, __FUNCTION__, "", format, ##__VA_ARGS__)
 #define log_v(format, ...) logging::decorateLog(ESP_LOG_VERBOSE, pathToFileName(__FILE__), __LINE__, __FUNCTION__, "", format, ##__VA_ARGS__)
 }
-
-#endif

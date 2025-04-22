@@ -1,10 +1,7 @@
-#include <globals.h>
-#include <logging.h>
-
 #include <wifiManager.h>
 #include <html.h>
-#include <config.h>
 #include <configManager.h>
+#include <version.h>
 
 #include <base64.h>
 #include <esp_wifi.h>
@@ -36,7 +33,7 @@
 #endif
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "WifiManager";
 
 namespace WifiManager {
 
@@ -94,7 +91,7 @@ namespace WifiManager {
   AsyncWebServer server(HTTP_PORT);
   AsyncEventSource events("/events");
 
-  volatile uint8_t wifiDisconnected = 1;
+  volatile uint8_t wifiDisconnected = 0;
   uint32_t lastWifiReconnectAttempt = 0;
   uint32_t lastWifiDisconnect = 0;
 
@@ -198,7 +195,6 @@ namespace WifiManager {
 
     if (keepCaptivePortalActive) startCaptivePortal();
 
-    // TODO: filebrowser for portable monitor? https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
     // TODO: OTA, plus OTA status updates => https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
     events.onConnect(eventsOnConnect);
     if (strlen(PORTAL_USER) > 0 && strlen(PORTAL_PW) > 0) events.setAuthentication(PORTAL_USER, PORTAL_PW);
@@ -222,7 +218,12 @@ namespace WifiManager {
     server.begin();
     logging::addOnLogCallback(logCallback);
 
+#if CONFIG_IDF_TARGET_ESP32
     improvSerial.setDeviceInfo(ImprovTypes::ChipFamily::CF_ESP32, appName, APP_VERSION, getSSID().c_str(), "");
+#elif CONFIG_IDF_TARGET_ESP32S3
+    improvSerial.setDeviceInfo(ImprovTypes::ChipFamily::CF_ESP32_S3, appName, APP_VERSION, getSSID().c_str(), "");
+#endif
+
     improvSerial.onImprovError(onImprovWiFiErrorCb);
     improvSerial.onImprovConnected(onImprovWiFiConnectedCb);
     improvSerial.setCustomConnectWiFi(improvConnectWifi);

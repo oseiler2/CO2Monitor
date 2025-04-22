@@ -1,10 +1,9 @@
 #include <coredump.h>
 #include <sd_card.h>
-#include <logging.h>
 #include <sys/stat.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "Coredump";
 
 namespace coredump {
 

@@ -1,15 +1,17 @@
 #include <fileDataLogger.h>
+#include <config.h>
+#include <battery.h>
 
 #include <FS.h>
 #include <LittleFS.h>
 #include <sys/stat.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "FileDataLogger";
 
 namespace FileDataLogger {
 
-  boolean writeEvent(const char* mountPoint, int16_t mask, Model* model, TrafficLightStatus status) {
+  boolean writeEvent(const char* mountPoint, int16_t mask, Model* model, TrafficLightStatus status, uint16_t batInMV) {
     time_t now;
     struct tm timeinfo;
     FILE* f;
@@ -36,14 +38,14 @@ namespace FileDataLogger {
   //    ESP_LOGD(TAG, "File doesn't exist - creating");
       f = fopen(fileName, FILE_WRITE);
       // write headers
-      fprintf(f, "time(DD/MM/YYYY HH:MM:SS),co2(ppm),temperature(°C),humidity(%%rH),iaq,pressure(hPa),trafficlight,battery(%%)\n");
+      fprintf(f, "time(DD/MM/YYYY HH:MM:SS),co2(ppm),temperature(°C),humidity(%%rH),iaq,pressure(hPa),trafficlight,battery(%%),battery(mV)\n");
     }
     if (f == NULL) {
       ESP_LOGE(TAG, "Failed to open file %s for writing", fileName);
       return false;
     }
 
-//    strftime(buf, 30, "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
+    //    strftime(buf, 30, "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
     strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &timeinfo);
     fprintf(f, "%s,", buf);
     if (mask & M_CO2)
@@ -68,6 +70,14 @@ namespace FileDataLogger {
       fprintf(f, ",");
     if (status != OFF)
       fprintf(f, "%u,", status);
+    else
+      fprintf(f, ",");
+    if (HAS_BATTERY && batInMV > 1000)
+      fprintf(f, "%u,", Battery::getBatteryLevelInPercent(batInMV));
+    else
+      fprintf(f, ",");
+    if (HAS_BATTERY && batInMV > 1000)
+      fprintf(f, "%u,", batInMV);
     else
       fprintf(f, ",");
     fprintf(f, "\n");

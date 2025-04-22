@@ -1,5 +1,4 @@
-#ifndef _TIMEKEEPER_H
-#define _TIMEKEEPER_H
+#pragma once
 
 #include <globals.h>
 
@@ -9,5 +8,3 @@ namespace Timekeeper {
   void printTime();
   boolean isSynchronised();
 }
-
-#endif

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <logging.h>
 #include <globals.h>
-#include <Arduino.h>
 #include <config.h>
 #include <stdio.h>
 #include <esp_core_dump.h>

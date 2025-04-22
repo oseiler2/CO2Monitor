@@ -1,14 +1,13 @@
-#ifndef _HUB75_H
-#define _HUB75_H
+#pragma once
 
-#include <Arduino.h>
 #include <globals.h>
 #include <config.h>
 #include <model.h>
 #include <Ticker.h>
 
-#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
+#if defined (HAS_HUB75)
 
+#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 
 class HUB75 {
 public:

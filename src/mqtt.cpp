@@ -1,5 +1,5 @@
 #include <mqtt.h>
-#include <Arduino.h>
+#include <version.h>
 #include <config.h>
 
 #include <PubSubClient.h>
@@ -15,7 +15,7 @@
 #include <coredump.h>
 
 // Local logging tag
-static const char TAG[] = __FILE__;
+static const char TAG[] = "MQTT";
 
 namespace mqtt {
 
@@ -33,6 +33,8 @@ namespace mqtt {
 
   TaskHandle_t mqttTask;
   QueueHandle_t mqttQueue;
+
+  volatile boolean shutdownInProgress = false;
 
   WiFiClient* wifiClient;
   PubSubClient* mqtt_client;
@@ -59,7 +61,7 @@ namespace mqtt {
   }
 
   void publishSensors(DynamicJsonDocument* _payload) {
-    if (!WiFi.isConnected() || !mqtt_client->connected()) {
+    if (!WiFi.isConnected() || !mqtt_client->connected() || shutdownInProgress) {
       delete _payload;
       return;
     }
@@ -158,6 +160,8 @@ namespace mqtt {
       doc["scd40"] = true;
     if (I2C::bme680Present())
       doc["bme680"] = true;
+      if (I2C::bme280Present())
+      doc["bme280"] = true;
     if (I2C::lcdPresent())
       doc["lcd"] = true;
     if (I2C::sps30Present()) {
@@ -432,7 +436,7 @@ namespace mqtt {
   }
 
   void reconnect() {
-    if (!WiFi.isConnected() || mqtt_client->connected()) return;
+    if (!WiFi.isConnected() || mqtt_client->connected() || shutdownInProgress) return;
     if (millis() - lastReconnectAttempt < 60000) return;
     if (strncmp(config.mqttHost, "127.0.0.1", MQTT_HOSTNAME_LEN) == 0 ||
       strncmp(config.mqttHost, "localhost", MQTT_HOSTNAME_LEN) == 0) return;
@@ -516,36 +520,68 @@ namespace mqtt {
     //    logging::addOnLogCallback(logCallback);
   }
 
+  void shutDownMqtt() {
+    ESP_LOGD(TAG, "shutDownMqtt");
+    if (mqttQueue) {
+      MqttMessage msg;
+      msg.cmd = X_CMD_SHUTDOWN;
+      xQueueSendToFront(mqttQueue, (void*)&msg, pdMS_TO_TICKS(100));
+      while (!shutdownInProgress) {
+        vTaskDelay(pdMS_TO_TICKS(50));
+      }
+      mqttQueue = NULL;
+    }
+    if (mqtt_client && mqtt_client->connected()) {
+      char buf[256];
+      sprintf(buf, "%s/%u/up/status", config.mqttTopic, config.deviceId);
+      mqtt_client->publish(buf, "{\"online\":false}");
+      sprintf(buf, "%s/%u/down/#", config.mqttTopic, config.deviceId);
+      mqtt_client->unsubscribe(buf);
+      sprintf(buf, "%s/down/#", config.mqttTopic);
+      mqtt_client->unsubscribe(buf);
+      mqtt_client->disconnect();
+    }
+    if (mqttTask) {
+      vTaskDelete(mqttTask);
+    }
+    ESP_LOGD(TAG, "done");
+  }
+
   void mqttLoop(void* pvParameters) {
     _ASSERT((uint32_t)pvParameters == 1);
     lastReconnectAttempt = millis() - 60000;
     BaseType_t notified;
     MqttMessage msg;
     while (1) {
-      notified = xQueuePeek(mqttQueue, &msg, pdMS_TO_TICKS(100));
-      if (notified == pdPASS) {
-        if (mqtt_client->connected()) {
-          if (msg.cmd == X_CMD_PUBLISH_CONFIGURATION) {
-            if (publishConfigurationInternal()) {
+      if (mqttQueue && !shutdownInProgress) {
+        notified = xQueuePeek(mqttQueue, &msg, pdMS_TO_TICKS(100));
+        if (notified == pdPASS && !shutdownInProgress) {
+          if (mqtt_client->connected()) {
+            if (msg.cmd == X_CMD_PUBLISH_CONFIGURATION) {
+              if (publishConfigurationInternal()) {
+                xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
+              }
+            } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
+              // don't keep measurements in the queue should they fail to be published
+              publishSensorsInternal(msg);
               xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
-            }
-          } else if (msg.cmd == X_CMD_PUBLISH_SENSORS) {
-            // don't keep measurements in the queue should they fail to be published
-            publishSensorsInternal(msg);
-            xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
-          } else if (msg.cmd == X_CMD_PUBLISH_STATUS_MSG) {
-            // keep status messages in the queue should they fail to be published
-            if (publishStatusMsgInternal(msg.statusMessage, true)) {
-              xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
+            } else if (msg.cmd == X_CMD_PUBLISH_STATUS_MSG) {
+              // keep status messages in the queue should they fail to be published
+              if (publishStatusMsgInternal(msg.statusMessage, true)) {
+                xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
+              }
             } else if (msg.cmd == X_CMD_SEND_COREDUMP) {
               if (sendCoreDumpInternal()) {}
               // always remove from Queue
               xQueueReceive(mqttQueue, &msg, pdMS_TO_TICKS(100));
             }
           }
+          if (msg.cmd == X_CMD_SHUTDOWN) {
+            shutdownInProgress = true;
+          }
         }
       }
-      if (!mqtt_client->connected()) {
+      if (!mqtt_client->connected() && !shutdownInProgress) {
         reconnect();
       }
       mqtt_client->loop();
