@@ -234,9 +234,9 @@ namespace Power {
     disableRtcHold((gpio_num_t)BUZZER_PIN);
 #endif
 
-#ifdef LED_PIN
-    disableRtcHold((gpio_num_t)LED_PIN);
-#endif
+    if (LED_PIN >= 0) {
+      disableRtcHold((gpio_num_t)LED_PIN);
+    }
 
     enableGpioPullDn(GPIO_NUM_35);    // GPIO SUBSPID
     enableGpioPullDn(GPIO_NUM_36);    // GPIO SUBSPICLK
@@ -283,9 +283,9 @@ namespace Power {
     digitalWrite(NEO_23_EN, LOW);
     setGpioSleepPullMode((gpio_num_t)NEO_23_EN, GPIO_PULLDOWN_ONLY);
 #endif
-#ifdef LED_PIN
-    digitalWrite(LED_PIN, LOW);
-#endif
+    if (LED_PIN >= 0) {
+      digitalWrite(LED_PIN, LOW);
+    }
 
 #if HAS_BUZZER
     digitalWrite(BUZZER_PIN, LOW);
@@ -319,9 +319,9 @@ namespace Power {
     setGpioSleepPullMode((gpio_num_t)BUZZER_PIN, GPIO_PULLDOWN_ONLY);
 #endif
 
-#ifdef LED_PIN    
-    enableRtcHold((gpio_num_t)LED_PIN);
-#endif
+    if (LED_PIN >= 0) {
+      enableRtcHold((gpio_num_t)LED_PIN);
+    }
 
 #if HAS_BATTERY
     setGpioSleepPullMode((gpio_num_t)VBAT_EN, GPIO_PULLDOWN_ONLY);

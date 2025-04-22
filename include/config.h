@@ -7,9 +7,18 @@
 #define OTA_APP               "co2monitor"
 //#define OTA_POLL
 
+#if not defined (LED_PIN)
+#define LED_PIN             (-1)
+#endif
 
 #if not defined (SCD30_RDY_PIN)
 #define SCD30_RDY_PIN       (-1)
+#endif
+
+#if defined (BTN_1)
+#define HAS_BTN_1            (1)
+#else
+#define HAS_BTN_1            (0)
 #endif
 
 #if defined (BTN_2)
@@ -28,6 +37,12 @@
 #define HAS_BTN_4            (1)
 #else
 #define HAS_BTN_4            (0)
+#endif
+
+#if HAS_BTN_1 && HAS_BTN_2 && HAS_BTN_3 && HAS_BTN_4
+#define HAS_MENU_BTNS        (1)
+#else
+#define HAS_MENU_BTNS        (0)
 #endif
 
 #if defined (VBAT_EN) && defined (VBAT_ADC)

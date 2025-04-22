@@ -69,6 +69,7 @@ const uint32_t debounceDelay = 50;
 volatile uint32_t lastBtn1DebounceTime = 0;
 volatile uint8_t button1State = 0;
 uint8_t oldConfirmedButton1State = 0;
+uint32_t lastConfirmedBtn1PressedTime = 0;
 volatile uint32_t lastBtn2DebounceTime = 0;
 volatile uint8_t button2State = 0;
 uint8_t oldConfirmedButton2State = 0;
@@ -321,10 +322,10 @@ void setup() {
   }
 #endif
 
-#ifdef LED_PIN
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
-#endif
+  if (LED_PIN >= 0) {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH);
+  }
 
   if (hasNeoPixel) {
     pinMode(config.neopixelData, OUTPUT);
@@ -495,8 +496,24 @@ void loop() {
   }
   if (button1State != oldConfirmedButton1State && (millis() - lastBtn1DebounceTime) > debounceDelay) {
     oldConfirmedButton1State = button1State;
-    if (oldConfirmedButton1State == 1) {
-      Menu::button1Pressed();
+    if (HAS_MENU_BTNS) {
+      if (oldConfirmedButton1State == 1) {
+        Menu::button1Pressed();
+      }
+    } else {
+      if (oldConfirmedButton1State == 1) {
+        lastConfirmedBtn1PressedTime = millis();
+      } else if (oldConfirmedButton1State == 0) {
+        uint32_t btnPressTime = millis() - lastConfirmedBtn1PressedTime;
+        ESP_LOGD(TAG, "lastConfirmedBtn1PressedTime - millis() %u", btnPressTime);
+        if (btnPressTime < 2000) {
+          if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
+          prepareOta();
+          WifiManager::startCaptivePortal();
+        } else if (btnPressTime > 5000) {
+          calibrateCo2SensorCallback(420);
+        }
+      }
     }
   }
 

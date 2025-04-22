@@ -82,9 +82,9 @@ namespace Menu {
   void startAPAction(uint8_t selection) {
     ESP_LOGI(TAG, "startAPAction %u", selection);
     if (Power::getRunMode() == RM_FULL) {
-#ifdef LED_PIN
-      digitalWrite(LED_PIN, LOW);
-#endif
+      if (LED_PIN >= 0) {
+        digitalWrite(LED_PIN, LOW);
+      }
       prepareOta();
       WifiManager::startCaptivePortal();
     }
