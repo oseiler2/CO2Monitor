@@ -21,6 +21,7 @@ static const char TAG[] = "OLED";
 
 LCD::LCD(TwoWire* _wire, Model* _model, boolean reinitFromSleep) {
   priorityMessageActive = false;
+  largePriorityMessageActive = false;
   menuActive = false;
   this->model = _model;
   display = new Adafruit_SSD1306(128, config.ssd1306Rows, _wire, -1, 800000, I2C_CLK);
@@ -94,6 +95,33 @@ void LCD::clearPriorityMessage() {
   I2C::giveMutex();
 }
 
+void LCD::setLargePriorityMessage(char const* msg) {
+  if (this->menuActive) return;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
+  this->largePriorityMessageActive = true;
+  this->display->writeFillRect(0, line1_y, 128, line_height * 3, SSD1306_BLACK);
+  this->display->setTextSize(1);
+  if (config.ssd1306Rows == 32) {
+    this->display->setFont(FONT_32);
+    this->display->setCursor(4, 22);
+  } else {
+    this->display->setFont(FONT_64);
+    this->display->setCursor(4, 46);
+  }
+  this->display->printf("%-4s", msg);
+  this->display->display();
+  I2C::giveMutex();
+}
+
+void LCD::clearLargePriorityMessage() {
+  if (this->menuActive) return;
+  if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
+  this->display->writeFillRect(0, line1_y, 128, line_height * 3, SSD1306_BLACK);
+  this->display->display();
+  this->largePriorityMessageActive = false;
+  I2C::giveMutex();
+}
+
 void LCD::showMenu(char const* heading, char const* selection) {
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
   this->display->writeFillRect(0, 0, 120, config.ssd1306Rows, SSD1306_BLACK);
@@ -134,7 +162,7 @@ void LCD::quitMenu() {
 }
 
 void LCD::update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
-  if (this->menuActive) return;
+  if (this->menuActive || this->largePriorityMessageActive) return;
   if (!I2C::takeMutex(I2C_MUTEX_DEF_WAIT)) return;
 
   // see if only CO2 sensor is present

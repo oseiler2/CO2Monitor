@@ -136,6 +136,25 @@ void clearPriorityMessage() {
   }
 }
 
+void setLargePriorityMessage(char const* msg) {
+  if (lcd) {
+    lcd->setLargePriorityMessage(msg);
+  }
+}
+
+void clearLargePriorityMessage() {
+  if (lcd) {
+    lcd->clearLargePriorityMessage();
+  }
+}
+
+void clearLargePriorityMessage(TimerHandle_t xTimer) {
+  if (xTimer != nullptr) {
+    clearLargePriorityMessage();
+    xTimerDelete(xTimer, 0);
+  }
+}
+
 void modelUpdatedEvt(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus) {
   if (lcd) {
     if (((I2C::bme680Present() && bme680) || (I2C::bme280Present() && bme280)) && (mask & M_CO2)) {
@@ -478,6 +497,14 @@ void setup() {
     lcd->updateMessage("Setup done.");
   }
 #endif
+
+  if (!reinitFromSleep && lcd) {
+    char msg[5];
+    snprintf(msg, sizeof(msg), "#%3u", config.deviceId);
+    setLargePriorityMessage(msg);
+    TimerHandle_t timer = xTimerCreate("ClearStatusMsg", pdMS_TO_TICKS(5000), pdFALSE, (void*)0, clearLargePriorityMessage);
+    xTimerStart(timer, 0);
+  }
 }
 
 void loop() {

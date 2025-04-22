@@ -15,6 +15,8 @@ public:
   void update(uint16_t mask, TrafficLightStatus oldStatus, TrafficLightStatus newStatus);
   void setPriorityMessage(char const* msg);
   void clearPriorityMessage();
+  void setLargePriorityMessage(char const* msg);
+  void clearLargePriorityMessage();
 
   void showMenu(char const* heading, char const* selection);
   void quitMenu();
@@ -25,6 +27,7 @@ private:
   Adafruit_SSD1306* display;
 
   boolean priorityMessageActive;
+  boolean largePriorityMessageActive;
   boolean menuActive;
 
   uint8_t status_y;
