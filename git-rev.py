@@ -66,21 +66,23 @@ except:
 if branch != "main" and branch != "HEAD":
   version += "-[" + branch + "]"
 
-# check if clean
-try:
-  subprocess.run("git restore include/version.h")
-except:
-  print("ignoring exception")
-
-try:
-  clean = subprocess.check_output("git status -uno --porcelain", shell=True).decode().strip()
-except:
-  clean = ""
-
 ts = time.strftime('%Y%m%d%H%M%S')
-# if not clean append timestamp
-if clean != "":
-  version += "-" + ts
+
+if GITHUB_REF is None:
+  # check if clean
+  try:
+    subprocess.run("git restore include/version.h")
+  except:
+    print("ignoring exception")
+
+  try:
+    clean = subprocess.check_output("git status -uno --porcelain", shell=True).decode().strip()
+  except:
+    clean = ""
+
+  # if not clean append timestamp
+  if clean != "":
+    version += "-" + ts
 
 # print build flags
 print("APP_TAG=\"{0}\"".format(tag))
