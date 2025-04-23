@@ -67,7 +67,11 @@ if branch != "main" and branch != "HEAD":
   version += "-[" + branch + "]"
 
 # check if clean
-subprocess.run("git restore include/version.h")
+try:
+  subprocess.run("git restore include/version.h")
+except:
+  print("ignoring exception")
+
 try:
   clean = subprocess.check_output("git status -uno --porcelain", shell=True).decode().strip()
 except:
