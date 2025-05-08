@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="66mm" height="66mm" viewBox="0 0 66 66" transform="scale (1, 1)" transform-origin="center">
+<g>
+<path d="M 6 0 
+         h 54
+         a 6 6 0 0 1 6 6
+         v 54
+         a 6 6 0 0 1 -6 6
+         h -54
+         a 6 6 0 0 1 -6 -6
+         v -54
+         a 6 6 0 0 1 6 -6
+         Z" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+
+
+
+
+ <circle cx="6" cy="6" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+ <circle cx="60" cy="6" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+ <circle cx="6" cy="60" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+ <circle cx="60" cy="60" r="1.55" stroke="red" fill="transparent" style="stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;fill:none" />
+
+</g>
+
+</svg>
+
+<!--
+
+<style>
+    .small { font: italic 5px sans-serif; }
+  </style>
+
+<text x="6" y="6" class="small">(6,6)</text>
+<text x="60" y="6" class="small">(60,6)</text>
+<text x="6" y="60" class="small">(6,60)</text>
+<text x="60" y="60" class="small">(60,60)</text>
+
+-->
+
+

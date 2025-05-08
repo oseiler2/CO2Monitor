@@ -36,7 +36,11 @@ These CO2 monitors have been tested in collaboration with researchers from the p
 
 # PCBs
 
-There are now 2 new PCB designs, one for SMD components and another one solely using easy to solder through-hole components.
+There are now 3 different PCB designs:
+
+- easy to solder only using through-hole components
+- ESP32 Devkit and additional SMD components
+- latest model optimised for factory assembly (PCBA) with smaller size and ESP32-S3 mcu
 
 ## Through hole version
 
@@ -66,6 +70,27 @@ There are now 2 new PCB designs, one for SMD components and another one solely u
 - optional USB-B connector to power the monitor
 
 ![](img/SMD-Neopixel.jpg)
+
+## PCBA factory assembled version
+
+- ESP32-S3 WROOM
+- SCD4x NDIR CO2 sensor
+- BME280 pressure, temperature and humidity sensor
+- 128x64 0.96 inch OLED display
+- 4 Neopixels (WS2812B 5050)
+- I2C JST-PH connector for additional connectivity (e.g. SPS30 particulate matter sensor)
+- USB-C connector for power and programming
+
+### resources:
+
+- [gerbers](pcb/CO2%20Monitor%20V0.1%20PCBA/grbr/CO2_Monitor_v0.1.zip)
+- [bom](pcb/CO2%20Monitor%20V0.1%20PCBA/grbr/bom.csv)
+- [pos](pcb/CO2%20Monitor%20V0.1%20PCBA/grbr/positions.csv)
+- [Kicad project](pcb/CO2%20Monitor%20V0.1%20PCBA/CO2%20Monitor%20V0.1%20PCBA.zip)
+- [case](pcb/CO2%20Monitor%20V0.1%20PCBA/Case%20v0.1.STL)
+- [front panel](pcb/CO2%20Monitor%20V0.1%20PCBA/panel%2066mm.svg)
+
+![](pcb/CO2%20Monitor%20V0.1%20PCBA/img/green.jpg)
 
 ## First generation
 
