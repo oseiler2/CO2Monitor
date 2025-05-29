@@ -283,7 +283,7 @@ void logCoreInfo() {
 Ticker clockTimer;
 
 void showTimeLcd() {
-  if (lcd) {
+  if (lcd && Timekeeper::isSynchronised()) {
     time_t now;
     struct tm timeinfo;
     time(&now);
