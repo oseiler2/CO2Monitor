@@ -17,6 +17,11 @@ namespace coredump {
   boolean checkForCoredump() {
     esp_err_t err = esp_core_dump_image_check();
     if (err == ESP_ERR_NOT_FOUND) return false;
+    if (err == ESP_ERR_INVALID_CRC) {
+      ESP_LOGD(TAG, "Error checking coredump (%s) - trying to erase", esp_err_to_name(err));
+      eraseCoredump();
+      err = esp_core_dump_image_check();
+    }
     if (err != ESP_OK) {
       ESP_LOGD(TAG, "Error checking coredump (%s)", esp_err_to_name(err));
     }
