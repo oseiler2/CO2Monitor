@@ -156,6 +156,8 @@ fieldset {
 )";
 
   const char options_footer[] PROGMEM = R"(
+            <br>
+            <a href="https://github.com/oseiler2/CO2Monitor" target="_blank">Documentation</a>
           </div>
         </fieldset>
       </div>
