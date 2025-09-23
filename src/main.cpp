@@ -320,7 +320,7 @@ void setup() {
 
   coredump::init();
 
-  Timekeeper::init();
+  Timekeeper::init(reinitFromSleep);
 
   if (Power::getRunMode() == RM_FULL) {
     sntp_servermode_dhcp(1); // needs to be set before Wifi connects and gets DHCP IP

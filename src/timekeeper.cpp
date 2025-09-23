@@ -12,7 +12,7 @@ static const char TAG[] = "Timekeeper";
 
 namespace Timekeeper {
 
-  boolean synchronised = false;
+  RTC_NOINIT_ATTR boolean synchronised = false;
 
   void printTime() {
     time_t now;
@@ -24,9 +24,13 @@ namespace Timekeeper {
     ESP_LOGI(TAG, "The current date/time in NZ is: %s", strftime_buf);
   }
 
-  void init() {
+  void init(boolean wakeFromDeepSleep) {
     setenv("TZ", "NZST-12NZDT,M9.5.0,M4.1.0/3", 1);
     tzset();
+    if (!wakeFromDeepSleep) {
+      // set false on cold start, leave unchanges when waking up from sleep
+      synchronised = false;
+    }
   }
 
   void syncNotificationCallback(timeval* tv) {

@@ -3,7 +3,7 @@
 #include <globals.h>
 
 namespace Timekeeper {
-  void init();
+  void init(boolean wakeFromDeepSleep);
   void initSntp();
   void printTime();
   boolean isSynchronised();
