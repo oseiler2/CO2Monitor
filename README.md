@@ -25,6 +25,7 @@ These CO2 monitors have been tested in collaboration with researchers from the p
 - [Ministry of Education Indoor Air Quality and Thermal Comfort](https://assets.education.govt.nz/public/Documents/Primary-Secondary/Property/Design/Indoor-Air-Quality-and-Thermal-Comfort-V2-v2.0-2022.pdf)
 - [What size particle is important to transmission of COVID-19?](https://www.aerosol.mech.ubc.ca/what-size-particle-is-important-to-transmission/)
 - [Comparison of Low-Cost Particulate Matter Sensors for Indoor Air Monitoring during COVID-19 Lockdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7766947/pdf/sensors-20-07290.pdf)
+- Kawaiicon 2025 [WIRED: This Hacker Conference Installed a Literal Antivirus Monitoring System](https://www.wired.com/story/this-hacker-conference-installed-a-literal-anti-virus-monitoring-system/) [archived](https://archive.is/H7TGe#selection-703.0-703.71)
 
 # Sections
 
