@@ -54,7 +54,7 @@ namespace WifiManager {
   bool keepCaptivePortalActive;
   bool captivePortalActiveWhenNotConnected;
 
-  const uint32_t WIFI_SCAN_REUSE = 30 * 000;          // if a Wifi scan was done more recent that this it'll be used, otherwise a new scan triggered
+  const uint32_t WIFI_SCAN_REUSE = 30 * 1000;         // if a Wifi scan was done more recently than this it'll be used, otherwise a new scan triggered
   const uint32_t WIFI_SCAN_TIMEOUT = 3000;            // when a Wifi scan was started and doesn't lead to a WIFI_EVENT_SCAN_DONE event it'll be discarded
   const uint32_t WIFI_DISCONNECT_TIMEOUT = 10000;     // if captivePortalActiveWhenNotConnected is set and the STA connection is lost the captive portal wil be started after this delay
   const uint32_t CAPTIVE_PORTAL_TIMEOUT_S = 300;      // if the captive portal was started manually it'll be stopped again after this delay
@@ -91,7 +91,7 @@ namespace WifiManager {
   AsyncWebServer server(HTTP_PORT);
   AsyncEventSource events("/events");
 
-  volatile uint8_t wifiDisconnected = 0;
+  volatile uint8_t wifiDisconnected = 1;
   uint32_t lastWifiReconnectAttempt = 0;
   uint32_t lastWifiDisconnect = 0;
 
@@ -187,15 +187,17 @@ namespace WifiManager {
     configChangedCallback = _configChangedCallback;
     calibrateCo2SensorCallback = _calibrateCo2SensorCallback;
 
-    // TODO: only if Wifi is configured
-    WiFi.mode(WIFI_MODE_STA);
+    if (getStoredWiFiSsid() != "") {
     ESP_LOGD(TAG, "Turning on Wifi, ssid: %s", getStoredWiFiSsid());
+      WiFi.mode(WIFI_MODE_STA);
+    } else {
+      WiFi.mode(WIFI_MODE_NULL);
+    }
     lastWifiReconnectAttempt = millis();
     WiFi.begin();
 
     if (keepCaptivePortalActive) startCaptivePortal();
 
-    // TODO: OTA, plus OTA status updates => https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
     events.onConnect(eventsOnConnect);
     if (strlen(PORTAL_USER) > 0 && strlen(PORTAL_PW) > 0) events.setAuthentication(PORTAL_USER, PORTAL_PW);
     server.addHandler(&events);
@@ -369,7 +371,10 @@ namespace WifiManager {
   }
 
   void logCallback(int level, const char* tag, const char* message) {
+    try {
     events.send(message, "log", millis());
+  }
+    catch (std::exception& ex) {}
   }
 
   void eventsOnConnect(AsyncEventSourceClient* client) {
@@ -382,6 +387,7 @@ namespace WifiManager {
 
   void handleRoot(AsyncWebServerRequest* request) {
     ESP_LOGI(TAG, "handleRoot");
+    if (!authenticate(request)) return;
     String page = FPSTR(html::options_header);
     page.replace("{id}", getSSID());
     if (getStoredWiFiSsid() != "") {
@@ -411,6 +417,7 @@ namespace WifiManager {
     ESP_LOGI(TAG, "handleLogs");
     if (!authenticate(request)) return;
     AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), FPSTR(html::logs));
+    response->addHeader(F(html::header_cache_control), FPSTR("max-age=604800")); // max-age=604800 = 1 week
     response->addHeader(FPSTR(html::header_access_control_allow_origin), FPSTR(html::cors_asterix));
     request->send(response);
   }
@@ -455,7 +462,7 @@ namespace WifiManager {
         parameterHtml += FPSTR(html::config_parameter_select_end);
       } else {
         parameterHtml = FPSTR(html::config_parameter);
-        char defaultValue[configParameter->getMaxStrLen()];
+        char defaultValue[configParameter->getMaxStrLen() + 1];
         configParameter->print(config, defaultValue);
         parameterHtml.replace("{v}", defaultValue);
       }
@@ -532,10 +539,8 @@ namespace WifiManager {
     ESP_LOGD(TAG, "Save Wifi: %s", request->arg("s").c_str());
     if (!authenticate(request)) return;
 
-    strncpy(ssid, request->arg("s").c_str(), MAX_SSID_LEN);
-    ssid[MAX_SSID_LEN] = 0x00;
-    strncpy(password, request->arg("p").c_str(), MAX_PW_LEN);
-    password[MAX_PW_LEN] = 0x00;
+    strlcpy(ssid, request->arg("s").c_str(), MAX_SSID_LEN + 1);
+    strlcpy(password, request->arg("p").c_str(), MAX_PW_LEN + 1);
 
     String page;
     page += FPSTR(html::wifi_saved);
@@ -564,6 +569,8 @@ namespace WifiManager {
     } else {
       page += F("No network configured.");
     }
+    page += F("<br><br>Version ");
+    page += APP_VERSION;
   }
 
   void resetSettings() {
@@ -638,7 +645,7 @@ namespace WifiManager {
     const char* pw = AP_PW;
     if (pw != NULL) {
       if (strlen(pw) < 8 || strlen(pw) > 63) {
-        ESP_LOGE(TAG, "Invalid AccessPoint password. Ignoring");
+        ESP_LOGI(TAG, "Invalid AccessPoint password. Ignoring");
         pw = NULL;
       }
     }
@@ -676,10 +683,11 @@ namespace WifiManager {
       return;
     }
 
-    AsyncWebServerResponse* response = request->beginResponse(302, html::content_type_plain, "");
-    response->addHeader("Location", "/");
-    response->addHeader(FPSTR(html::header_cache_control), FPSTR(html::cache_control_no_cache));
-    request->send(response);
+    if (strcmp(request->url().c_str(), "/favicon.ico") == 0) {
+      request->send(404);
+    } else {
+      request->redirect("/");
+    }
   }
 
   uint8_t rssiToPercentage(int rssi) {
@@ -708,24 +716,17 @@ namespace WifiManager {
         ESP_LOGI(TAG, "handleScan - after scan");
       }
     }
-    String page = F("[");
-    for (int i = 0;i < numberOfFoundWiFis;i++) {
-      if (!foundWiFis[i].duplicate) {
-        if (i != 0) page += F(", ");
-        String item = "{\"ssid\":\"{v}\", \"enc\":\"{i}\", \"rssi\":\"{r}\"}";
-        item.replace("{v}", foundWiFis[i].SSID);
-        char buf[6] = { 0 };
-        snprintf(buf, 5, "%u", rssiToPercentage(foundWiFis[i].RSSI));
-        item.replace("{r}", buf);
-        snprintf(buf, 2, "%d", foundWiFis[i].encryptionType);
-        item.replace("{i}", buf);
-        page += item;
-      }
-    }
-    page += F("]");
-    AsyncWebServerResponse* response = request->beginResponse(200, html::content_type_json, page);
+    AsyncResponseStream* response = request->beginResponseStream(html::content_type_json);
     response->addHeader(FPSTR(html::header_cache_control), FPSTR(html::cache_control_no_cache));
     response->addHeader(FPSTR(html::header_access_control_allow_origin), FPSTR(html::cors_asterix));
+    response->print("[");
+    for (int i = 0;i < numberOfFoundWiFis;i++) {
+      if (!foundWiFis[i].duplicate) {
+        if (i != 0) response->print(", ");
+        response->printf("{\"ssid\":\"%s\", \"enc\":\"%d\", \"rssi\":\"%u\"}", foundWiFis[i].SSID, foundWiFis[i].encryptionType, rssiToPercentage(foundWiFis[i].RSSI));
+      }
+    }
+    response->print("]");
     request->send(response);
   }
 
@@ -871,13 +872,16 @@ namespace WifiManager {
           WiFi.setAutoReconnect(true);
         }
       } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        if (wifiDisconnected == 0) {
+          // only disconnect if there was a connection in the first place
+          lastWifiDisconnect = millis();
+        }
         wifiDisconnected = 1;
         if (LED_PIN >= 0) digitalWrite(LED_PIN, LOW);
-        lastWifiDisconnect = millis();
         wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
         ESP_LOGD(TAG, "STA Disconnected: ssid: %s, reason: %s", event->ssid, reason2str(event->reason));
 
-        if (event->reason == 15) {
+        if (event->reason == 15 || event->reason == 201) {
           WiFi.setAutoReconnect(false);
         }
 
@@ -885,8 +889,11 @@ namespace WifiManager {
         wifi_event_sta_scan_done_t* event = (wifi_event_sta_scan_done_t*)event_data;
         ESP_LOGD(TAG, "Scan done: id: %u, status: %u, results: %u", event->scan_id, event->status, event->number);
         numberOfFoundWiFis = event->number;
-        if (wifiManagerTask)
-          xTaskNotify(wifiManagerTask, X_CMD_WIFI_SCAN_DONE, eSetBits);
+        if (wifiManagerTask) {
+          BaseType_t higherPriorityTaskWoken;
+          xTaskNotifyFromISR(wifiManagerTask, X_CMD_WIFI_SCAN_DONE, eSetBits, &higherPriorityTaskWoken);
+          portYIELD_FROM_ISR(higherPriorityTaskWoken);
+        }
       } else {
         //          ESP_LOGD(TAG, "eventHandler WIFI_EVENT %u", event_id);
       }
@@ -907,9 +914,13 @@ namespace WifiManager {
   */
 
   void stopCaptivePortal() {
-    if (keepCaptivePortalActive) return;
+    if (keepCaptivePortalActive || !captivePortalActive) return;
+    boolean result = captivePortalMutex != NULL && (xSemaphoreTake(captivePortalMutex, pdMS_TO_TICKS(500)) == pdTRUE);
+    if (!result) {
+      ESP_LOGE(TAG, "Failed to obtain captivePortal mutex");
+      return;
+    }
     captivePortalActive = false;
-    clearPriorityMessageCallback();
     if (dnsServer) {
       ESP_LOGD(TAG, "Stopping and deleting dnsServer");
       dnsServer->stop();
@@ -917,12 +928,13 @@ namespace WifiManager {
       dnsServer = nullptr;
     }
     WiFi.mode(WIFI_MODE_STA);
+    xSemaphoreGive(captivePortalMutex);
+    clearPriorityMessageCallback();
   }
 
   void handleReboot(AsyncWebServerRequest* request) {
     if (!authenticate(request)) return;
-    AsyncWebServerResponse* response = request->beginResponse(200, FPSTR(html::content_type_html), FPSTR(html::reboot));
-    request->send(response);
+    request->redirect("/");
     delay(1000);
     esp_restart();
   }
@@ -965,23 +977,22 @@ namespace WifiManager {
         if (dnsServer) {
           dnsServer->processNextRequest();
         }
-        if (!keepCaptivePortalActive && (!wifiDisconnected || !captivePortalActiveWhenNotConnected || !(lastWifiDisconnect - millis() > WIFI_DISCONNECT_TIMEOUT))) {
+        if (!keepCaptivePortalActive && (!wifiDisconnected || !captivePortalActiveWhenNotConnected || !(millis() - lastWifiDisconnect > WIFI_DISCONNECT_TIMEOUT))) {
           if (millis() - captivePortalTimeout > (uint32_t)(CAPTIVE_PORTAL_TIMEOUT_S * 1000)) {
             ESP_LOGD(TAG, "Captive portal timed out - stopping");
             stopCaptivePortal();
           }
         }
       } else {
-        if (wifiDisconnected && captivePortalActiveWhenNotConnected && (lastWifiDisconnect - millis() > WIFI_DISCONNECT_TIMEOUT)) {
+        if (wifiDisconnected && captivePortalActiveWhenNotConnected && (millis() - lastWifiDisconnect > WIFI_DISCONNECT_TIMEOUT)) {
           startCaptivePortal();
         }
-        if (wifiDisconnected == 1 && !WiFi.isConnected() && WiFi.getMode() == WIFI_MODE_STA) {
-          /*
+      }
+      if (wifiDisconnected == 1 && !WiFi.isConnected() && (WiFi.getMode() & WIFI_MODE_STA != 0)) {
           if (millis() - lastWifiReconnectAttempt >= 60000) {
             ESP_LOGD(TAG, "WiFi.begin()");
             WiFi.begin();
             lastWifiReconnectAttempt = millis();
-          }*/
         }
       }
       if (wifiScanActive && (millis() - lastWifiScan > 5000)) {
