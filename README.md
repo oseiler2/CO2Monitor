@@ -90,6 +90,7 @@ There are now 3 different PCB designs:
 - [Kicad project](pcb/CO2%20Monitor%20V0.1%20PCBA/CO2%20Monitor%20V0.1%20PCBA.zip)
 - [case](pcb/CO2%20Monitor%20V0.1%20PCBA/Case%20v0.1.STL)
 - [front panel](pcb/CO2%20Monitor%20V0.1%20PCBA/panel%2066mm.svg)
+- solder jig for oled [stl](pcb/CO2%20Monitor%20V0.1%20PCBA/OLED-solder-jig.STL) [jpg](pcb/CO2%20Monitor%20V0.1%20PCBA/OLED-solder-jig.jpg)
 
 ![](pcb/CO2%20Monitor%20V0.1%20PCBA/img/green.jpg)
 
