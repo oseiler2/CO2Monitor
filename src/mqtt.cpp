@@ -55,8 +55,7 @@ namespace mqtt {
 
   char* cloneStr(const char* original) {
     char* copy = (char*)malloc(strlen(original) + 1);
-    strncpy(copy, original, strlen(original));
-    copy[strlen(original)] = 0x00;
+    strlcpy(copy, original, strlen(original + 1));
     return copy;
   }
 
@@ -171,8 +170,8 @@ namespace mqtt {
     }
 
     for (ConfigParameterBase<Config>* configParameter : getConfigParameters()) {
-      if (!(strncmp(configParameter->getId(), "deviceId", strlen(buf)) == 0)
-        && !(strncmp(configParameter->getId(), "mqttPassword", strlen(buf)) == 0))
+      if (!(strncmp(configParameter->getId(), "deviceId", strlen("deviceId")) == 0)
+        && !(strncmp(configParameter->getId(), "mqttPassword", strlen("mqttPassword")) == 0))
         configParameter->toJson(config, &doc);
     }
 

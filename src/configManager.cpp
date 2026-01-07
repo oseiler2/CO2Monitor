@@ -160,7 +160,11 @@ void getDefaultConfiguration(Config& _config) {
 
 void logConfiguration(const Config _config) {
   for (ConfigParameterBase<Config>* configParameter : configParameterVector) {
+    if (strncmp(configParameter->getId(), "mqttPassword", strlen("mqttPassword")) == 0) {
+      ESP_LOGD(TAG, "%s: *****", configParameter->getId());
+    } else {
     ESP_LOGD(TAG, "%s: %s", configParameter->getId(), configParameter->toString(_config).c_str());
+    }
   }
 }
 
