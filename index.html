@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta http-equiv="refresh" content="1; URL='https://oseiler.codeberg.page/CO2Monitor/'" /> 
     <meta charset="utf-8" />
     <title>CO2 Monitor installer</title>
     <meta
@@ -75,38 +76,14 @@
         }
       }
     </style>
-    <script type="module" src="https://unpkg.com/esp-web-tools@9/dist/web/install-button.js?module"></script>
   </head>
   <body>
     <div class="content">
       <div class="container">
         <h1>CO2 Monitor installer</h1>
         <br>
-        <p>Please connect your device via USB, select a firmware below and click the connect button.</p>
-        <br>
-        <esp-web-install-button id="esp-install-btn" manifest="" onclick="b()"></esp-web-install-button>
-        <br>
-        <br>
-        <label for="release">latest stable release</label>
-        <input type="radio" id="release" name="fw-version" checked manifest="manifest-latest-release.json">
-        <br>
-        <label for="latest-dev">latest development version</label>
-        <input type="radio" id="latest-dev" name="fw-version"manifest="manifest-latest-dev.json">
+        <p>This page has moved. Please update your links to <a href="https://oseiler.codeberg.page/CO2Monitor/">oseiler.codeberg.page/CO2Monitor/</a></p>
         <br>
       </div>
-
-
-      <div class="footer">
-        <a href="https://github.com/oseiler2/CO2Monitor">CO2 Monitor</a
-        > &mdash;
-        Installer powered by <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a>.
-    </div>
-    <script>
-      function b() {
-        const manifest = document.querySelector('input[name="fw-version"]:checked').getAttribute('manifest');
-        document.getElementById('esp-install-btn').setAttribute('manifest', manifest);
-        console.log(manifest);
-      }
-    </script>
   </body>
 </html>
