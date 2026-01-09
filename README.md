@@ -1,3 +1,7 @@
+# This repository has been moved and will no longer be updated
+
+Please update your links to [codeberg.org/oseiler/CO2Monitor](https://codeberg.org/oseiler/CO2Monitor)
+
 # CO2 and Air Quality Monitor
 
 **ESP32 DevKit (30pin) or Feather based**
